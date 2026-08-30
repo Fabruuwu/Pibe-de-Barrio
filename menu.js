@@ -310,9 +310,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     abrirModalCartas(); 
 
-    // Disparar un evento después de un pequeño delay (cuando cierres las cartas)
-    setTimeout(() => {
-      abrirModalEvento();
-    }, 2500); // Se abre a los 2.5 segundos
   }
 });
