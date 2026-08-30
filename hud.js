@@ -211,31 +211,39 @@ function abrirModalCartas() {
 }
 
 // Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
-function abrirModalEvento() {
-  const evento = generarEvento();
-  const titulo = document.getElementById("evento-titulo");
-  const descripcion = document.getElementById("evento-descripcion");
-  const opcionesDiv = document.getElementById("evento-opciones");
+// Muestra el evento en el contenedor inferior (no modal)
+function mostrarEvento() {
+  const contenedor = document.getElementById("evento-container");
+  if (!contenedor) return;
 
-  titulo.textContent = evento.titulo;
-  descripcion.textContent = evento.descripcion;
-  opcionesDiv.innerHTML = "";
+  const evento = generarEvento();
+  contenedor.innerHTML = `
+    <h3 class="evento-titulo">${evento.titulo}</h3>
+    <p class="evento-descripcion">${evento.descripcion}</p>
+    <div class="evento-opciones"></div>
+  `;
+
+  const opcionesDiv = contenedor.querySelector(".evento-opciones");
 
   evento.opciones.forEach((opcion, index) => {
     const boton = document.createElement("button");
-    boton.className = "modal__boton modal__boton--secundario";
+    boton.className = "evento-opcion";
     boton.textContent = opcion.texto;
     boton.addEventListener("click", () => {
+      // Aplica el efecto
       const mensaje = aplicarEvento(Estado.obtener(), evento, index);
-      pintarHUD(Estado.obtener()); // Actualiza el cariño y stats
-      document.getElementById("modal-evento").hidden = true;
-      // Mostramos un mensaje corto de lo que pasó
-      alert(mensaje); // Puedes reemplazar esto por una notificación más bonita después
+      // Actualiza HUD (cariño, stats, etc.)
+      pintarHUD(Estado.obtener());
+      // Limpia el contenedor (desaparece el evento)
+      contenedor.innerHTML = "";
+      contenedor.hidden = true;
+      // (Opcional: muestra el mensaje de resultado)
+      alert(mensaje);
     });
     opcionesDiv.appendChild(boton);
   });
 
-  document.getElementById("modal-evento").hidden = false;
+  contenedor.hidden = false;
 }
 
 // Vincular el botón del HUD
