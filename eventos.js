@@ -187,6 +187,100 @@ const EVENTOS = [
       { texto: "Llamar a un refugio", efecto: { cariño: +2, mensaje: "Te aseguraste de que el perrito perdido llegara a un refugio seguro antes de entrar a entrenar." } }
     ]
   }
+
+  // ---------- NUEVOS EVENTOS ----------
+
+  // Cancha y Vestuario
+  {
+    id: "pibe_debutante", titulo: "Pibe debutante", descripcion: "Un juvenil entra a jugar su primer partido temblando de los nervios.",
+    opciones: [
+      { texto: "Lo arengás", efecto: { cariño: +5, mensaje: "Apadrinaste al pibe debutante y te ganaste su respeto eterno." } },
+      { texto: "Lo dejás solo", efecto: { cariño: -2, mensaje: "Dejaste que el juvenil se curta solo con la presión." } }
+    ]
+  },
+  {
+    id: "cabala_extrema", titulo: "Cábala extrema", descripcion: "El arquero te pide que uses las medias al revés para no mufar al equipo.",
+    opciones: [
+      { texto: "Aceptás", efecto: { cariño: +2, mensaje: "Respetaste la insólita cábala del vestuario por el bien del equipo." } },
+      { texto: "Te negás", efecto: { cariño: -1, mensaje: "Rompiste la cábala sagrada; por suerte no perdieron." } }
+    ]
+  },
+  {
+    id: "sin_agua_caliente", titulo: "Sin agua caliente", descripcion: "Es pleno invierno y se rompe la caldera del vestuario.",
+    opciones: [
+      { texto: "Bañarte igual", efecto: { cariño: +3, mensaje: "Te bañaste con agua helada demostrando una rudeza total." } },
+      { texto: "Irte así nomás", efecto: { cariño: -1, mensaje: "Huiste del vestuario sin bañarte para no congelarte." } }
+    ]
+  },
+
+  // Vida Personal
+  {
+    id: "vecino_ruidoso", titulo: "Vecino ruidoso", descripcion: "Hay una fiesta al lado de tu casa la noche previa al clásico.",
+    opciones: [
+      { texto: "Llamar a la policía", efecto: { cariño: +1, mensaje: "Priorizaste tu descanso y dormiste excelente." } },
+      { texto: "Ir a quejarte", efecto: { cariño: +3, mensaje: "Fuiste a pedir silencio y terminaste sacándote fotos a las 3 AM." } }
+    ]
+  },
+  {
+    id: "el_mangazo", titulo: "El mangazo", descripcion: "Un amigo de la infancia te pide 20 entradas gratis para toda su familia.",
+    opciones: [
+      { texto: "Las pagás", efecto: { cariño: +4, mensaje: "Bancaste a tu barrio pagando una fortuna en entradas." } },
+      { texto: "Le das solo 2", efecto: { cariño: 0, mensaje: "Pusiste límites firmes a los pedidos de tu entorno." } }
+    ]
+  },
+  {
+    id: "auto_pinchado", titulo: "Auto pinchado", descripcion: "Se te pincha una rueda yendo a entrenar.",
+    opciones: [
+      { texto: "Cambiarla vos", efecto: { cariño: +2, mensaje: "Llegaste a horario pero con las manos llenas de grasa." } },
+      { texto: "Pedir grúa", efecto: { cariño: -1, mensaje: "Llegaste tarde a la práctica pero con la ropa impecable." } }
+    ]
+  },
+
+  // Prensa y Redes
+  {
+    id: "el_meme", titulo: "El meme", descripcion: "Hacés una cara rara en un partido y te volvés un meme viral.",
+    opciones: [
+      { texto: "Compartirlo", efecto: { cariño: +3, mensaje: "Te reíste de vos mismo en redes y la gente amó tu humildad." } },
+      { texto: "Enojarte", efecto: { cariño: -2, mensaje: "Te quejaste del meme y solo lograste que lo usen el doble." } }
+    ]
+  },
+  {
+    id: "canje_bizarro", titulo: "Canje bizarro", descripcion: "Una carnicería te manda 50 kilos de asado a tu casa a cambio de publicidad.",
+    opciones: [
+      { texto: "Grabar el video", efecto: { cariño: +2, mensaje: "Te convertiste en el ídolo indiscutido de la carnicería local." } },
+      { texto: "Donarlo todo", efecto: { cariño: +5, mensaje: "Donaste la comida a un comedor barrial en total silencio." } }
+    ]
+  },
+  {
+    id: "fake_news", titulo: "Fake News", descripcion: "Un periodista inventa que te peleaste a gritos con el DT.",
+    opciones: [
+      { texto: "Desmentir rápido", efecto: { cariño: +2, mensaje: "Saliste a apagar el incendio mediático de inmediato." } },
+      { texto: "Ignorarlo", efecto: { cariño: 0, mensaje: "Dejaste que el chimento muera solo ignorando a la prensa." } }
+    ]
+  },
+
+  // La Hinchada
+  {
+    id: "el_invasor", titulo: "El invasor", descripcion: "Un nene esquiva la seguridad y corre a abrazarte en medio del partido.",
+    opciones: [
+      { texto: "Abrazarlo", efecto: { cariño: +6, mensaje: "Le cumpliste el sueño al pibe antes de que lo saquen." } },
+      { texto: "Alejarte", efecto: { cariño: -2, mensaje: "Dejaste que los de seguridad hagan su trabajo sin meterte." } }
+    ]
+  },
+  {
+    id: "tatuaje_epico", titulo: "Tatuaje épico", descripcion: "Un fanático te muestra que se tatuó tu firma gigante en el brazo.",
+    opciones: [
+      { texto: "Remarcarlo con fibrón", efecto: { cariño: +4, mensaje: "Inmortalizaste tu nombre en la piel de un fanático." } },
+      { texto: "Solo agradecer", efecto: { cariño: +1, mensaje: "Fuiste cordial pero mantuviste tu distancia." } }
+    ]
+  },
+  {
+    id: "el_plateista", titulo: "El plateísta", descripcion: "Un hincha en la primera fila te grita barbaridades todo el primer tiempo.",
+    opciones: [
+      { texto: "Hacerle un gesto", efecto: { cariño: -1, mensaje: "Te cruzaste feo con la platea y el clima quedó tenso." } },
+      { texto: "Mirarlo tras un gol", efecto: { cariño: +5, mensaje: "Le respondiste a las críticas haciendo lo que mejor sabés." } }
+    ]
+  },
 ];
 
 // Genera un evento aleatorio

@@ -75,10 +75,8 @@ function generarCarta() {
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
-    // Puntos actualizados
-    puntos = rareza === "comun" ? numeroAleatorio(1, 2) : numeroAleatorio(2, 4);
+    puntos = rareza === "comun" ? numeroAleatorio(2, 3) : numeroAleatorio(4, 5);
   } else if (rareza === "dorada") {
-    // 80% una stat, 20% dos stats
     if (Math.random() < 0.8) {
       const mejora = elegirAleatorio(MEJORAS_1_STAT);
       stats = [mejora.stat];
@@ -90,34 +88,24 @@ function generarCarta() {
       nombre = mejora.nombre;
       desc = mejora.desc;
     }
-    puntos = numeroAleatorio(4, 5);
-  } else { // leyenda
+    puntos = numeroAleatorio(6, 8);
+  } else {
     const mejora = elegirAleatorio(MEJORAS_2_STATS);
     stats = mejora.stats;
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = numeroAleatorio(6, 8);
+    puntos = numeroAleatorio(9, 11);
   }
 
-  return {
-    rareza: rareza,
-    stats: stats,
-    puntos: puntos,
-    nombre: nombre,
-    desc: desc,
-  };
+  return { rareza: rareza, stats: stats, puntos: puntos, nombre: nombre, desc: desc };
 }
-
-// Aplica la carta elegida al jugador
-// ... (todo lo anterior igual)
 
 function aplicarCarta(jugador, carta) {
   const statsActuales = { ...jugador.stats };
   carta.stats.forEach(stat => {
-    statsActuales[stat] = (statsActuales[stat] || 0) + carta.puntos;
+    statsActuales[stat] = Math.min(99, (statsActuales[stat] || 0) + carta.puntos);
   });
 
-  // Recalcular media con solo stats exclusivas
   const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
   let nuevaMedia;
   if (config && config.atributos) {

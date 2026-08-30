@@ -58,11 +58,10 @@ const Estado = (() => {
       const sum = keys.reduce((acc, key) => acc + (stats[key] || 0), 0);
       return Math.round(sum / keys.length);
     }
-    // Fallback: promedio de pegada, velocidad, gambeta (por si no hay config)
+    // Fallback: promedio de pegada, velocidad, gambeta
     return Math.round((stats.pegada + stats.velocidad + stats.gambeta) / 3);
   }
 
-  // NUEVA FÓRMULA DE VALOR
   function calcularValor(media, edad) {
     let mult = 1;
     if (edad >= 15 && edad <= 21) mult = 2;
@@ -127,53 +126,43 @@ const Estado = (() => {
     });
   }
 
-  // NUEVA FUNCIÓN: Avanzar de temporada (suma stats, sube edad, decrementos por edad, +cariño)
   function avanzarTemporada() {
-    // Sumar stats anuales al acumulado
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;
-
-    // Sumar dinero
     jugador.dinero = (jugador.dinero || 0) + (jugador.statsAnuales.dinero || 0);
 
-    // Subir edad y año
     jugador.edad += 1;
     jugador.año += 1;
     jugador.temporada += 1;
 
-    // Aplicar decrementos por edad
+    // Aplicar decrementos por edad (NUEVO ESQUEMA)
     const edad = jugador.edad;
     let resPen = 0;
     let statPen = 0;
-    if (edad >= 30 && edad <= 31) resPen = 1;
-    else if (edad >= 32 && edad <= 34) resPen = 2;
-    else if (edad >= 35 && edad <= 36) resPen = 3;
-    else if (edad >= 37 && edad <= 45) resPen = 4;
+    if (edad >= 30 && edad <= 34) resPen = 1;
+    else if (edad >= 34 && edad <= 42) resPen = 2;
+    else if (edad >= 43 && edad <= 45) resPen = 3;
 
-    if (edad >= 30 && edad <= 32) statPen = 1;
-    else if (edad >= 33 && edad <= 36) statPen = 2;
-    else if (edad >= 37 && edad <= 39) statPen = 3;
-    else if (edad >= 40 && edad <= 45) statPen = 4;
+    if (edad >= 32 && edad <= 37) statPen = 1;
+    else if (edad >= 38 && edad <= 42) statPen = 2;
+    else if (edad >= 43 && edad <= 45) statPen = 3;
 
     // Aplicar a resistencia
     jugador.stats.resistencia = Math.max(0, (jugador.stats.resistencia || 0) - resPen);
 
-    // Aplicar a stats exclusivas según posición
+    // Aplicar a stats exclusivas según posición (limitando a 99)
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
     if (config && config.atributos) {
       config.atributos.forEach(a => {
-        jugador.stats[a.clave] = Math.max(0, (jugador.stats[a.clave] || 0) - statPen);
+        jugador.stats[a.clave] = Math.max(0, Math.min(99, (jugador.stats[a.clave] || 0) - statPen));
       });
     }
 
-    // Recalcular media con nuevas stats
     jugador.media = calcularMedia(jugador.stats, jugador.posicion);
 
-    // +1 cariño por año en el club
     jugador.cariño = Math.min(100, (jugador.cariño || 0) + 1);
 
-    // Resetear stats anuales
     jugador.statsAnuales = {
       partidos: 0,
       goles: 0,
@@ -183,14 +172,12 @@ const Estado = (() => {
     };
     jugador.historialEventos = [];
 
-    // Chequear retiro automático por edad
     if (verificarRetiroAutomatico()) jugador.retirado = true;
 
     guardar();
     return jugador;
   }
 
-  // Probabilidad de retiro según edad
   function verificarRetiroAutomatico() {
     const edad = jugador.edad;
     let prob = 0;

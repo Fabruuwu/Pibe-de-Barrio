@@ -22,11 +22,11 @@ if (typeof LIGAS_POR_PAIS !== "undefined") {
 }
 
 const ETAPAS_CARIÑO = [
-  { hasta: 19, nombre: "Uno más" },
-  { hasta: 39, nombre: "Nose" },
-  { hasta: 59, nombre: "Nose" },
-  { hasta: 79, nombre: "Nose" },
-  { hasta: 99, nombre: "Nose" },
+  { hasta: 20, nombre: "Uno más" },
+  { hasta: 40, nombre: "Cumplidor" },
+  { hasta: 60, nombre: "Querido" },
+  { hasta: 80, nombre: "Referente" },
+  { hasta: 99, nombre: "Ídolo" },
   { hasta: 100, nombre: "Leyenda" },
 ];
 
