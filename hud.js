@@ -177,3 +177,42 @@ function pintarSeleccion(jugador) {
 function capitalizar(texto) {
   return texto.split("-").map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join("");
 }
+
+// Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
+// (Por ahora solo se muestra la primera vez, pero cuando tengamos ciclo de años, llamaremos a esta función cada año)
+function abrirModalCartas() {
+  const cartas = generarCartas();
+  const contenedor = document.getElementById("contenedor-cartas");
+  contenedor.innerHTML = "";
+
+  cartas.forEach((carta, index) => {
+    const cartaDiv = document.createElement("div");
+    cartaDiv.className = `carta carta--${carta.rareza}`;
+    cartaDiv.innerHTML = `
+      <div class="carta__etiqueta">${RAREZAS[carta.rareza].nombre}</div>
+      <h3 class="carta__nombre">${carta.nombre}</h3>
+      <p class="carta__desc">${carta.desc}</p>
+      <div class="carta__stats">${carta.stats.map(s => `${s} +${carta.puntos}`).join(" · ")}</div>
+    `;
+
+    cartaDiv.addEventListener("click", () => {
+      const resultado = aplicarCarta(Estado.obtener(), carta);
+      // Actualizamos el HUD con los nuevos stats
+      pintarHUD(Estado.obtener());
+      // Cerramos modal
+      document.getElementById("modal-cartas").hidden = true;
+      alert(`¡Mejoraste ${carta.stats.join(" y ")}! Nueva media: ${resultado.media}, Nuevo valor: $${resultado.valor}M`);
+    });
+
+    contenedor.appendChild(cartaDiv);
+  });
+
+  document.getElementById("modal-cartas").hidden = false;
+}
+
+// Llamar al abrir el juego (por ahora solo una vez al iniciar)
+document.addEventListener("DOMContentLoaded", () => {
+  // ... tu código actual ...
+  // Después de pintarHUD:
+  setTimeout(() => abrirModalCartas(), 500); // pequeño delay para que se vea
+});

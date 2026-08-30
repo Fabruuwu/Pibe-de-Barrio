@@ -789,3 +789,96 @@ html, body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   CARTAS
+   ============================================ */
+.modal__tarjeta--cartas {
+  max-width: 620px;
+  width: 100%;
+}
+
+.modal__titulo {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: var(--blanco);
+}
+
+.cartas__contenedor {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.carta {
+  width: 180px;
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 2px solid var(--input-borde);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  text-align: center;
+}
+
+.carta:hover {
+  transform: translateY(-4px);
+}
+
+.carta__etiqueta {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  color: var(--gris);
+  border-bottom: 1px solid var(--input-borde);
+  padding-bottom: 6px;
+}
+
+.carta__nombre {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 8px 0;
+  color: var(--blanco);
+}
+
+.carta__desc {
+  font-size: 13px;
+  color: var(--gris);
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+
+.carta__stats {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--verde-brillo);
+}
+
+/* Rarezas */
+.carta--comun { border-color: var(--input-borde); background: #1a2e24; }
+.carta--comun .carta__etiqueta { color: #9aa196; }
+
+.carta--rara { border-color: #9aa196; background: #2a2f2a; }
+.carta--rara .carta__etiqueta { color: #9aa196; }
+
+.carta--dorada { border-color: #f5c542; background: #3a2f12; }
+.carta--dorada .carta__etiqueta { color: #f5c542; }
+
+.carta--leyenda { border-color: #a855f7; background: #2a1a3a; }
+.carta--leyenda .carta__etiqueta { color: #a855f7; }
+
+/* Responsive */
+@media (max-width: 480px) {
+  .cartas__contenedor {
+    flex-direction: column;
+    align-items: center;
+  }
+  .carta {
+    width: 100%;
+    max-width: 260px;
+  }
+}

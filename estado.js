@@ -64,7 +64,7 @@ const Estado = (() => {
     else mult = 0.5;                                // Declive
 
     // Fórmula: (Media - 40)^4 * 15 * Multiplicador
-    const valorBruto = Math.pow((media - 40), 4) * 15 * mult;
+    const valorBruto = Math.pow((media - 40), 4) * 10 * mult;
     
     // Lo devolvemos en millones para que el HUD lo muestre como $X.XM
     return Math.round(valorBruto / 1000000);
