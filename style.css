@@ -953,3 +953,129 @@ html, body {
   background: #2a2a3a;
   border-color: var(--verde-brillo);
 }
+
+/* ============================================
+   RESUMEN ANUAL
+   ============================================ */
+.resumen-container {
+  background: linear-gradient(180deg, var(--panel), #0e120c);
+  border: 1px solid var(--panel-borde);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resumen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--panel-borde);
+  padding-bottom: 8px;
+}
+
+.resumen-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--blanco);
+}
+
+.resumen-año {
+  font-size: 14px;
+  color: var(--gris-tenue);
+}
+
+.resumen-texto-titulo {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--verde-texto);
+  margin: 8px 0 4px;
+}
+
+.resumen-texto {
+  font-size: 14px;
+  color: var(--gris);
+  line-height: 1.5;
+}
+
+.resumen-club {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--panel-borde);
+  border-bottom: 1px solid var(--panel-borde);
+}
+
+.resumen-club img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.resumen-club-nombre {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.resumen-club-pos {
+  font-size: 13px;
+  color: var(--gris-tenue);
+}
+
+.resumen-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.resumen-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-borde);
+  border-radius: var(--radio);
+}
+
+.resumen-stat-valor {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--blanco);
+}
+
+.resumen-stat-label {
+  font-size: 11px;
+  color: var(--gris-tenue);
+  text-transform: uppercase;
+}
+
+.resumen-decisiones {
+  background: #1a1a24;
+  border-radius: var(--radio);
+  padding: 10px;
+  font-size: 14px;
+  color: var(--gris);
+  line-height: 1.5;
+}
+
+.resumen-boton {
+  padding: 14px;
+  background: linear-gradient(180deg, #8b5cf6, #6d28d9);
+  color: var(--blanco);
+  border: none;
+  border-radius: var(--radio);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.resumen-boton:hover {
+  filter: brightness(1.1);
+}

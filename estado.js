@@ -63,7 +63,7 @@ const Estado = (() => {
     else if (edad >= 29 && edad <= 33) mult = 1;   // Experimentado
     else mult = 0.5;                                // Declive
 
-    // Fórmula: (Media - 40)^4 * 15 * Multiplicador
+    // Fórmula: (Media - 40)^4 * 10 * Multiplicador
     const valorBruto = Math.pow((media - 40), 4) * 10 * mult;
     
     // Lo devolvemos en millones para que el HUD lo muestre como $X.XM
@@ -84,6 +84,15 @@ const Estado = (() => {
       media: media,
       valor: valor, // en millones
       dinero: 0,
+      // NUEVAS PROPIEDADES
+      temporada: 1,
+      statsAnuales: {
+        partidos: 0,
+        goles: 0,
+        asistencias: 0,
+        nota: 0,
+        dinero: 0
+      },
       historialClubes: [
         {
           club: base.club,
@@ -123,11 +132,29 @@ const Estado = (() => {
     });
   }
 
+  // NUEVA FUNCIÓN: Avanzar de temporada
+  function avanzarTemporada() {
+    jugador.temporada += 1;
+    jugador.año += 1;
+    // Resetear stats anuales
+    jugador.statsAnuales = {
+      partidos: 0,
+      goles: 0,
+      asistencias: 0,
+      nota: 0,
+      dinero: 0
+    };
+    // Reiniciar historial de eventos del año (si querés mantener todo, no lo borres)
+    jugador.historialEventos = [];
+    guardar();
+    return jugador;
+  }
+
   function obtener() { return jugador; }
   function actualizar(cambios) { jugador = { ...jugador, ...cambios }; guardar(); return jugador; }
   function actualizarStats(cambiosStats) { jugador = { ...jugador, stats: { ...jugador.stats, ...cambiosStats } }; guardar(); return jugador; }
   function guardar() { localStorage.setItem(CLAVE_STORAGE, JSON.stringify(jugador)); }
   function borrar() { localStorage.removeItem(CLAVE_STORAGE); jugador = null; }
 
-  return { cargar, obtener, actualizar, actualizarStats, guardar, borrar };
+  return { cargar, obtener, actualizar, actualizarStats, guardar, borrar, avanzarTemporada };
 })();

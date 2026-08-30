@@ -230,15 +230,13 @@ function mostrarEvento() {
     boton.className = "evento-opcion";
     boton.textContent = opcion.texto;
     boton.addEventListener("click", () => {
-      // Aplica el efecto
       const mensaje = aplicarEvento(Estado.obtener(), evento, index);
-      // Actualiza HUD (cariño, stats, etc.)
-      pintarHUD(Estado.obtener());
-      // Limpia el contenedor (desaparece el evento)
+      pintarHUD(Estado.obtener()); // Actualiza cariño
+      // Limpiar contenedor de eventos
       contenedor.innerHTML = "";
       contenedor.hidden = true;
-      // (Opcional: muestra el mensaje de resultado)
-      alert(mensaje);
+      // NO mostrar alert, ir directo al resumen
+      mostrarResumenAnual();
     });
     opcionesDiv.appendChild(boton);
   });
@@ -246,10 +244,89 @@ function mostrarEvento() {
   contenedor.hidden = false;
 }
 
-// Vincular el botón del HUD
-document.addEventListener("DOMContentLoaded", () => {
-  const botonEvento = document.getElementById("boton-evento");
-  if (botonEvento) {
-    botonEvento.addEventListener("click", mostrarEvento);
+function mostrarResumenAnual() {
+  const jugador = Estado.obtener();
+  const contenedor = document.getElementById("resumen-container");
+  if (!contenedor) return;
+
+  const año = jugador.año;
+  const temporada = jugador.temporada;
+
+  // Simular estadísticas del año (si no están cargadas, inventamos algunas para demo)
+  // En el futuro esto se llenará con datos reales del juego.
+  if (jugador.statsAnuales.partidos === 0) {
+    jugador.statsAnuales.partidos = Math.floor(Math.random() * 20) + 10; // 10-30
+    jugador.statsAnuales.goles = Math.floor(Math.random() * 5); // 0-5
+    jugador.statsAnuales.asistencias = Math.floor(Math.random() * 6); // 0-6
+    jugador.statsAnuales.nota = (Math.random() * 2 + 5.5).toFixed(1); // 5.5-7.5
+    const valor = jugador.valor || 1;
+    jugador.statsAnuales.dinero = Math.floor(valor * 0.02 * 1000) + "K";
   }
-});
+
+  // Texto de resumen (ejemplo genérico)
+  const tituloResumen = "¿Y EL GOL?";
+  const textoResumen = `Temporada seca de ${jugador.nombre} en ${obtenerNombreClub(jugador.club)}: apenas ${jugador.statsAnuales.goles} goles. Las críticas crecen.`;
+
+  // Posición de liga (placeholder, podemos simular 2° por ahora)
+  const posicion = "2°";
+
+  // Decisiones tomadas
+  const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
+    ? jugador.historialEventos.slice(-3).join("\n") // mostramos las últimas 3
+    : "Sin decisiones relevantes este año.";
+
+  // Escudo del club
+  const club = NOMBRES_CLUBES[jugador.club];
+  const escudoSrc = club && club.escudo ? club.escudo : "";
+
+  // Construir HTML del resumen
+  contenedor.innerHTML = `
+    <div class="resumen-header">
+      <span class="resumen-titulo">Resumen Anual</span>
+      <span class="resumen-año">Año ${año} - Temporada ${temporada}</span>
+    </div>
+    <div>
+      <h4 class="resumen-texto-titulo">${tituloResumen}</h4>
+      <p class="resumen-texto">${textoResumen}</p>
+    </div>
+    <div class="resumen-club">
+      <img src="${escudoSrc}" alt="Escudo" onerror="this.hidden=true">
+      <div>
+        <div class="resumen-club-nombre">${club ? club.nombre : "Club"}</div>
+        <div class="resumen-club-pos">${posicion} en la Liga</div>
+      </div>
+    </div>
+    <div class="resumen-stats">
+      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.partidos}</span><span class="resumen-stat-label">Partidos</span></div>
+      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.goles}</span><span class="resumen-stat-label">Goles</span></div>
+      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.asistencias}</span><span class="resumen-stat-label">Asistencias</span></div>
+      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.nota}</span><span class="resumen-stat-label">Nota</span></div>
+      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.dinero}</span><span class="resumen-stat-label">Dinero</span></div>
+    </div>
+    <div class="resumen-decisiones">
+      <strong>Decisiones del año:</strong><br>
+      ${decisiones.replace(/\n/g, '<br>')}
+    </div>
+    <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
+  `;
+
+  contenedor.hidden = false;
+
+  // Vinculamos el botón
+  document.getElementById("boton-siguiente-ano").addEventListener("click", () => {
+    // Avanzar temporada
+    Estado.avanzarTemporada();
+    // Ocultar resumen
+    contenedor.innerHTML = "";
+    contenedor.hidden = true;
+    // Volver a mostrar cartas (nuevo año)
+    pintarHUD(Estado.obtener());
+    abrirModalCartas();
+  });
+}
+
+// Función auxiliar para obtener nombre del club
+function obtenerNombreClub(idClub) {
+  const club = NOMBRES_CLUBES[idClub];
+  return club ? club.nombre : "Club";
+}
