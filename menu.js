@@ -14,7 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectLigaPais = document.getElementById("select-liga-pais");
   const selectDivision = document.getElementById("select-division");
   const selectClub = document.getElementById("select-club");
-  const previewEscudo = document.getElementById("preview-escudo");
+  const previewEscudoPais = document.getElementById("preview-escudo-pais");
+  const previewEscudoLigaPais = document.getElementById("preview-escudo-liga-pais");
+  const previewEscudoClub = document.getElementById("preview-escudo");
   const grupoPosiciones = document.getElementById("grupo-posiciones");
   const inputPosicion = document.getElementById("input-posicion");
   const form = document.getElementById("form-menu");
@@ -34,18 +36,40 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------------------------------------
 
   function inicializarPaises() {
+    // Nacionalidad: TODAS las selecciones, agrupadas por confederación.
+    const porConfederacion = {};
     PAISES.forEach((pais) => {
-      const opcionNacionalidad = document.createElement("option");
-      opcionNacionalidad.value = pais.id;
-      opcionNacionalidad.textContent = `${pais.bandera} ${pais.nombre}`;
-      selectPais.appendChild(opcionNacionalidad);
+      if (!porConfederacion[pais.confederacion]) porConfederacion[pais.confederacion] = [];
+      porConfederacion[pais.confederacion].push(pais);
+    });
 
-      const opcionLigaPais = document.createElement("option");
-      opcionLigaPais.value = pais.id;
-      opcionLigaPais.textContent = `${pais.bandera} ${pais.nombre}`;
-      selectLigaPais.appendChild(opcionLigaPais);
+    Object.keys(porConfederacion).forEach((confederacion) => {
+      const grupo = document.createElement("optgroup");
+      grupo.label = confederacion;
+      porConfederacion[confederacion].forEach((pais) => {
+        const opcion = document.createElement("option");
+        opcion.value = pais.id;
+        opcion.textContent = pais.nombre;
+        opcion.dataset.bandera = pais.bandera || "";
+        grupo.appendChild(opcion);
+      });
+      selectPais.appendChild(grupo);
+    });
+
+    // País de la liga: solo los países que tienen alguna liga cargada en LIGAS_POR_PAIS.
+    PAISES.filter((pais) => LIGAS_POR_PAIS[pais.id]).forEach((pais) => {
+      const opcion = document.createElement("option");
+      opcion.value = pais.id;
+      opcion.textContent = pais.nombre;
+      opcion.dataset.bandera = pais.bandera || "";
+      selectLigaPais.appendChild(opcion);
     });
   }
+
+  selectPais.addEventListener("change", () => {
+    const opcionElegida = selectPais.selectedOptions[0];
+    mostrarEscudo(previewEscudoPais, opcionElegida ? opcionElegida.dataset.bandera : "");
+  });
 
   // ---------------------------------------
   // PAÍS DE LA LIGA -> DIVISIÓN -> CLUB
@@ -62,40 +86,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const divisiones = idLigaActual ? DIVISIONES_POR_LIGA[idLigaActual] || [] : [];
     rellenarSelect(selectDivision, divisiones, "Elegí una división");
     resetearSelect(selectClub, "Primero elegí una división");
-    ocultarEscudo();
+    ocultarEscudo(previewEscudoClub);
+
+    const opcionElegida = selectLigaPais.selectedOptions[0];
+    mostrarEscudo(previewEscudoLigaPais, opcionElegida ? opcionElegida.dataset.bandera : "");
   });
 
   selectDivision.addEventListener("change", () => {
     const idDivision = selectDivision.value;
     const clubes = CLUBES_POR_DIVISION[idDivision] || [];
     rellenarSelectClubes(clubes);
-    ocultarEscudo();
+    ocultarEscudo(previewEscudoClub);
   });
 
   selectClub.addEventListener("change", () => {
     const opcionElegida = selectClub.selectedOptions[0];
     const ruta = opcionElegida ? opcionElegida.dataset.escudo : "";
-    mostrarEscudo(ruta);
+    mostrarEscudo(previewEscudoClub, ruta);
   });
 
-  function mostrarEscudo(ruta) {
+  function mostrarEscudo(imgElemento, ruta) {
     if (!ruta) {
-      ocultarEscudo();
+      ocultarEscudo(imgElemento);
       return;
     }
-    previewEscudo.src = ruta;
-    previewEscudo.alt = "Escudo del club";
-    previewEscudo.hidden = false;
+    imgElemento.src = ruta;
+    imgElemento.alt = "";
+    imgElemento.hidden = false;
     // Si la ruta está mal escrita o el archivo no existe todavía,
     // ocultamos el preview en vez de mostrar el ícono roto del navegador.
-    previewEscudo.onerror = () => {
-      previewEscudo.hidden = true;
+    imgElemento.onerror = () => {
+      imgElemento.hidden = true;
     };
   }
 
-  function ocultarEscudo() {
-    previewEscudo.hidden = true;
-    previewEscudo.removeAttribute("src");
+  function ocultarEscudo(imgElemento) {
+    imgElemento.hidden = true;
+    imgElemento.removeAttribute("src");
   }
 
   function rellenarSelectClubes(clubes) {
@@ -174,8 +201,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const pais = azar(PAISES);
       selectPais.value = pais.id;
     }
+    selectPais.dispatchEvent(new Event("change"));
 
-    const paisLiga = azar(PAISES);
+    const paisesConLiga = PAISES.filter((pais) => LIGAS_POR_PAIS[pais.id]);
+    const paisLiga = azar(paisesConLiga);
     selectLigaPais.value = paisLiga.id;
     selectLigaPais.dispatchEvent(new Event("change"));
 

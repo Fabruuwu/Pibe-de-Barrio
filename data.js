@@ -1,60 +1,173 @@
 /**
  * data.js
  * -----------------------------------------
- * Datos "crudos" del juego: países, ligas, divisiones y clubes.
+ * Datos "crudos" del juego: selecciones, ligas, divisiones y clubes.
  * Acá NO va lógica, solo estructuras de datos.
- * Para agregar contenido nuevo (un país, una liga, un club) solo
+ * Para agregar contenido nuevo (una selección, una liga, un club) solo
  * hay que tocar este archivo.
  * -----------------------------------------
  * Estructura:
- * PAISES = [ { id, nombre, bandera } ]
+ * PAISES = [ { id, nombre, confederacion, bandera } ]
  * LIGAS_POR_PAIS = { idPais: [ { id, nombre } ] }
  * DIVISIONES_POR_LIGA = { idLiga: [ { id, nombre } ] }
  * CLUBES_POR_DIVISION = { idDivision: [ { id, nombre, escudo } ] }
  *
- * El campo "escudo" es la ruta o URL a la imagen del club.
- * Escribila vos mismo, tal como la tenés armada en GitHub, ejemplo:
- *   escudo: "assets/escudos/Boca Juniors.png"
- *   escudo: "https://raw.githubusercontent.com/tu-usuario/tu-repo/main/escudos/boca.png"
- * Si un club todavía no tiene ruta cargada, dejá escudo: "" (vacío)
- * y simplemente no se muestra el preview para ese club.
+ * El campo "bandera" (en países) y "escudo" (en clubes) son la ruta
+ * o URL a la imagen. Escribila vos mismo, tal como la tenés armada
+ * en GitHub, por ejemplo:
+ *   bandera: "Imagenes/Banderas/Argentina.png"
+ *   escudo:  "Imagenes/Argentina/LPF/Boca.png"
+ * Si todavía no tiene ruta cargada, dejala en "" (vacío) y
+ * simplemente no se muestra el preview para ese país/club.
  */
 
 const PAISES = [
-  { id: "argentina", nombre: "Argentina", bandera: "Imagenes/Selecciones/Argentina.png" },
-  { id: "brasil", nombre: "Brasil", bandera: "Imagenes/Selecciones/Brasil.png" },
-  { id: "españa", nombre: "España", bandera: "Imagenes/Selecciones/España.png" },
+  { id: "argentina", nombre: "Argentina", confederacion: "CONMEBOL", bandera: "" },
+  { id: "brasil", nombre: "Brasil", confederacion: "CONMEBOL", bandera: "" },
+  { id: "uruguay", nombre: "Uruguay", confederacion: "CONMEBOL", bandera: "" },
+  { id: "colombia", nombre: "Colombia", confederacion: "CONMEBOL", bandera: "" },
+  { id: "chile", nombre: "Chile", confederacion: "CONMEBOL", bandera: "" },
+  { id: "ecuador", nombre: "Ecuador", confederacion: "CONMEBOL", bandera: "" },
+  { id: "paraguay", nombre: "Paraguay", confederacion: "CONMEBOL", bandera: "" },
+  { id: "peru", nombre: "Perú", confederacion: "CONMEBOL", bandera: "" },
+  { id: "bolivia", nombre: "Bolivia", confederacion: "CONMEBOL", bandera: "" },
+  { id: "venezuela", nombre: "Venezuela", confederacion: "CONMEBOL", bandera: "" },
+  { id: "mexico", nombre: "México", confederacion: "CONCACAF", bandera: "" },
+  { id: "estados-unidos", nombre: "Estados Unidos", confederacion: "CONCACAF", bandera: "" },
+  { id: "canada", nombre: "Canadá", confederacion: "CONCACAF", bandera: "" },
+  { id: "costa-rica", nombre: "Costa Rica", confederacion: "CONCACAF", bandera: "" },
+  { id: "panama", nombre: "Panamá", confederacion: "CONCACAF", bandera: "" },
+  { id: "jamaica", nombre: "Jamaica", confederacion: "CONCACAF", bandera: "" },
+  { id: "honduras", nombre: "Honduras", confederacion: "CONCACAF", bandera: "" },
+  { id: "trinidad-y-tobago", nombre: "Trinidad y Tobago", confederacion: "CONCACAF", bandera: "" },
+  { id: "japon", nombre: "Japón", confederacion: "AFC", bandera: "" },
+  { id: "corea-del-sur", nombre: "Corea del Sur", confederacion: "AFC", bandera: "" },
+  { id: "iran", nombre: "Irán", confederacion: "AFC", bandera: "" },
+  { id: "australia", nombre: "Australia", confederacion: "AFC", bandera: "" },
+  { id: "arabia-saudita", nombre: "Arabia Saudita", confederacion: "AFC", bandera: "" },
+  { id: "catar", nombre: "Catar", confederacion: "AFC", bandera: "" },
+  { id: "uzbekistan", nombre: "Uzbekistán", confederacion: "AFC", bandera: "" },
+  { id: "irak", nombre: "Irak", confederacion: "AFC", bandera: "" },
+  { id: "jordania", nombre: "Jordania", confederacion: "AFC", bandera: "" },
+  { id: "indonesia", nombre: "Indonesia", confederacion: "AFC", bandera: "" },
+  { id: "marruecos", nombre: "Marruecos", confederacion: "CAF", bandera: "" },
+  { id: "senegal", nombre: "Senegal", confederacion: "CAF", bandera: "" },
+  { id: "egipto", nombre: "Egipto", confederacion: "CAF", bandera: "" },
+  { id: "tunez", nombre: "Túnez", confederacion: "CAF", bandera: "" },
+  { id: "nigeria", nombre: "Nigeria", confederacion: "CAF", bandera: "" },
+  { id: "ghana", nombre: "Ghana", confederacion: "CAF", bandera: "" },
+  { id: "argelia", nombre: "Argelia", confederacion: "CAF", bandera: "" },
+  { id: "camerun", nombre: "Camerún", confederacion: "CAF", bandera: "" },
+  { id: "sudafrica", nombre: "Sudáfrica", confederacion: "CAF", bandera: "" },
+  { id: "costa-de-marfil", nombre: "Costa de Marfil", confederacion: "CAF", bandera: "" },
+  { id: "nueva-zelanda", nombre: "Nueva Zelanda", confederacion: "OFC", bandera: "" },
+  { id: "alemania", nombre: "Alemania", confederacion: "UEFA", bandera: "" },
+  { id: "espana", nombre: "España", confederacion: "UEFA", bandera: "" },
+  { id: "francia", nombre: "Francia", confederacion: "UEFA", bandera: "" },
+  { id: "inglaterra", nombre: "Inglaterra", confederacion: "UEFA", bandera: "" },
+  { id: "italia", nombre: "Italia", confederacion: "UEFA", bandera: "" },
+  { id: "portugal", nombre: "Portugal", confederacion: "UEFA", bandera: "" },
+  { id: "paises-bajos", nombre: "Países Bajos", confederacion: "UEFA", bandera: "" },
+  { id: "belgica", nombre: "Bélgica", confederacion: "UEFA", bandera: "" },
+  { id: "croacia", nombre: "Croacia", confederacion: "UEFA", bandera: "" },
+  { id: "suiza", nombre: "Suiza", confederacion: "UEFA", bandera: "" },
+  { id: "serbia", nombre: "Serbia", confederacion: "UEFA", bandera: "" },
+  { id: "dinamarca", nombre: "Dinamarca", confederacion: "UEFA", bandera: "" },
+  { id: "polonia", nombre: "Polonia", confederacion: "UEFA", bandera: "" },
+  { id: "austria", nombre: "Austria", confederacion: "UEFA", bandera: "" },
+  { id: "suecia", nombre: "Suecia", confederacion: "UEFA", bandera: "" },
+  { id: "turquia", nombre: "Turquía", confederacion: "UEFA", bandera: "" },
+  { id: "noruega", nombre: "Noruega", confederacion: "UEFA", bandera: "" },
+  { id: "escocia", nombre: "Escocia", confederacion: "UEFA", bandera: "" },
+  { id: "grecia", nombre: "Grecia", confederacion: "UEFA", bandera: "" },
+  { id: "rumania", nombre: "Rumania", confederacion: "UEFA", bandera: "" },
+  { id: "bosnia-y-herzegovina", nombre: "Bosnia y Herzegovina", confederacion: "UEFA", bandera: "" },
+  { id: "hungria", nombre: "Hungría", confederacion: "UEFA", bandera: "" },
+  { id: "islandia", nombre: "Islandia", confederacion: "UEFA", bandera: "" },
+  { id: "gales", nombre: "Gales", confederacion: "UEFA", bandera: "" },
 ];
 
 const LIGAS_POR_PAIS = {
-  argentina: [
-    { id: "liga-profesional", nombre: "Liga Profesional" },
+  "argentina": [
+    { id: "liga-profesional-argentina", nombre: "Liga Profesional" },
   ],
-  brasil: [
-    { id: "brasileirao", nombre: "Brasileirão" },
+  "espana": [
+    { id: "laliga-espana", nombre: "LaLiga" },
   ],
-  "españa": [
-    { id: "laliga", nombre: "LaLiga" },
+  "inglaterra": [
+    { id: "premier-league-inglaterra", nombre: "Premier League" },
+  ],
+  "italia": [
+    { id: "serie-a-italia", nombre: "Serie A" },
+  ],
+  "alemania": [
+    { id: "bundesliga-alemania", nombre: "Bundesliga" },
+  ],
+  "francia": [
+    { id: "ligue-1-francia", nombre: "Ligue 1" },
+  ],
+  "brasil": [
+    { id: "brasileirao-brasil", nombre: "Brasileirão" },
+  ],
+  "chile": [
+    { id: "primera-division-chile", nombre: "Primera División" },
+  ],
+  "uruguay": [
+    { id: "primera-division-uruguay", nombre: "Primera División" },
+  ],
+  "mexico": [
+    { id: "liga-mx-mexico", nombre: "Liga MX" },
+  ],
+  "estados-unidos": [
+    { id: "mls-estados-unidos", nombre: "MLS" },
+  ],
+  "arabia-saudita": [
+    { id: "saudi-pro-league-arabia-saudita", nombre: "Saudi Pro League" },
   ],
 };
 
 const DIVISIONES_POR_LIGA = {
-  "liga-profesional": [
-    { id: "primera-division", nombre: "Primera División" },
-    { id: "primera-nacional", nombre: "Primera Nacional" },
+  "liga-profesional-argentina": [
+    { id: "primera-division-argentina", nombre: "Primera División" },
+    { id: "primera-nacional-argentina", nombre: "Primera Nacional" },
   ],
-  brasileirao: [
-    { id: "serie-a", nombre: "Série A" },
-    { id: "serie-b", nombre: "Série B" },
+  "laliga-espana": [
+    { id: "primera-division-espana", nombre: "Primera División" },
   ],
-  laliga: [
-    { id: "primera", nombre: "Primera División" },
-    { id: "segunda", nombre: "Segunda División" },
+  "premier-league-inglaterra": [
+    { id: "premier-league-inglaterra", nombre: "Premier League" },
+  ],
+  "serie-a-italia": [
+    { id: "serie-a-italia", nombre: "Serie A" },
+  ],
+  "bundesliga-alemania": [
+    { id: "bundesliga-alemania", nombre: "Bundesliga" },
+  ],
+  "ligue-1-francia": [
+    { id: "ligue-1-francia", nombre: "Ligue 1" },
+  ],
+  "brasileirao-brasil": [
+    { id: "serie-a-brasil", nombre: "Série A" },
+  ],
+  "primera-division-chile": [
+    { id: "primera-division-chile", nombre: "Primera División" },
+  ],
+  "primera-division-uruguay": [
+    { id: "primera-division-uruguay", nombre: "Primera División" },
+  ],
+  "liga-mx-mexico": [
+    { id: "liga-mx-mexico", nombre: "Liga MX" },
+  ],
+  "mls-estados-unidos": [
+    { id: "mls-estados-unidos", nombre: "MLS" },
+  ],
+  "saudi-pro-league-arabia-saudita": [
+    { id: "saudi-pro-league-arabia-saudita", nombre: "Saudi Pro League" },
   ],
 };
 
 const CLUBES_POR_DIVISION = {
-  "primera-division": [
+"primera-division": [
     { id: "aldosivi", nombre: "Aldosivi", escudo: "Imagenes/Argentina/LPF/Aldosivi.png" },
     { id: "argentinos-juniors", nombre: "Argentinos Juniors", escudo: "Imagenes/Argentina/LPF/Argentinosjrs.png" },
     { id: "atletico-tucuman", nombre: "Atlético Tucumán", escudo: "Imagenes/Argentina/LPF/AtleticoTucuman.png" },
@@ -86,30 +199,248 @@ const CLUBES_POR_DIVISION = {
     { id: "union", nombre: "Unión", escudo: "Imagenes/Argentina/LPF/UnionSantaFe.png" },
     { id: "velez-sarsfield", nombre: "Vélez Sarsfield", escudo: "Imagenes/Argentina/LPF/Velez.png" },
   ],
-  "primera-nacional": [
-    { id: "chacarita", nombre: "Chacarita Juniors", escudo: "" },
-    { id: "almirante-brown", nombre: "Almirante Brown", escudo: "" },
-  ],
-  "serie-a": [
-    { id: "flamengo", nombre: "Flamengo", escudo: "" },
-    { id: "palmeiras", nombre: "Palmeiras", escudo: "" },
-  ],
-  "serie-b": [
-    { id: "vila-nova", nombre: "Vila Nova", escudo: "" },
-  ],
-  primera: [
-    { id: "real-madrid", nombre: "Real Madrid", escudo: "" },
+  "primera-division-espana": [
+    { id: "alaves", nombre: "Alavés", escudo: "" },
+    { id: "athletic-bilbao", nombre: "Athletic Bilbao", escudo: "" },
+    { id: "atletico-madrid", nombre: "Atlético Madrid", escudo: "" },
     { id: "barcelona", nombre: "Barcelona", escudo: "" },
+    { id: "celta-vigo", nombre: "Celta Vigo", escudo: "" },
+    { id: "deportivo-la-coruna", nombre: "Deportivo La Coruña", escudo: "" },
+    { id: "elche", nombre: "Elche", escudo: "" },
+    { id: "espanyol", nombre: "Espanyol", escudo: "" },
+    { id: "getafe", nombre: "Getafe", escudo: "" },
+    { id: "levante", nombre: "Levante", escudo: "" },
+    { id: "malaga", nombre: "Málaga", escudo: "" },
+    { id: "osasuna", nombre: "Osasuna", escudo: "" },
+    { id: "racing-santander", nombre: "Racing Santander", escudo: "" },
+    { id: "rayo-vallecano", nombre: "Rayo Vallecano", escudo: "" },
+    { id: "real-betis", nombre: "Real Betis", escudo: "" },
+    { id: "real-madrid", nombre: "Real Madrid", escudo: "" },
+    { id: "real-sociedad", nombre: "Real Sociedad", escudo: "" },
+    { id: "sevilla", nombre: "Sevilla", escudo: "" },
+    { id: "valencia", nombre: "Valencia", escudo: "" },
+    { id: "villarreal", nombre: "Villarreal", escudo: "" },
   ],
-  segunda: [
-    { id: "eibar", nombre: "Eibar", escudo: "" },
+  "premier-league-inglaterra": [
+    { id: "arsenal", nombre: "Arsenal", escudo: "" },
+    { id: "aston-villa", nombre: "Aston Villa", escudo: "" },
+    { id: "bournemouth", nombre: "Bournemouth", escudo: "" },
+    { id: "brentford", nombre: "Brentford", escudo: "" },
+    { id: "brighton", nombre: "Brighton", escudo: "" },
+    { id: "chelsea", nombre: "Chelsea", escudo: "" },
+    { id: "coventry-city", nombre: "Coventry City", escudo: "" },
+    { id: "crystal-palace", nombre: "Crystal Palace", escudo: "" },
+    { id: "everton", nombre: "Everton", escudo: "" },
+    { id: "fulham", nombre: "Fulham", escudo: "" },
+    { id: "hull-city", nombre: "Hull City", escudo: "" },
+    { id: "ipswich-town", nombre: "Ipswich Town", escudo: "" },
+    { id: "leeds-united", nombre: "Leeds United", escudo: "" },
+    { id: "liverpool", nombre: "Liverpool", escudo: "" },
+    { id: "manchester-city", nombre: "Manchester City", escudo: "" },
+    { id: "manchester-united", nombre: "Manchester United", escudo: "" },
+    { id: "newcastle", nombre: "Newcastle", escudo: "" },
+    { id: "nottingham-forest", nombre: "Nottingham Forest", escudo: "" },
+    { id: "sunderland", nombre: "Sunderland", escudo: "" },
+    { id: "tottenham", nombre: "Tottenham", escudo: "" },
+  ],
+  "serie-a-italia": [
+    { id: "atalanta", nombre: "Atalanta", escudo: "" },
+    { id: "bologna", nombre: "Bologna", escudo: "" },
+    { id: "cagliari", nombre: "Cagliari", escudo: "" },
+    { id: "como", nombre: "Como", escudo: "" },
+    { id: "fiorentina", nombre: "Fiorentina", escudo: "" },
+    { id: "frosinone", nombre: "Frosinone", escudo: "" },
+    { id: "genoa", nombre: "Genoa", escudo: "" },
+    { id: "inter", nombre: "Inter", escudo: "" },
+    { id: "juventus", nombre: "Juventus", escudo: "" },
+    { id: "lazio", nombre: "Lazio", escudo: "" },
+    { id: "lecce", nombre: "Lecce", escudo: "" },
+    { id: "milan", nombre: "Milan", escudo: "" },
+    { id: "monza", nombre: "Monza", escudo: "" },
+    { id: "napoli", nombre: "Napoli", escudo: "" },
+    { id: "parma", nombre: "Parma", escudo: "" },
+    { id: "roma", nombre: "Roma", escudo: "" },
+    { id: "sassuolo", nombre: "Sassuolo", escudo: "" },
+    { id: "torino", nombre: "Torino", escudo: "" },
+    { id: "udinese", nombre: "Udinese", escudo: "" },
+    { id: "venezia", nombre: "Venezia", escudo: "" },
+  ],
+  "bundesliga-alemania": [
+    { id: "augsburg", nombre: "Augsburg", escudo: "" },
+    { id: "bayern-munich", nombre: "Bayern Múnich", escudo: "" },
+    { id: "bayer-leverkusen", nombre: "Bayer Leverkusen", escudo: "" },
+    { id: "borussia-dortmund", nombre: "Borussia Dortmund", escudo: "" },
+    { id: "borussia-monchengladbach", nombre: "Borussia Mönchengladbach", escudo: "" },
+    { id: "colonia", nombre: "Colonia", escudo: "" },
+    { id: "eintracht-francfort", nombre: "Eintracht Fráncfort", escudo: "" },
+    { id: "elversberg", nombre: "Elversberg", escudo: "" },
+    { id: "friburgo", nombre: "Friburgo", escudo: "" },
+    { id: "hamburgo", nombre: "Hamburgo", escudo: "" },
+    { id: "hoffenheim", nombre: "Hoffenheim", escudo: "" },
+    { id: "mainz-05", nombre: "Mainz 05", escudo: "" },
+    { id: "paderborn", nombre: "Paderborn", escudo: "" },
+    { id: "rb-leipzig", nombre: "RB Leipzig", escudo: "" },
+    { id: "schalke-04", nombre: "Schalke 04", escudo: "" },
+    { id: "stuttgart", nombre: "Stuttgart", escudo: "" },
+    { id: "union-berlin", nombre: "Union Berlín", escudo: "" },
+    { id: "werder-bremen", nombre: "Werder Bremen", escudo: "" },
+  ],
+  "ligue-1-francia": [
+    { id: "angers", nombre: "Angers", escudo: "" },
+    { id: "auxerre", nombre: "Auxerre", escudo: "" },
+    { id: "brest", nombre: "Brest", escudo: "" },
+    { id: "estrasburgo", nombre: "Estrasburgo", escudo: "" },
+    { id: "le-havre", nombre: "Le Havre", escudo: "" },
+    { id: "le-mans", nombre: "Le Mans", escudo: "" },
+    { id: "lens", nombre: "Lens", escudo: "" },
+    { id: "lille", nombre: "Lille", escudo: "" },
+    { id: "lorient", nombre: "Lorient", escudo: "" },
+    { id: "lyon", nombre: "Lyon", escudo: "" },
+    { id: "marsella", nombre: "Marsella", escudo: "" },
+    { id: "monaco", nombre: "Mónaco", escudo: "" },
+    { id: "niza", nombre: "Niza", escudo: "" },
+    { id: "paris-fc", nombre: "París FC", escudo: "" },
+    { id: "psg", nombre: "PSG", escudo: "" },
+    { id: "rennes", nombre: "Rennes", escudo: "" },
+    { id: "toulouse", nombre: "Toulouse", escudo: "" },
+    { id: "troyes", nombre: "Troyes", escudo: "" },
+  ],
+  "serie-a-brasil": [
+    { id: "athletico-paranaense", nombre: "Athletico Paranaense", escudo: "" },
+    { id: "atletico-mineiro", nombre: "Atlético Mineiro", escudo: "" },
+    { id: "bahia", nombre: "Bahia", escudo: "" },
+    { id: "botafogo", nombre: "Botafogo", escudo: "" },
+    { id: "bragantino", nombre: "Bragantino", escudo: "" },
+    { id: "chapecoense", nombre: "Chapecoense", escudo: "" },
+    { id: "corinthians", nombre: "Corinthians", escudo: "" },
+    { id: "coritiba", nombre: "Coritiba", escudo: "" },
+    { id: "cruzeiro", nombre: "Cruzeiro", escudo: "" },
+    { id: "flamengo", nombre: "Flamengo", escudo: "" },
+    { id: "fluminense", nombre: "Fluminense", escudo: "" },
+    { id: "gremio", nombre: "Grêmio", escudo: "" },
+    { id: "internacional", nombre: "Internacional", escudo: "" },
+    { id: "mirassol", nombre: "Mirassol", escudo: "" },
+    { id: "palmeiras", nombre: "Palmeiras", escudo: "" },
+    { id: "remo", nombre: "Remo", escudo: "" },
+    { id: "santos", nombre: "Santos", escudo: "" },
+    { id: "sao-paulo", nombre: "São Paulo", escudo: "" },
+    { id: "vasco-da-gama", nombre: "Vasco da Gama", escudo: "" },
+    { id: "vitoria", nombre: "Vitória", escudo: "" },
+  ],
+  "primera-division-chile": [
+    { id: "colo-colo", nombre: "Colo-Colo", escudo: "" },
+    { id: "universidad-de-chile", nombre: "Universidad de Chile", escudo: "" },
+    { id: "universidad-catolica", nombre: "Universidad Católica", escudo: "" },
+    { id: "coquimbo-unido", nombre: "Coquimbo Unido", escudo: "" },
+    { id: "everton-2", nombre: "Everton", escudo: "" },
+    { id: "nublense", nombre: "Ñublense", escudo: "" },
+    { id: "union-la-calera", nombre: "Unión La Calera", escudo: "" },
+    { id: "ohiggins", nombre: "O'Higgins", escudo: "" },
+    { id: "palestino", nombre: "Palestino", escudo: "" },
+    { id: "huachipato", nombre: "Huachipato", escudo: "" },
+    { id: "audax-italiano", nombre: "Audax Italiano", escudo: "" },
+    { id: "deportes-iquique", nombre: "Deportes Iquique", escudo: "" },
+    { id: "cobresal", nombre: "Cobresal", escudo: "" },
+    { id: "union-espanola", nombre: "Unión Española", escudo: "" },
+    { id: "deportes-copiapo", nombre: "Deportes Copiapó", escudo: "" },
+    { id: "rangers", nombre: "Rangers", escudo: "" },
+  ],
+  "primera-division-uruguay": [
+    { id: "penarol", nombre: "Peñarol", escudo: "" },
+    { id: "nacional", nombre: "Nacional", escudo: "" },
+    { id: "danubio", nombre: "Danubio", escudo: "" },
+    { id: "wanderers", nombre: "Wanderers", escudo: "" },
+    { id: "liverpool-2", nombre: "Liverpool", escudo: "" },
+    { id: "cerro-largo", nombre: "Cerro Largo", escudo: "" },
+    { id: "defensor-sporting", nombre: "Defensor Sporting", escudo: "" },
+    { id: "river-plate-2", nombre: "River Plate", escudo: "" },
+    { id: "boston-river", nombre: "Boston River", escudo: "" },
+    { id: "montevideo-city-torque", nombre: "Montevideo City Torque", escudo: "" },
+    { id: "plaza-colonia", nombre: "Plaza Colonia", escudo: "" },
+    { id: "progreso", nombre: "Progreso", escudo: "" },
+    { id: "sud-america", nombre: "Sud América", escudo: "" },
+    { id: "miramar-misiones", nombre: "Miramar Misiones", escudo: "" },
+    { id: "racing", nombre: "Racing", escudo: "" },
+    { id: "juventud", nombre: "Juventud", escudo: "" },
+  ],
+  "liga-mx-mexico": [
+    { id: "america", nombre: "América", escudo: "" },
+    { id: "atletico-san-luis", nombre: "Atlético San Luis", escudo: "" },
+    { id: "chivas-guadalajara", nombre: "Chivas (Guadalajara)", escudo: "" },
+    { id: "cruz-azul", nombre: "Cruz Azul", escudo: "" },
+    { id: "juarez", nombre: "Juárez", escudo: "" },
+    { id: "leon", nombre: "León", escudo: "" },
+    { id: "mazatlan", nombre: "Mazatlán", escudo: "" },
+    { id: "monterrey", nombre: "Monterrey", escudo: "" },
+    { id: "necaxa", nombre: "Necaxa", escudo: "" },
+    { id: "pachuca", nombre: "Pachuca", escudo: "" },
+    { id: "puebla", nombre: "Puebla", escudo: "" },
+    { id: "pumas-unam", nombre: "Pumas UNAM", escudo: "" },
+    { id: "queretaro", nombre: "Querétaro", escudo: "" },
+    { id: "santos-laguna", nombre: "Santos Laguna", escudo: "" },
+    { id: "tijuana", nombre: "Tijuana", escudo: "" },
+    { id: "tigres-uanl", nombre: "Tigres UANL", escudo: "" },
+    { id: "toluca", nombre: "Toluca", escudo: "" },
+    { id: "tlaxcala", nombre: "Tlaxcala", escudo: "" },
+  ],
+  "mls-estados-unidos": [
+    { id: "atlanta-united", nombre: "Atlanta United", escudo: "" },
+    { id: "austin-fc", nombre: "Austin FC", escudo: "" },
+    { id: "charlotte-fc", nombre: "Charlotte FC", escudo: "" },
+    { id: "chicago-fire", nombre: "Chicago Fire", escudo: "" },
+    { id: "colorado-rapids", nombre: "Colorado Rapids", escudo: "" },
+    { id: "columbus-crew", nombre: "Columbus Crew", escudo: "" },
+    { id: "dc-united", nombre: "DC United", escudo: "" },
+    { id: "fc-cincinnati", nombre: "FC Cincinnati", escudo: "" },
+    { id: "fc-dallas", nombre: "FC Dallas", escudo: "" },
+    { id: "houston-dynamo", nombre: "Houston Dynamo", escudo: "" },
+    { id: "inter-miami", nombre: "Inter Miami", escudo: "" },
+    { id: "lafc", nombre: "LAFC", escudo: "" },
+    { id: "la-galaxy", nombre: "LA Galaxy", escudo: "" },
+    { id: "minnesota-united", nombre: "Minnesota United", escudo: "" },
+    { id: "cf-montreal", nombre: "CF Montréal", escudo: "" },
+    { id: "nashville-sc", nombre: "Nashville SC", escudo: "" },
+    { id: "new-england-revolution", nombre: "New England Revolution", escudo: "" },
+    { id: "new-york-city", nombre: "New York City", escudo: "" },
+    { id: "new-york-red-bulls", nombre: "New York Red Bulls", escudo: "" },
+    { id: "orlando-city", nombre: "Orlando City", escudo: "" },
+    { id: "philadelphia-union", nombre: "Philadelphia Union", escudo: "" },
+    { id: "portland-timbers", nombre: "Portland Timbers", escudo: "" },
+    { id: "real-salt-lake", nombre: "Real Salt Lake", escudo: "" },
+    { id: "san-diego-fc", nombre: "San Diego FC", escudo: "" },
+    { id: "san-jose-earthquakes", nombre: "San José Earthquakes", escudo: "" },
+    { id: "seattle-sounders", nombre: "Seattle Sounders", escudo: "" },
+    { id: "sporting-kansas-city", nombre: "Sporting Kansas City", escudo: "" },
+    { id: "st-louis-city", nombre: "St. Louis City", escudo: "" },
+    { id: "toronto-fc", nombre: "Toronto FC", escudo: "" },
+    { id: "vancouver-whitecaps", nombre: "Vancouver Whitecaps", escudo: "" },
+  ],
+  "saudi-pro-league-arabia-saudita": [
+    { id: "al-hilal", nombre: "Al-Hilal", escudo: "" },
+    { id: "al-ahli", nombre: "Al-Ahli", escudo: "" },
+    { id: "al-ittihad", nombre: "Al-Ittihad", escudo: "" },
+    { id: "al-nassr", nombre: "Al-Nassr", escudo: "" },
+    { id: "al-qadsiah", nombre: "Al-Qadsiah", escudo: "" },
+    { id: "neom", nombre: "NEOM", escudo: "" },
+    { id: "al-shabab", nombre: "Al-Shabab", escudo: "" },
+    { id: "al-taawoun", nombre: "Al-Taawoun", escudo: "" },
+    { id: "al-ettifaq", nombre: "Al-Ettifaq", escudo: "" },
+    { id: "al-kholood", nombre: "Al-Kholood", escudo: "" },
+    { id: "al-fateh", nombre: "Al-Fateh", escudo: "" },
+    { id: "al-fayha", nombre: "Al-Fayha", escudo: "" },
+    { id: "al-najma", nombre: "Al-Najma", escudo: "" },
+    { id: "al-okhdood", nombre: "Al-Okhdood", escudo: "" },
+    { id: "al-riyadh", nombre: "Al-Riyadh", escudo: "" },
+    { id: "al-khaleej", nombre: "Al-Khaleej", escudo: "" },
+    { id: "al-hazem", nombre: "Al-Hazem", escudo: "" },
+    { id: "damac", nombre: "Damac", escudo: "" },
   ],
 };
 
 /**
- * ESCUDOS
+ * ESCUDOS Y BANDERAS
  * -----------------------------------------
- * Ya no hace falta ninguna función acá: cada club tiene su propio
- * campo "escudo" más arriba, con la ruta o URL que vos le pongas.
- * El menú la usa directamente tal cual la escribiste.
+ * No hace falta ninguna función acá: cada país tiene su campo "bandera"
+ * y cada club tiene su campo "escudo", con la ruta o URL que vos les pongas.
+ * El menú las usa directamente tal cual las escribiste.
  */

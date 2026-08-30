@@ -226,6 +226,7 @@ html, body {
 
 .campo-club__fila select {
   flex: 1;
+  min-width: 0;
 }
 
 .preview-escudo {
@@ -250,6 +251,19 @@ html, body {
 
 .campo input::placeholder {
   color: var(--gris-tenue);
+  font-weight: 600;
+}
+
+.campo select optgroup {
+  background: var(--input-bg);
+  color: var(--verde-texto);
+  font-weight: 700;
+  font-style: normal;
+}
+
+.campo select option {
+  background: var(--input-bg);
+  color: var(--blanco);
   font-weight: 600;
 }
 

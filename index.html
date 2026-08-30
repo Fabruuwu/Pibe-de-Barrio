@@ -50,18 +50,24 @@
 
     <!-- DESTINO -->
     <div class="modulo__grid">
-      <div class="campo">
+      <div class="campo campo--pais">
         <label for="select-pais">Nacionalidad</label>
-        <select id="select-pais" name="pais" required>
-          <option value="" disabled selected>Elegí...</option>
-        </select>
+        <div class="campo-club__fila">
+          <img id="preview-escudo-pais" class="preview-escudo" alt="" hidden>
+          <select id="select-pais" name="pais" required>
+            <option value="" disabled selected>Elegí...</option>
+          </select>
+        </div>
       </div>
 
-      <div class="campo">
+      <div class="campo campo--pais">
         <label for="select-liga-pais">País de la liga</label>
-        <select id="select-liga-pais" name="liga-pais" required>
-          <option value="" disabled selected>Elegí...</option>
-        </select>
+        <div class="campo-club__fila">
+          <img id="preview-escudo-liga-pais" class="preview-escudo" alt="" hidden>
+          <select id="select-liga-pais" name="liga-pais" required>
+            <option value="" disabled selected>Elegí...</option>
+          </select>
+        </div>
       </div>
 
       <div class="campo">
