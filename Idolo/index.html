@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Carrera - Menú Principal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="menu-container">
+        <h1>⚽ Crea tu jugador</h1>
+
+        <!-- Datos básicos -->
+        <section class="form-section">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" placeholder="Ej: Lionel">
+
+            <label for="dorsal">Número de camiseta:</label>
+            <input type="number" id="dorsal" min="1" max="99" placeholder="10">
+        </section>
+
+        <!-- Nacionalidad -->
+        <section class="form-section">
+            <label for="nacionalidad">Nacionalidad:</label>
+            <select id="nacionalidad">
+                <option value="">Selecciona...</option>
+            </select>
+        </section>
+
+        <!-- Liga -->
+        <section class="form-section">
+            <label for="paisLiga">País de la liga:</label>
+            <select id="paisLiga" disabled>
+                <option value="">Selecciona...</option>
+            </select>
+
+            <label for="division">División:</label>
+            <select id="division" disabled>
+                <option value="">Selecciona...</option>
+            </select>
+
+            <label for="club">Club:</label>
+            <select id="club" disabled>
+                <option value="">Selecciona...</option>
+            </select>
+        </section>
+
+        <!-- Posición -->
+        <section class="form-section posiciones">
+            <p>Posición:</p>
+            <div class="posiciones-opciones">
+                <button type="button" class="posicion-btn" data-posicion="Delantero">Delantero</button>
+                <button type="button" class="posicion-btn" data-posicion="Enganche">Enganche</button>
+                <button type="button" class="posicion-btn" data-posicion="Defensa Central">Def. Central</button>
+                <button type="button" class="posicion-btn" data-posicion="Arquero">Arquero</button>
+            </div>
+        </section>
+
+        <button id="iniciar" class="iniciar-btn">Iniciar Carrera</button>
+        <p id="mensaje-error" class="error-msg"></p>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="menu.js"></script>
+</body>
+</html>
