@@ -167,7 +167,7 @@ const DIVISIONES_POR_LIGA = {
 };
 
 const CLUBES_POR_DIVISION = {
-"primera-division": [
+"primera-division-argentina": [
     { id: "aldosivi", nombre: "Aldosivi", escudo: "Imagenes/Argentina/LPF/Aldosivi.png" },
     { id: "argentinos-juniors", nombre: "Argentinos Juniors", escudo: "Imagenes/Argentina/LPF/Argentinosjrs.png" },
     { id: "atletico-tucuman", nombre: "Atlético Tucumán", escudo: "Imagenes/Argentina/LPF/AtleticoTucuman.png" },
