@@ -109,25 +109,33 @@ function generarCarta() {
 }
 
 // Aplica la carta elegida al jugador
+// ... (todo lo anterior igual)
+
 function aplicarCarta(jugador, carta) {
   const statsActuales = { ...jugador.stats };
   carta.stats.forEach(stat => {
     statsActuales[stat] = (statsActuales[stat] || 0) + carta.puntos;
   });
 
-  // Recalcular media y valor después de la mejora
-  const nuevaMedia = Math.round(
-    (statsActuales.pegada + statsActuales.velocidad + statsActuales.gambeta +
-     statsActuales.resistencia) / 4   // <-- Sin liderazgo
-  );
+  // Recalcular media con solo stats exclusivas
+  const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
+  let nuevaMedia;
+  if (config && config.atributos) {
+    const keys = config.atributos.map(a => a.clave);
+    const sum = keys.reduce((acc, key) => acc + (statsActuales[key] || 0), 0);
+    nuevaMedia = Math.round(sum / keys.length);
+  } else {
+    nuevaMedia = Math.round((statsActuales.pegada + statsActuales.velocidad + statsActuales.gambeta) / 3);
+  }
   const nuevoValor = calcularValorActualizado(nuevaMedia, jugador.edad);
 
-  // Actualizar estado
   Estado.actualizarStats(statsActuales);
   Estado.actualizar({ media: nuevaMedia, valor: nuevoValor });
 
   return { media: nuevaMedia, valor: nuevoValor };
 }
+
+// ... (resto igual)
 
 // Función auxiliar para recalcular valor (copia de la fórmula)
 function calcularValorActualizado(media, edad) {

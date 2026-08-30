@@ -37,7 +37,7 @@ const ESTADOS_SELECCION = {
   titular: "Titular",
 };
 
-let eventosPendientes = 0; // <-- Para controlar múltiples eventos
+let eventosPendientes = 0;
 
 function pintarHUD(jugador) {
   const config = obtenerConfigPosicion(jugador.posicion);
@@ -143,7 +143,6 @@ function crearBurbuja(valor, etiqueta, claseExtra) {
   return burbuja;
 }
 
-// AHORA formatea en K si es menor a 1M
 function formatearDinero(millones) {
   if (millones === undefined || millones === null || isNaN(millones)) return "$0";
   if (millones >= 1) return `$${millones.toFixed(1)}M`;
@@ -182,7 +181,6 @@ function capitalizar(texto) {
   return texto.split("-").map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join("");
 }
 
-// Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
 function abrirModalCartas() {
   const cartas = generarCartas();
   const contenedor = document.getElementById("contenedor-cartas");
@@ -203,14 +201,12 @@ function abrirModalCartas() {
       pintarHUD(Estado.obtener());
       document.getElementById("modal-cartas").hidden = true;
 
-      // Decidir cantidad de eventos según probabilidades
       const rand = Math.random();
       if (rand < 0.25) eventosPendientes = 0;
       else if (rand < 0.85) eventosPendientes = 1;
       else if (rand < 0.95) eventosPendientes = 2;
       else eventosPendientes = 3;
 
-      // Procesar eventos
       procesarEventos();
     });
 
@@ -220,7 +216,6 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
-// Procesa la cantidad de eventos pendientes
 function procesarEventos() {
   if (eventosPendientes > 0) {
     eventosPendientes--;
@@ -230,7 +225,6 @@ function procesarEventos() {
   }
 }
 
-// Muestra un evento en el contenedor inferior
 function mostrarEvento() {
   const contenedor = document.getElementById("evento-container");
   if (!contenedor) return;
@@ -252,11 +246,9 @@ function mostrarEvento() {
       const mensaje = aplicarEvento(Estado.obtener(), evento, index);
       pintarHUD(Estado.obtener());
 
-      // Limpiar contenedor
       contenedor.innerHTML = "";
       contenedor.hidden = true;
 
-      // Continuar con la cadena de eventos o ir al resumen
       procesarEventos();
     });
     opcionesDiv.appendChild(boton);
@@ -265,7 +257,6 @@ function mostrarEvento() {
   contenedor.hidden = false;
 }
 
-// Funciones para obtener rangos de goles/asistencias según media
 function obtenerRangosGolesAsist(media) {
   let golesMin, golesMax, asisMin, asisMax;
   if (media >= 40 && media <= 55) { golesMin=0; golesMax=2; asisMin=0; asisMax=1; }
@@ -281,6 +272,18 @@ function obtenerRangosGolesAsist(media) {
   return { golesMin, golesMax, asisMin, asisMax };
 }
 
+// Función para bonus por resistencia
+function obtenerBonusResistencia(resistencia) {
+  if (resistencia <= 30) return { partidos: -10, goles: -3, asistencias: -2 };
+  if (resistencia <= 40) return { partidos: -5, goles: -1, asistencias: -1 };
+  if (resistencia <= 55) return { partidos: 0, goles: 0, asistencias: 0 };
+  if (resistencia <= 65) return { partidos: 5, goles: 2, asistencias: 1 };
+  if (resistencia <= 75) return { partidos: 10, goles: 4, asistencias: 2 };
+  if (resistencia <= 85) return { partidos: 15, goles: 6, asistencias: 3 };
+  if (resistencia <= 95) return { partidos: 20, goles: 8, asistencias: 4 };
+  return { partidos: 30, goles: 12, asistencias: 8 };
+}
+
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
   const contenedor = document.getElementById("resumen-container");
@@ -289,14 +292,19 @@ function mostrarResumenAnual() {
   const año = jugador.año;
   const temporada = jugador.temporada;
 
-  // Si no hay stats anuales (primera vez), las generamos según media
   if (jugador.statsAnuales.partidos === 0) {
     const rangos = obtenerRangosGolesAsist(jugador.media);
-    jugador.statsAnuales.partidos = Math.floor(Math.random() * 20) + 10; // 10-30
-    jugador.statsAnuales.goles = Math.floor(Math.random() * (rangos.golesMax - rangos.golesMin + 1)) + rangos.golesMin;
-    jugador.statsAnuales.asistencias = Math.floor(Math.random() * (rangos.asisMax - rangos.asisMin + 1)) + rangos.asisMin;
+    let basePartidos = Math.floor(Math.random() * 20) + 10;
+    let baseGoles = Math.floor(Math.random() * (rangos.golesMax - rangos.golesMin + 1)) + rangos.golesMin;
+    let baseAsistencias = Math.floor(Math.random() * (rangos.asisMax - rangos.asisMin + 1)) + rangos.asisMin;
+
+    // Aplicar bonus por resistencia
+    const bonus = obtenerBonusResistencia(jugador.stats.resistencia || 0);
+    jugador.statsAnuales.partidos = Math.max(0, basePartidos + bonus.partidos);
+    jugador.statsAnuales.goles = Math.max(0, baseGoles + bonus.goles);
+    jugador.statsAnuales.asistencias = Math.max(0, baseAsistencias + bonus.asistencias);
+
     jugador.statsAnuales.nota = (Math.random() * 2 + 5.5).toFixed(1);
-    // Dinero = 2% del valor (en millones)
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
