@@ -221,7 +221,16 @@ function procesarEventos() {
     eventosPendientes--;
     mostrarEvento();
   } else {
-    mostrarResumenAnual();
+    // Simular liga argentina
+    const jugador = Estado.obtener();
+    const resultado = simularLiga(jugador);
+    jugador.resultadoLiga = resultado;
+    Estado.guardar();
+    
+    // Mostrar resultado de liga (si hay cartel, minijuego, etc.)
+    mostrarResultadoLiga(resultado, (res) => {
+      mostrarResumenAnual();
+    });
   }
 }
 
@@ -272,7 +281,6 @@ function obtenerRangosGolesAsist(media) {
   return { golesMin, golesMax, asisMin, asisMax };
 }
 
-// Función para bonus por resistencia
 function obtenerBonusResistencia(resistencia) {
   if (resistencia <= 30) return { partidos: -10, goles: -3, asistencias: -2 };
   if (resistencia <= 40) return { partidos: -5, goles: -1, asistencias: -1 };
@@ -324,7 +332,6 @@ function obtenerTituloPorGoles(goles, nombre, club) {
     ];
     return opciones[Math.floor(Math.random() * opciones.length)];
   }
-  // Más de 25 goles
   const opciones = [
     { titulo: "DE OTRO PLANETA", texto: `Una bestialidad. ${nombre} rompe todos los esquemas con ${goles} goles en un solo año. ¡Histórico!` },
     { titulo: "EL REY DE " + club, texto: `Simplemente imparable. Sus ${goles} goles quedarán grabados para siempre en la memoria del hincha.` },
@@ -336,91 +343,28 @@ function obtenerTituloPorGoles(goles, nombre, club) {
   return opciones[Math.floor(Math.random() * opciones.length)];
 }
 
-// Función para elegir título según goles
-function obtenerTituloPorGoles(goles, nombre, club) {
-  if (goles < 5) {
-    const opciones = [
-      { titulo: "PÓLVORA MOJADA", texto: `Temporada para el olvido de ${nombre} en ${club}. Apenas ${goles} gritos y la hinchada pierde la paciencia.` },
-      { titulo: "FANTASMA EN LA CANCHA", texto: `Un año intrascendente. Solo ${goles} goles y más dudas que certezas sobre su futuro profesional.` },
-      { titulo: "¿PESA LA CAMISETA?", texto: `El pibe no termina de arrancar. Temporada flojísima con ${goles} goles y murmullos en la tribuna.` },
-      { titulo: "CON LA BRÚJULA ROTA", texto: `Poca participación y nula efectividad. ${nombre} cierra el año con ${goles} goles y rumores de salida.` },
-      { titulo: "AÑO PARA EL OLVIDO", texto: `Entre malas decisiones y bajones de nivel, apenas mojó ${goles} veces. Toca replantearse todo.` },
-      { titulo: "MUCHO RUIDO, POCAS NUECES", texto: `Las expectativas estaban altas, pero los ${goles} goles en todo el año dejaron sabor a nada.` },
-      { titulo: "EN EL OJO DE LA TORMENTA", texto: `Rendimiento bajísimo. Los ${goles} goles marcados no justifican su titularidad.` },
-      { titulo: "FALTO DE CONFIANZA", texto: `Se lo notó errático frente al arco. Apenas ${goles} tantos y una moral que necesita recuperarse urgente.` }
-    ];
-    return opciones[Math.floor(Math.random() * opciones.length)];
-  }
-  if (goles < 13) {
-    const opciones = [
-      { titulo: "NI FU NI FA", texto: `Temporada de transición. Marcó ${goles} goles, cumplió, pero los hinchas saben que puede dar mucho más.` },
-      { titulo: "APROBADO RASPANDO", texto: `Un año de altibajos en ${club}. Sus ${goles} goles ayudaron, aunque faltó esa chispa de crack.` },
-      { titulo: "SILENCIOSO PERO EFECTIVO", texto: `Sin grandes tapas de diarios, ${nombre} aportó ${goles} goles útiles para el equipo.` },
-      { titulo: "DE MENOR A MAYOR", texto: `Le costó el arranque, pero terminó salvando la ropa con ${goles} gritos en la temporada.` },
-      { titulo: "UN OBRERO DEL GOL", texto: `Temporada trabajada y sacrificada. Los ${goles} goles demuestran que siempre intenta y va para adelante.` },
-      { titulo: "MANTENIENDO EL NIVEL", texto: `Ni desastre ni figura excluyente. Cierra su año con ${goles} goles y un aprobado general.` },
-      { titulo: "A MITAD DE CAMINO", texto: `Alternó buenas y malas. ${goles} goles que sirven para quedarse, pero no para ser el ídolo del club.` },
-      { titulo: "EL CUMPLIDOR", texto: `Siempre que se lo necesitó, estuvo. Año sólido con ${goles} anotaciones en su cuenta personal.` }
-    ];
-    return opciones[Math.floor(Math.random() * opciones.length)];
-  }
-  if (goles < 26) {
-    const opciones = [
-      { titulo: "EL DUEÑO DE LOS APLAUSOS", texto: `Gran año. Con ${goles} goles, ${nombre} ya se ganó el cariño incondicional de la tribuna.` },
-      { titulo: "LA CARTA GANADORA", texto: `Cuando las papas quemaban, él apareció. Temporada fantástica coronada con ${goles} goles.` },
-      { titulo: "NACIDO PARA ESTO", texto: `El pibe no para de crecer. Sus ${goles} goles reafirman que tiene futuro de Selección.` },
-      { titulo: "A PURO FUEGO", texto: `Intratable dentro del área. Cierra una temporada tremenda mandando la pelota a la red ${goles} veces.` },
-      { titulo: "EL REFERENTE DEL ATAQUE", texto: `Temporada de consagración absoluta. Sus ${goles} gritos sagrados lo ponen entre los mejores de la liga.` },
-      { titulo: "UNA PESADILLA PARA LA DEFENSA", texto: `Nadie lo pudo frenar este año. Su velocidad y sus ${goles} goles meten miedo en todo el país.` },
-      { titulo: "VALE CADA CENTAVO", texto: `Su valor de mercado se dispara tras una campaña brillante de ${goles} goles vistiendo estos colores.` },
-      { titulo: "ÍDOLO EN CONSTRUCCIÓN", texto: `La hinchada ya corea su nombre en cada partido. Gran temporada anotando ${goles} tantos decisivos.` }
-    ];
-    return opciones[Math.floor(Math.random() * opciones.length)];
-  }
-  // Más de 25 goles
-  const opciones = [
-    { titulo: "DE OTRO PLANETA", texto: `Una bestialidad. ${nombre} rompe todos los esquemas con ${goles} goles en un solo año. ¡Histórico!` },
-    { titulo: "EL REY DE " + club, texto: `Simplemente imparable. Sus ${goles} goles quedarán grabados para siempre en la memoria del hincha.` },
-    { titulo: "MÁQUINA DE HACER GOLES", texto: `Las estadísticas no mienten. Temporada de leyenda absoluta inflando la red ${goles} veces.` },
-    { titulo: "TOCADO POR LA VARITA", texto: `Todo lo que toca es gol. Cierra un año soñado con ${goles} gritos que valen campeonatos.` },
-    { titulo: "FÚTBOL CHAMPAGNE", texto: `Exhibición total a lo largo de todo el calendario. Sus ${goles} goles fueron verdaderas obras de arte.` },
-    { titulo: "LEYENDA VIVIENTE", texto: `Los números hablan por sí solos. ${goles} goles en una temporada que se estudiará en los libros de historia del fútbol.` }
-  ];
-  return opciones[Math.floor(Math.random() * opciones.length)];
-}
-
-// Función para elegir título general (random)
 function obtenerTituloGeneral(nombre, club) {
   const opciones = [
-    // Liderazgo y Actitud
     { titulo: "EL DUEÑO DEL VESTUARIO", texto: `Con o sin la cinta, ${nombre} fue el motor anímico de ${club} durante toda la temporada.` },
     { titulo: "VOZ DE MANDO", texto: `Demostró que no solo sabe jugar, sino también guiar a sus compañeros en los momentos más calientes del año.` },
     { titulo: "EL ALMA DE " + club, texto: `Corrió, metió y contagió al resto. Una temporada donde dejó la vida en cada pelota disputada.` },
     { titulo: "FALTA DE PESO", texto: `Se esperaba que asuma el liderazgo del equipo, pero terminó siendo uno más del montón este año.` },
     { titulo: "PECHO FRÍO", texto: `Dura crítica del periodismo: en los partidos clave de la temporada, se borró por completo.` },
-    
-    // Despliegue Físico y Táctico
     { titulo: "UN TRACTOR EN LA CANCHA", texto: `Su resistencia física fue clave. Jugó casi todos los partidos del año y nunca bajó el ritmo.` },
     { titulo: "LA PAUSA NECESARIA", texto: `Manejó los hilos de ${club} con una inteligencia táctica brutal, haciendo jugar a todos a su ritmo.` },
     { titulo: "EL CORRECAMINOS", texto: `Desequilibrante y veloz. Volvió locos a los rivales por la banda a lo largo de todo el calendario.` },
     { titulo: "PULMONES DE ACERO", texto: `Cuando los demás se quedaban sin aire, él seguía pidiendo la pelota. Año de puro sacrificio y entrega.` },
     { titulo: "FUERA DE FORMA", texto: `Se lo notó pesado y lento en tramos claves. Físicamente quedó en deuda con el cuerpo técnico.` },
-    
-    // Relación con la Hinchada
     { titulo: "ROMANCE EN LAS TRIBUNAS", texto: `La gente lo ama incondicionalmente. Una temporada donde la conexión con el hincha fue total.` },
     { titulo: "EL MIMO DE LA GENTE", texto: `Se fue ovacionado en casi todos los partidos de local. Ya es uno de los grandes mimados de ${club}.` },
     { titulo: "MIRADAS DE REOJO", texto: `La hinchada no le perdona algunas actitudes. Un año tenso entre ${nombre} y la tribuna.` },
     { titulo: "CRÉDITO AGOTADO", texto: `Silbidos y murmullos marcaron su año. Tendrá que remarla muchísimo la próxima temporada para revertirlo.` },
     { titulo: "DE MAYOR A MENOR", texto: `Empezó el año siendo aplaudido, pero su nivel cayó en picada y la gente se lo hizo saber rápido.` },
-    
-    // Polémicas y Vida Personal
     { titulo: "MÁS RUIDO QUE FÚTBOL", texto: `Su temporada estuvo más marcada por las polémicas fuera del césped que por su nivel adentro de la cancha.` },
     { titulo: "EN EL OJO DEL HURACÁN", texto: `La prensa no le dio respiro. Un año ultra mediático y desgastante desde lo psicológico.` },
     { titulo: "PERFIL BAJO, RENDIMIENTO ALTO", texto: `Lejos de los micrófonos y las redes sociales, se dedicó solo a jugar y cerró un año excelente.` },
     { titulo: "CABEZA EN OTRO LADO", texto: `Entre publicidades, redes y salidas, su mente pareció estar muy lejos de ${club} esta temporada.` },
     { titulo: "PROFESIONAL AL 100%", texto: `Un ejemplo de conducta de enero a diciembre. Cero polémicas y máxima concentración en su carrera.` },
-    
-    // Mercado y Proyección
     { titulo: "EL PIBE DE ORO", texto: `Su valor de mercado se disparó. Cerró un año soñado y media liga está preguntando condiciones por él.` },
     { titulo: "A PASO FIRME", texto: `Sigue creciendo a pasos agigantados. Cierra un año donde demostró que todavía no conoce su propio techo.` },
     { titulo: "LA REVELACIÓN", texto: `Nadie daba dos pesos por él a principio de año, pero terminó cerrando bocas en todos los estadios del país.` },
@@ -430,7 +374,6 @@ function obtenerTituloGeneral(nombre, club) {
   return opciones[Math.floor(Math.random() * opciones.length)];
 }
 
-// Y MODIFICAR EL INICIO DE mostrarResumenAnual para usar estas funciones:
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
   const contenedor = document.getElementById("resumen-container");
@@ -465,8 +408,16 @@ function mostrarResumenAnual() {
   const tituloResumen = resumen.titulo;
   const textoResumen = resumen.texto;
 
-  const tituloResumen = "¿Y EL GOL?";
-  const textoResumen = `Temporada seca de ${jugador.nombre} en ${obtenerNombreClub(jugador.club)}: apenas ${jugador.statsAnuales.goles} goles. Las críticas crecen.`;
+  // Resultado de la liga
+  const resultadoLiga = jugador.resultadoLiga || null;
+  let textoLiga = "";
+  if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
+    textoLiga = "🏆 ¡Campeón de la Liga Argentina!";
+  } else if (resultadoLiga && resultadoLiga.subcampeon) {
+    textoLiga = "🥈 Subcampeón de la Liga Argentina.";
+  } else if (resultadoLiga) {
+    textoLiga = `Posición ${resultadoLiga.posicion}° en la Liga Argentina.`;
+  }
 
   const posicion = "2°";
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
@@ -502,6 +453,8 @@ function mostrarResumenAnual() {
     <div class="resumen-decisiones">
       <strong>Decisiones del año:</strong><br>
       ${decisiones.replace(/\n/g, '<br>')}
+      <br><br>
+      <strong>Liga:</strong><br>${textoLiga || "Sin datos de liga."}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;

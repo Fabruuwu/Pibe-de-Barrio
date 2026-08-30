@@ -1079,3 +1079,112 @@ html, body {
 .resumen-boton:hover {
   filter: brightness(1.1);
 }
+
+/* ============================================
+   COMPETICIONES / MINIJUEGOS
+   ============================================ */
+.competition-container {
+  background: linear-gradient(180deg, var(--panel), #0e120c);
+  border: 1px solid var(--panel-borde);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.competition-card {
+  text-align: center;
+  padding: 20px;
+}
+
+.competition-card.campeon {
+  background: linear-gradient(135deg, #f5c542, #d4af37);
+  border: 3px solid #ffd700;
+  color: #2a1a00;
+  border-radius: 12px;
+}
+
+.competition-card.campeon h2 {
+  font-size: 28px;
+  margin: 10px 0;
+}
+
+.competition-card.campeon img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 10px auto;
+}
+
+.competition-card.subcampeon {
+  background: linear-gradient(135deg, #b0b0b0, #808080);
+  border: 2px solid #aaa;
+  color: #1a1a1a;
+}
+
+.minijuego-botones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.opcion-penal {
+  padding: 12px 20px;
+  background: var(--verde-brillo);
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.memoria-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 15px auto;
+  max-width: 300px;
+}
+
+.memoria-punto {
+  height: 40px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-borde);
+  border-radius: 8px;
+}
+
+.memoria-punto.iluminado {
+  background: var(--verde-brillo);
+}
+
+.memoria-punto.activo {
+  cursor: pointer;
+}
+
+.qte-area {
+  margin: 15px auto;
+}
+
+.qte-boton {
+  padding: 20px 30px;
+  background: #ff4444;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.boton-continuar, .boton-jugar-minijuego {
+  padding: 12px 20px;
+  background: var(--verde-brillo);
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+}
