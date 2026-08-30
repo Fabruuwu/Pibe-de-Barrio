@@ -21,8 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
 // Diccionario de nombres para los datos "crudos" (id -> texto legible).
 // Por ahora alcanza con lo que ya usa el menú.
 const NOMBRES_PAISES = {};
+const PAISES_POR_ID = {};
 if (typeof PAISES !== "undefined") {
-  PAISES.forEach((p) => (NOMBRES_PAISES[p.id] = p.nombre));
+  PAISES.forEach((p) => {
+    NOMBRES_PAISES[p.id] = p.nombre;
+    PAISES_POR_ID[p.id] = p;
+  });
 }
 const NOMBRES_CLUBES = {};
 if (typeof CLUBES_POR_DIVISION !== "undefined") {
@@ -84,10 +88,9 @@ function pintarCabecera(jugador) {
   document.getElementById("hud-media").textContent = jugador.media;
 
   const bandera = document.getElementById("hud-bandera");
-  bandera.alt = NOMBRES_PAISES[jugador.pais] || "";
-  // Misma convención de rutas que ya usa el menú para banderas/escudos.
-  bandera.src = `Imagenes/Banderas/${capitalizar(jugador.pais)}.png`;
-  bandera.onerror = () => (bandera.hidden = true);
+  const pais = PAISES_POR_ID[jugador.pais];
+  bandera.alt = pais ? pais.nombre : "";
+  mostrarBandera(bandera, pais ? pais.bandera : "");
 }
 
 function pintarEquipoYLiga(jugador) {
@@ -195,8 +198,9 @@ function pintarCariño(jugador) {
 
 function pintarSeleccion(jugador) {
   const bandera = document.getElementById("hud-bandera-seleccion");
-  bandera.src = `Imagenes/Banderas/${capitalizar(jugador.pais)}.png`;
-  bandera.onerror = () => (bandera.hidden = true);
+  const pais = PAISES_POR_ID[jugador.pais];
+  bandera.alt = pais ? pais.nombre : "";
+  mostrarBandera(bandera, pais ? pais.bandera : "");
 
   document.getElementById("hud-estado-seleccion").textContent =
     ESTADOS_SELECCION[jugador.seleccion] || "Sin chances";
@@ -211,4 +215,20 @@ function capitalizar(texto) {
     .split("-")
     .map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1))
     .join("");
+}
+
+// Muestra la bandera si el país tiene una ruta cargada en data.js;
+// si no tiene ruta, o si la imagen no existe todavía, la oculta
+// en vez de mostrar el ícono roto del navegador.
+function mostrarBandera(imgElemento, ruta) {
+  if (!ruta) {
+    imgElemento.hidden = true;
+    imgElemento.removeAttribute("src");
+    return;
+  }
+  imgElemento.src = ruta;
+  imgElemento.hidden = false;
+  imgElemento.onerror = () => {
+    imgElemento.hidden = true;
+  };
 }
