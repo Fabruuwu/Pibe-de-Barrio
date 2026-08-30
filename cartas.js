@@ -118,7 +118,7 @@ function aplicarCarta(jugador, carta) {
   // Recalcular media y valor después de la mejora
   const nuevaMedia = Math.round(
     (statsActuales.pegada + statsActuales.velocidad + statsActuales.gambeta +
-     statsActuales.liderazgo + statsActuales.resistencia) / 5
+     statsActuales.resistencia) / 4   // <-- Sin liderazgo
   );
   const nuevoValor = calcularValorActualizado(nuevaMedia, jugador.edad);
 

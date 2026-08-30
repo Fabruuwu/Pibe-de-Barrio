@@ -50,13 +50,13 @@ const Estado = (() => {
     };
   }
 
+  // AHORA LA MEDIA ES SOLO CON LAS 4 STATS CLAVE (sin liderazgo)
   function calcularMedia(stats) {
-    return Math.round((stats.pegada + stats.velocidad + stats.gambeta + stats.liderazgo + stats.resistencia) / 5);
+    return Math.round((stats.pegada + stats.velocidad + stats.gambeta + stats.resistencia) / 4);
   }
 
   // NUEVA FÓRMULA DE VALOR
   function calcularValor(media, edad) {
-    // Multiplicador según edad
     let mult = 1;
     if (edad >= 15 && edad <= 21) mult = 2;
     else if (edad >= 22 && edad <= 28) mult = 1.5;
@@ -81,14 +81,14 @@ const Estado = (() => {
       media: media,
       valor: valor,
       dinero: 0,
-      retirado: false, // <-- NUEVO
+      retirado: false,
       temporada: 1,
       statsAnuales: {
         partidos: 0,
         goles: 0,
         asistencias: 0,
         nota: 0,
-        dinero: 0
+        dinero: 0 // Ahora en millones (número)
       },
       historialClubes: [
         { club: base.club, desde: base.año, hasta: null, cariñoFinal: 0, partidos: 0, titulos: [] }
@@ -120,18 +120,20 @@ const Estado = (() => {
     });
   }
 
-  // NUEVA FUNCIÓN: Avanzar de temporada (suma stats, sube edad, chequea retiro)
+  // NUEVA FUNCIÓN: Avanzar de temporada (suma stats, sube edad, chequea retiro, +cariño)
   function avanzarTemporada() {
     // Sumar stats anuales al acumulado
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;
-    // Nota y dinero no se acumulan de la misma forma, se mantienen anuales.
 
     // Subir edad y año
     jugador.edad += 1;
     jugador.año += 1;
     jugador.temporada += 1;
+
+    // +1 cariño por año en el club
+    jugador.cariño = Math.min(100, (jugador.cariño || 0) + 1);
 
     // Resetear stats anuales
     jugador.statsAnuales = {
@@ -144,8 +146,7 @@ const Estado = (() => {
     jugador.historialEventos = [];
 
     // Chequear retiro automático por edad
-    const retirado = verificarRetiroAutomatico();
-    if (retirado) jugador.retirado = true;
+    if (verificarRetiroAutomatico()) jugador.retirado = true;
 
     guardar();
     return jugador;

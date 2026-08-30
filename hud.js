@@ -37,6 +37,8 @@ const ESTADOS_SELECCION = {
   titular: "Titular",
 };
 
+let eventosPendientes = 0; // <-- Para controlar múltiples eventos
+
 function pintarHUD(jugador) {
   const config = obtenerConfigPosicion(jugador.posicion);
   pintarCabecera(jugador);
@@ -141,9 +143,11 @@ function crearBurbuja(valor, etiqueta, claseExtra) {
   return burbuja;
 }
 
+// AHORA formatea en K si es menor a 1M
 function formatearDinero(millones) {
-  if (millones === undefined || millones === null) return "$0M";
-  return `$${millones.toFixed(1)}M`;
+  if (millones === undefined || millones === null || isNaN(millones)) return "$0";
+  if (millones >= 1) return `$${millones.toFixed(1)}M`;
+  return `$${Math.round(millones * 1000)}K`;
 }
 
 function pintarCariño(jugador) {
@@ -179,7 +183,6 @@ function capitalizar(texto) {
 }
 
 // Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
-// (Por ahora solo se muestra la primera vez, pero cuando tengamos ciclo de años, llamaremos a esta función cada año)
 function abrirModalCartas() {
   const cartas = generarCartas();
   const contenedor = document.getElementById("contenedor-cartas");
@@ -197,11 +200,18 @@ function abrirModalCartas() {
 
     cartaDiv.addEventListener("click", () => {
       const resultado = aplicarCarta(Estado.obtener(), carta);
-      // Actualizamos el HUD con los nuevos stats
       pintarHUD(Estado.obtener());
-      // Cerramos modal
       document.getElementById("modal-cartas").hidden = true;
-      mostrarEvento();  // <-- Ahora sí existe
+
+      // Decidir cantidad de eventos según probabilidades
+      const rand = Math.random();
+      if (rand < 0.25) eventosPendientes = 0;
+      else if (rand < 0.85) eventosPendientes = 1;
+      else if (rand < 0.95) eventosPendientes = 2;
+      else eventosPendientes = 3;
+
+      // Procesar eventos
+      procesarEventos();
     });
 
     contenedor.appendChild(cartaDiv);
@@ -210,7 +220,17 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
-// ========== FUNCIÓN FALTANTE: mostrarEvento ==========
+// Procesa la cantidad de eventos pendientes
+function procesarEventos() {
+  if (eventosPendientes > 0) {
+    eventosPendientes--;
+    mostrarEvento();
+  } else {
+    mostrarResumenAnual();
+  }
+}
+
+// Muestra un evento en el contenedor inferior
 function mostrarEvento() {
   const contenedor = document.getElementById("evento-container");
   if (!contenedor) return;
@@ -231,16 +251,35 @@ function mostrarEvento() {
     boton.addEventListener("click", () => {
       const mensaje = aplicarEvento(Estado.obtener(), evento, index);
       pintarHUD(Estado.obtener());
+
+      // Limpiar contenedor
       contenedor.innerHTML = "";
       contenedor.hidden = true;
-      mostrarResumenAnual(); // <-- Ahora pasa al resumen
+
+      // Continuar con la cadena de eventos o ir al resumen
+      procesarEventos();
     });
     opcionesDiv.appendChild(boton);
   });
 
   contenedor.hidden = false;
 }
-// ======================================================
+
+// Funciones para obtener rangos de goles/asistencias según media
+function obtenerRangosGolesAsist(media) {
+  let golesMin, golesMax, asisMin, asisMax;
+  if (media >= 40 && media <= 55) { golesMin=0; golesMax=2; asisMin=0; asisMax=1; }
+  else if (media >= 56 && media <= 65) { golesMin=0; golesMax=9; asisMin=0; asisMax=6; }
+  else if (media >= 66 && media <= 75) { golesMin=2; golesMax=17; asisMin=1; asisMax=15; }
+  else if (media >= 76 && media <= 80) { golesMin=3; golesMax=19; asisMin=2; asisMax=17; }
+  else if (media >= 81 && media <= 85) { golesMin=5; golesMax=30; asisMin=3; asisMax=24; }
+  else if (media >= 86 && media <= 90) { golesMin=8; golesMax=39; asisMin=5; asisMax=30; }
+  else if (media >= 91 && media <= 95) { golesMin=12; golesMax=60; asisMin=9; asisMax=39; }
+  else if (media >= 95 && media <= 99) { golesMin=18; golesMax=85; asisMin=15; asisMax=60; }
+  else { golesMin=0; golesMax=0; asisMin=0; asisMax=0; }
+
+  return { golesMin, golesMax, asisMin, asisMax };
+}
 
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
@@ -250,14 +289,15 @@ function mostrarResumenAnual() {
   const año = jugador.año;
   const temporada = jugador.temporada;
 
-  // Si no hay stats anuales (primera vez), las generamos
+  // Si no hay stats anuales (primera vez), las generamos según media
   if (jugador.statsAnuales.partidos === 0) {
+    const rangos = obtenerRangosGolesAsist(jugador.media);
     jugador.statsAnuales.partidos = Math.floor(Math.random() * 20) + 10; // 10-30
-    jugador.statsAnuales.goles = Math.floor(Math.random() * 5); // 0-5
-    jugador.statsAnuales.asistencias = Math.floor(Math.random() * 6); // 0-6
-    jugador.statsAnuales.nota = (Math.random() * 2 + 5.5).toFixed(1); // 5.5-7.5
-    const valor = jugador.valor || 1;
-    jugador.statsAnuales.dinero = Math.floor(valor * 0.02 * 1000) + "K";
+    jugador.statsAnuales.goles = Math.floor(Math.random() * (rangos.golesMax - rangos.golesMin + 1)) + rangos.golesMin;
+    jugador.statsAnuales.asistencias = Math.floor(Math.random() * (rangos.asisMax - rangos.asisMin + 1)) + rangos.asisMin;
+    jugador.statsAnuales.nota = (Math.random() * 2 + 5.5).toFixed(1);
+    // Dinero = 2% del valor (en millones)
+    jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
   const tituloResumen = "¿Y EL GOL?";
@@ -292,7 +332,7 @@ function mostrarResumenAnual() {
       <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.goles}</span><span class="resumen-stat-label">Goles</span></div>
       <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.asistencias}</span><span class="resumen-stat-label">Asistencias</span></div>
       <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.nota}</span><span class="resumen-stat-label">Nota</span></div>
-      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.dinero}</span><span class="resumen-stat-label">Dinero</span></div>
+      <div class="resumen-stat"><span class="resumen-stat-valor">${formatearDinero(jugador.statsAnuales.dinero)}</span><span class="resumen-stat-label">Dinero</span></div>
     </div>
     <div class="resumen-decisiones">
       <strong>Decisiones del año:</strong><br>
@@ -308,7 +348,6 @@ function mostrarResumenAnual() {
 
     if (Estado.obtener().retirado) {
       alert(`¡Carrera terminada! Te retiraste a los ${Estado.obtener().edad} años por edad.`);
-      // Aquí podrías redirigir al resumen final (fase 3)
       contenedor.innerHTML = "";
       contenedor.hidden = true;
       return;
@@ -322,7 +361,6 @@ function mostrarResumenAnual() {
   });
 }
 
-// Función auxiliar para obtener nombre del club
 function obtenerNombreClub(idClub) {
   const club = NOMBRES_CLUBES[idClub];
   return club ? club.nombre : "Club";
