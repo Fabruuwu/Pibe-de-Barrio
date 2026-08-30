@@ -1,11 +1,3 @@
-/**
- * estado.js
- * -----------------------------------------
- * Dueño único de los datos de la carrera actual.
- * Ahora genera edad, stats base, media y valor según las reglas.
- * -----------------------------------------
- */
-
 const CLAVE_STORAGE = "carreraActual";
 
 const Estado = (() => {
@@ -62,7 +54,8 @@ const Estado = (() => {
     return Math.round((stats.pegada + stats.velocidad + stats.gambeta + stats.liderazgo + stats.resistencia) / 5);
   }
 
-  function calcularValor(stats, media, edad) {
+  // NUEVA FÓRMULA DE VALOR
+  function calcularValor(media, edad) {
     // Multiplicador según edad
     let mult = 1;
     if (edad >= 15 && edad <= 21) mult = 2;      // Joven Promesa
@@ -70,8 +63,8 @@ const Estado = (() => {
     else if (edad >= 29 && edad <= 33) mult = 1;   // Experimentado
     else mult = 0.5;                                // Declive
 
-    // Valor base = (Pegada * Vel * Gambeta) * Media
-    const valorBruto = (stats.pegada * stats.velocidad * stats.gambeta) * media * mult;
+    // Fórmula: (Media - 40)^4 * 15 * Multiplicador
+    const valorBruto = Math.pow((media - 40), 4) * 15 * mult;
     
     // Lo devolvemos en millones para que el HUD lo muestre como $X.XM
     return Math.round(valorBruto / 1000000);
@@ -83,7 +76,7 @@ const Estado = (() => {
     const edad = generarEdad();
     const statsBase = generarStatsBase();
     const media = calcularMedia(statsBase);
-    const valor = calcularValor(statsBase, media, edad);
+    const valor = calcularValor(media, edad);
 
     return {
       ...base,
