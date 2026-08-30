@@ -224,11 +224,21 @@ function procesarEventos() {
     // Simular liga argentina
     const jugador = Estado.obtener();
     const resultado = simularLiga(jugador);
-    jugador.resultadoLiga = resultado;
-    Estado.guardar();
     
-    // Mostrar resultado de liga (si hay cartel, minijuego, etc.)
+    // Mostrar resultado de liga y procesar el resultado final
     mostrarResultadoLiga(resultado, (res) => {
+      // ✅ 1. Guardar el resultado FINAL (si perdió el minijuego, esto actualiza a subcampeón)
+      jugador.resultadoLiga = res;
+      
+      // ✅ 2. Si es campeón, sumar 1 al contador de títulos
+      if (res.esCampeon) {
+        jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+      }
+      
+      // Guardar el estado actualizado
+      Estado.guardar();
+      
+      // Mostrar resumen final
       mostrarResumenAnual();
     });
   }

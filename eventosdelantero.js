@@ -252,7 +252,7 @@ function mostrarResultadoLiga(resultado, callback) {
       contenedor.innerHTML = `
         <div class="competition-card campeon">
           <h2>¡CAMPEÓN!</h2>
-          <img src="Imagenes/Trofeos/LigaArgentina.png" alt="Copa">
+          <img src="Trofeos/LigaArgentina.png" alt="Copa">
           <p>¡DALE CAMPEÓN! La locura es total en las tribunas.</p>
           <button class="boton-continuar">Continuar</button>
         </div>
@@ -273,7 +273,7 @@ function mostrarResultadoLiga(resultado, callback) {
             contenedor.innerHTML = `
               <div class="competition-card campeon">
                 <h2>¡CAMPEÓN!</h2>
-                <img src="Imagenes/Trofeos/LigaArgentina.png" alt="Copa">
+                <img src="Trofeos/LigaArgentina.png" alt="Copa">
                 <p>¡DALE CAMPEÓN! La locura es total en las tribunas.</p>
                 <button class="boton-continuar">Continuar</button>
               </div>
