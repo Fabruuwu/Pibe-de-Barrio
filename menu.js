@@ -307,5 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("pantalla-menu").hidden = true;
     document.getElementById("pantalla-juego").hidden = false;
     pintarHUD(Estado.obtener());
+
+    abrirModalCartas(); 
   }
 });

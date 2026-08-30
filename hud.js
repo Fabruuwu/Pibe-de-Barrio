@@ -210,9 +210,3 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
-// Llamar al abrir el juego (por ahora solo una vez al iniciar)
-document.addEventListener("DOMContentLoaded", () => {
-  // ... tu código actual ...
-  // Después de pintarHUD:
-  setTimeout(() => abrirModalCartas(), 500); // pequeño delay para que se vea
-});
