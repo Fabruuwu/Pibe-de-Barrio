@@ -201,7 +201,7 @@ function abrirModalCartas() {
       pintarHUD(Estado.obtener());
       // Cerramos modal
       document.getElementById("modal-cartas").hidden = true;
-      abrirModalEvento();
+      mostrarEvento();
     });
 
     contenedor.appendChild(cartaDiv);
@@ -250,6 +250,6 @@ function mostrarEvento() {
 document.addEventListener("DOMContentLoaded", () => {
   const botonEvento = document.getElementById("boton-evento");
   if (botonEvento) {
-    botonEvento.addEventListener("click", abrirModalEvento);
+    botonEvento.addEventListener("click", mostrarEvento);
   }
 });
