@@ -201,7 +201,7 @@ function abrirModalCartas() {
       pintarHUD(Estado.obtener());
       // Cerramos modal
       document.getElementById("modal-cartas").hidden = true;
-      mostrarEvento();
+      mostrarEvento();  // <-- Ahora sí existe
     });
 
     contenedor.appendChild(cartaDiv);
@@ -210,8 +210,38 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
-// Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
-// Muestra el evento en el contenedor inferior (no modal)
+// ========== FUNCIÓN FALTANTE: mostrarEvento ==========
+function mostrarEvento() {
+  const contenedor = document.getElementById("evento-container");
+  if (!contenedor) return;
+
+  const evento = generarEvento();
+  contenedor.innerHTML = `
+    <h3 class="evento-titulo">${evento.titulo}</h3>
+    <p class="evento-descripcion">${evento.descripcion}</p>
+    <div class="evento-opciones"></div>
+  `;
+
+  const opcionesDiv = contenedor.querySelector(".evento-opciones");
+
+  evento.opciones.forEach((opcion, index) => {
+    const boton = document.createElement("button");
+    boton.className = "evento-opcion";
+    boton.textContent = opcion.texto;
+    boton.addEventListener("click", () => {
+      const mensaje = aplicarEvento(Estado.obtener(), evento, index);
+      pintarHUD(Estado.obtener());
+      contenedor.innerHTML = "";
+      contenedor.hidden = true;
+      mostrarResumenAnual(); // <-- Ahora pasa al resumen
+    });
+    opcionesDiv.appendChild(boton);
+  });
+
+  contenedor.hidden = false;
+}
+// ======================================================
+
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
   const contenedor = document.getElementById("resumen-container");
