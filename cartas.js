@@ -9,7 +9,7 @@
 
 // Definición de rarezas con probabilidades
 const RAREZAS = {
-  comun: { nombre: "Común", prob: 50, borde: "#2d5a41", fondo: "#1a2e24" },
+  comun: { nombre: "Común", prob: 50, borde: "#33334a", fondo: "#1a1f2e" }, // Azul oscuro
   rara: { nombre: "Rara", prob: 35, borde: "#9aa196", fondo: "#2a2f2a" },
   dorada: { nombre: "Dorada", prob: 13, borde: "#f5c542", fondo: "#3a2f12" },
   leyenda: { nombre: "Leyenda", prob: 2, borde: "#a855f7", fondo: "#2a1a3a" }
