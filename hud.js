@@ -212,38 +212,6 @@ function abrirModalCartas() {
 
 // Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
 // Muestra el evento en el contenedor inferior (no modal)
-function mostrarEvento() {
-  const contenedor = document.getElementById("evento-container");
-  if (!contenedor) return;
-
-  const evento = generarEvento();
-  contenedor.innerHTML = `
-    <h3 class="evento-titulo">${evento.titulo}</h3>
-    <p class="evento-descripcion">${evento.descripcion}</p>
-    <div class="evento-opciones"></div>
-  `;
-
-  const opcionesDiv = contenedor.querySelector(".evento-opciones");
-
-  evento.opciones.forEach((opcion, index) => {
-    const boton = document.createElement("button");
-    boton.className = "evento-opcion";
-    boton.textContent = opcion.texto;
-    boton.addEventListener("click", () => {
-      const mensaje = aplicarEvento(Estado.obtener(), evento, index);
-      pintarHUD(Estado.obtener()); // Actualiza cariño
-      // Limpiar contenedor de eventos
-      contenedor.innerHTML = "";
-      contenedor.hidden = true;
-      // NO mostrar alert, ir directo al resumen
-      mostrarResumenAnual();
-    });
-    opcionesDiv.appendChild(boton);
-  });
-
-  contenedor.hidden = false;
-}
-
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
   const contenedor = document.getElementById("resumen-container");
@@ -252,8 +220,7 @@ function mostrarResumenAnual() {
   const año = jugador.año;
   const temporada = jugador.temporada;
 
-  // Simular estadísticas del año (si no están cargadas, inventamos algunas para demo)
-  // En el futuro esto se llenará con datos reales del juego.
+  // Si no hay stats anuales (primera vez), las generamos
   if (jugador.statsAnuales.partidos === 0) {
     jugador.statsAnuales.partidos = Math.floor(Math.random() * 20) + 10; // 10-30
     jugador.statsAnuales.goles = Math.floor(Math.random() * 5); // 0-5
@@ -263,23 +230,17 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.dinero = Math.floor(valor * 0.02 * 1000) + "K";
   }
 
-  // Texto de resumen (ejemplo genérico)
   const tituloResumen = "¿Y EL GOL?";
   const textoResumen = `Temporada seca de ${jugador.nombre} en ${obtenerNombreClub(jugador.club)}: apenas ${jugador.statsAnuales.goles} goles. Las críticas crecen.`;
 
-  // Posición de liga (placeholder, podemos simular 2° por ahora)
   const posicion = "2°";
-
-  // Decisiones tomadas
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
-    ? jugador.historialEventos.slice(-3).join("\n") // mostramos las últimas 3
+    ? jugador.historialEventos.slice(-3).join("\n")
     : "Sin decisiones relevantes este año.";
 
-  // Escudo del club
   const club = NOMBRES_CLUBES[jugador.club];
   const escudoSrc = club && club.escudo ? club.escudo : "";
 
-  // Construir HTML del resumen
   contenedor.innerHTML = `
     <div class="resumen-header">
       <span class="resumen-titulo">Resumen Anual</span>
@@ -312,14 +273,20 @@ function mostrarResumenAnual() {
 
   contenedor.hidden = false;
 
-  // Vinculamos el botón
   document.getElementById("boton-siguiente-ano").addEventListener("click", () => {
-    // Avanzar temporada
     Estado.avanzarTemporada();
-    // Ocultar resumen
+
+    if (Estado.obtener().retirado) {
+      alert(`¡Carrera terminada! Te retiraste a los ${Estado.obtener().edad} años por edad.`);
+      // Aquí podrías redirigir al resumen final (fase 3)
+      contenedor.innerHTML = "";
+      contenedor.hidden = true;
+      return;
+    }
+
     contenedor.innerHTML = "";
     contenedor.hidden = true;
-    // Volver a mostrar cartas (nuevo año)
+
     pintarHUD(Estado.obtener());
     abrirModalCartas();
   });

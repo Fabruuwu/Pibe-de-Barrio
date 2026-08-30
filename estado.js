@@ -58,15 +58,12 @@ const Estado = (() => {
   function calcularValor(media, edad) {
     // Multiplicador según edad
     let mult = 1;
-    if (edad >= 15 && edad <= 21) mult = 2;      // Joven Promesa
-    else if (edad >= 22 && edad <= 28) mult = 1.5; // Prime
-    else if (edad >= 29 && edad <= 33) mult = 1;   // Experimentado
-    else mult = 0.5;                                // Declive
+    if (edad >= 15 && edad <= 21) mult = 2;
+    else if (edad >= 22 && edad <= 28) mult = 1.5;
+    else if (edad >= 29 && edad <= 33) mult = 1;
+    else mult = 0.5;
 
-    // Fórmula: (Media - 40)^4 * 10 * Multiplicador
     const valorBruto = Math.pow((media - 40), 4) * 10 * mult;
-    
-    // Lo devolvemos en millones para que el HUD lo muestre como $X.XM
     return Math.round(valorBruto / 1000000);
   }
 
@@ -82,9 +79,9 @@ const Estado = (() => {
       ...base,
       edad: edad,
       media: media,
-      valor: valor, // en millones
+      valor: valor,
       dinero: 0,
-      // NUEVAS PROPIEDADES
+      retirado: false, // <-- NUEVO
       temporada: 1,
       statsAnuales: {
         partidos: 0,
@@ -94,29 +91,20 @@ const Estado = (() => {
         dinero: 0
       },
       historialClubes: [
-        {
-          club: base.club,
-          desde: base.año,
-          hasta: null,
-          cariñoFinal: 0,
-          partidos: 0,
-          titulos: [],
-        },
+        { club: base.club, desde: base.año, hasta: null, cariñoFinal: 0, partidos: 0, titulos: [] }
       ],
-      historialEventos: [
-      ],
+      historialEventos: [],
       stats: {
         ...statsBase,
         goles: 0,
         asistencias: 0,
         partidos: 0,
-        titulos: 0,
-      },
+        titulos: 0
+      }
     };
   }
 
   function jugadorDePrueba() {
-    // Si no venís del menú, se genera uno aleatorio para probar el HUD
     return expandirJugador({
       nombre: "Fabricio Álvarez",
       dorsal: 9,
@@ -128,14 +116,23 @@ const Estado = (() => {
       posicion: "delantero",
       año: new Date().getFullYear(),
       cariño: 34,
-      seleccion: "en-carpeta",
+      seleccion: "en-carpeta"
     });
   }
 
-  // NUEVA FUNCIÓN: Avanzar de temporada
+  // NUEVA FUNCIÓN: Avanzar de temporada (suma stats, sube edad, chequea retiro)
   function avanzarTemporada() {
-    jugador.temporada += 1;
+    // Sumar stats anuales al acumulado
+    jugador.stats.partidos += jugador.statsAnuales.partidos;
+    jugador.stats.goles += jugador.statsAnuales.goles;
+    jugador.stats.asistencias += jugador.statsAnuales.asistencias;
+    // Nota y dinero no se acumulan de la misma forma, se mantienen anuales.
+
+    // Subir edad y año
+    jugador.edad += 1;
     jugador.año += 1;
+    jugador.temporada += 1;
+
     // Resetear stats anuales
     jugador.statsAnuales = {
       partidos: 0,
@@ -144,10 +141,27 @@ const Estado = (() => {
       nota: 0,
       dinero: 0
     };
-    // Reiniciar historial de eventos del año (si querés mantener todo, no lo borres)
     jugador.historialEventos = [];
+
+    // Chequear retiro automático por edad
+    const retirado = verificarRetiroAutomatico();
+    if (retirado) jugador.retirado = true;
+
     guardar();
     return jugador;
+  }
+
+  // Probabilidad de retiro según edad
+  function verificarRetiroAutomatico() {
+    const edad = jugador.edad;
+    let prob = 0;
+    if (edad === 35 || edad === 36 || edad === 37) prob = 0.10;
+    else if (edad === 38 || edad === 39) prob = 0.25;
+    else if (edad === 40 || edad === 41) prob = 0.50;
+    else if (edad === 42 || edad === 43 || edad === 44) prob = 0.75;
+    else if (edad >= 45) prob = 1.0;
+
+    return Math.random() < prob;
   }
 
   function obtener() { return jugador; }
