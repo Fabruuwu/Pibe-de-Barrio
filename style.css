@@ -882,3 +882,21 @@ html, body {
     max-width: 260px;
   }
 }
+
+/* MODAL DE EVENTOS */
+.modal__tarjeta--evento {
+  max-width: 420px;
+  gap: 14px;
+}
+
+.modal__pregunta {
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--gris);
+}
+
+.modal__botones {
+  margin-top: 10px;
+}

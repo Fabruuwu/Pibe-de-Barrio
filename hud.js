@@ -201,6 +201,7 @@ function abrirModalCartas() {
       pintarHUD(Estado.obtener());
       // Cerramos modal
       document.getElementById("modal-cartas").hidden = true;
+      abrirModalEvento();
     });
 
     contenedor.appendChild(cartaDiv);
@@ -209,3 +210,38 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
+// Al cargar el HUD, si el jugador no tiene historial de cartas, mostramos el modal
+function abrirModalEvento() {
+  const evento = generarEvento();
+  const titulo = document.getElementById("evento-titulo");
+  const descripcion = document.getElementById("evento-descripcion");
+  const opcionesDiv = document.getElementById("evento-opciones");
+
+  titulo.textContent = evento.titulo;
+  descripcion.textContent = evento.descripcion;
+  opcionesDiv.innerHTML = "";
+
+  evento.opciones.forEach((opcion, index) => {
+    const boton = document.createElement("button");
+    boton.className = "modal__boton modal__boton--secundario";
+    boton.textContent = opcion.texto;
+    boton.addEventListener("click", () => {
+      const mensaje = aplicarEvento(Estado.obtener(), evento, index);
+      pintarHUD(Estado.obtener()); // Actualiza el cariño y stats
+      document.getElementById("modal-evento").hidden = true;
+      // Mostramos un mensaje corto de lo que pasó
+      alert(mensaje); // Puedes reemplazar esto por una notificación más bonita después
+    });
+    opcionesDiv.appendChild(boton);
+  });
+
+  document.getElementById("modal-evento").hidden = false;
+}
+
+// Vincular el botón del HUD
+document.addEventListener("DOMContentLoaded", () => {
+  const botonEvento = document.getElementById("boton-evento");
+  if (botonEvento) {
+    botonEvento.addEventListener("click", abrirModalEvento);
+  }
+});

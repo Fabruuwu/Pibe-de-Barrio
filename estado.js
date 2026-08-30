@@ -94,6 +94,8 @@ const Estado = (() => {
           titulos: [],
         },
       ],
+      historialEventos: [
+      ],
       stats: {
         ...statsBase,
         goles: 0,

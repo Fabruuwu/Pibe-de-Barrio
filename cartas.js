@@ -9,10 +9,10 @@
 
 // Definición de rarezas con probabilidades
 const RAREZAS = {
-  comun: { nombre: "Común", prob: 45, borde: "#2d5a41", fondo: "#1a2e24" },
-  rara: { nombre: "Rara", prob: 30, borde: "#9aa196", fondo: "#2a2f2a" },
-  dorada: { nombre: "Dorada", prob: 20, borde: "#f5c542", fondo: "#3a2f12" },
-  leyenda: { nombre: "Leyenda", prob: 5, borde: "#a855f7", fondo: "#2a1a3a" }
+  comun: { nombre: "Común", prob: 50, borde: "#2d5a41", fondo: "#1a2e24" },
+  rara: { nombre: "Rara", prob: 35, borde: "#9aa196", fondo: "#2a2f2a" },
+  dorada: { nombre: "Dorada", prob: 13, borde: "#f5c542", fondo: "#3a2f12" },
+  leyenda: { nombre: "Leyenda", prob: 2, borde: "#a855f7", fondo: "#2a1a3a" }
 };
 
 // Pool de mejoras para 1 estadística (Comunes y Raras)
@@ -75,7 +75,8 @@ function generarCarta() {
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = rareza === "comun" ? numeroAleatorio(1, 3) : numeroAleatorio(3, 4);
+    // Puntos actualizados
+    puntos = rareza === "comun" ? numeroAleatorio(1, 2) : numeroAleatorio(2, 4);
   } else if (rareza === "dorada") {
     // 80% una stat, 20% dos stats
     if (Math.random() < 0.8) {
@@ -89,13 +90,13 @@ function generarCarta() {
       nombre = mejora.nombre;
       desc = mejora.desc;
     }
-    puntos = numeroAleatorio(5, 7);
+    puntos = numeroAleatorio(4, 5);
   } else { // leyenda
     const mejora = elegirAleatorio(MEJORAS_2_STATS);
     stats = mejora.stats;
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = numeroAleatorio(7, 8);
+    puntos = numeroAleatorio(6, 8);
   }
 
   return {
@@ -143,9 +144,9 @@ function calcularValorActualizado(media, edad) {
 // Utilidades
 function elegirRareza() {
   const random = Math.random() * 100;
-  if (random < 45) return "comun";
-  if (random < 75) return "rara";
-  if (random < 95) return "dorada";
+  if (random < 50) return "comun";
+  if (random < 85) return "rara";
+  if (random < 98) return "dorada";
   return "leyenda";
 }
 
