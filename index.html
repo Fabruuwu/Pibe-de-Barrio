@@ -124,7 +124,89 @@
   </form>
 </main>
 
+<!-- ============================================
+     PANTALLA DE JUEGO (HUD)
+     Oculta por defecto. menu.js la muestra al enviar el formulario.
+     ============================================ -->
+<main class="pantalla pantalla--hud" id="pantalla-juego" hidden>
+
+  <div class="tarjeta hud-cabecera">
+
+    <div class="hud-cabecera__izquierda">
+      <div class="hud-cabecera__fila hud-cabecera__fila--top">
+        <img id="hud-bandera" class="hud-bandera" alt="">
+        <span id="hud-nombre" class="hud-nombre">—</span>
+        <span id="hud-dorsal" class="hud-dorsal">#0</span>
+      </div>
+      <div class="hud-cabecera__fila">
+        <span id="hud-club">—</span>
+        <span class="hud-separador">·</span>
+        <span id="hud-año">—</span>
+        <span class="hud-separador">·</span>
+        <span id="hud-edad">—</span>
+      </div>
+      <div class="hud-cabecera__fila hud-cabecera__fila--tenue">
+        <span id="hud-liga">—</span>
+        <span class="hud-separador">·</span>
+        <span id="hud-forma">—</span>
+      </div>
+    </div>
+
+    <div class="hud-cabecera__media">
+      <span id="hud-media" class="hud-media__numero">0</span>
+      <span class="hud-media__etiqueta">Media</span>
+    </div>
+
+    <div class="hud-cabecera__derecha">
+      <img id="hud-escudo-club" class="hud-escudo-club" alt="Escudo del club" hidden>
+      <button type="button" class="hud-boton-retiro" id="hud-boton-retiro" aria-label="Retirarse">
+        ✕
+      </button>
+    </div>
+
+  </div>
+
+  <div class="tarjeta hud-panel">
+
+    <div class="hud-burbujas hud-burbujas--superiores" id="hud-stats-superiores"></div>
+    <div class="hud-burbujas hud-burbujas--atributos" id="hud-atributos"></div>
+    <div class="hud-burbujas hud-burbujas--globales" id="hud-globales"></div>
+
+    <div class="hud-cariño">
+      <div class="hud-cariño__cabecera">
+        <span class="hud-cariño__titulo">Cariño</span>
+        <span><span id="hud-cariño-numero">0</span>/100 — <span id="hud-cariño-etiqueta">—</span></span>
+      </div>
+      <div class="hud-cariño__pista">
+        <div class="hud-cariño__barra" id="hud-cariño-barra"></div>
+      </div>
+    </div>
+
+    <div class="hud-seleccion">
+      <img id="hud-bandera-seleccion" class="hud-bandera" alt="">
+      <span id="hud-estado-seleccion">—</span>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- MODAL DE RETIRO -->
+<div class="modal" id="modal-retiro" hidden>
+  <div class="modal__tarjeta">
+    <p class="modal__pregunta">¿Querés retirarte?</p>
+    <div class="modal__botones">
+      <button type="button" class="modal__boton modal__boton--secundario" id="retiro-cancelar">No, me la banco</button>
+      <button type="button" class="modal__boton modal__boton--peligro" id="retiro-confirmar">Sí, quiero retirarme</button>
+    </div>
+  </div>
+</div>
+
 <script src="data.js"></script>
+<script src="posiciones/delantero.js"></script>
+<script src="estado.js"></script>
 <script src="menu.js"></script>
+<script src="hud.js"></script>
+<script src="retiro.js"></script>
 </body>
 </html>

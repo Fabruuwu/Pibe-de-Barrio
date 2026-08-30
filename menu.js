@@ -299,11 +299,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function iniciarCarrera(jugador) {
-    // Por ahora, mientras no exista la pantalla de juego (HUD),
-    // guardamos al jugador y avisamos por consola.
-    // Más adelante esto va a ocultar el menú y mostrar el HUD.
     console.log("Carrera iniciada con:", jugador);
     window.jugadorActual = jugador;
-    alert(`¡Carrera iniciada!\n\n${jugador.nombre} #${jugador.dorsal}\nPosición: ${jugador.posicion}`);
+
+    // Reemplazamos el menú por la pantalla de juego (HUD).
+    Estado.cargar(); // toma window.jugadorActual y lo expande + guarda
+    document.getElementById("pantalla-menu").hidden = true;
+    document.getElementById("pantalla-juego").hidden = false;
+    pintarHUD(Estado.obtener());
   }
 });
