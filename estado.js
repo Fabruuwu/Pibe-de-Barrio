@@ -127,6 +127,9 @@ const Estado = (() => {
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;
 
+    // ✅ AGREGAR ESTO: Sumar el dinero ganado en la temporada al total
+    jugador.dinero = (jugador.dinero || 0) + (jugador.statsAnuales.dinero || 0);
+
     // Subir edad y año
     jugador.edad += 1;
     jugador.año += 1;
@@ -145,7 +148,6 @@ const Estado = (() => {
     };
     jugador.historialEventos = [];
 
-    // Chequear retiro automático por edad
     if (verificarRetiroAutomatico()) jugador.retirado = true;
 
     guardar();
