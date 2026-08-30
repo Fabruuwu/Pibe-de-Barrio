@@ -699,6 +699,14 @@ html, body {
   padding: 20px;
 }
 
+/* El "display: flex" de arriba le gana por defecto al atributo
+   [hidden] del navegador (el CSS del autor siempre pisa la hoja de
+   estilos interna del navegador). Esta regla lo hace explícito para
+   que el modal SÍ se oculte cuando tiene el atributo hidden. */
+.modal[hidden] {
+  display: none;
+}
+
 .modal__tarjeta {
   background: linear-gradient(180deg, var(--panel), #0e120c);
   border: 1px solid var(--panel-borde);
