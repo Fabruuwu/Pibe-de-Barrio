@@ -2,65 +2,121 @@
  * menu.js
  * -----------------------------------------
  * Lógica del menú principal.
- * - Rellena los selects en cadena (país -> liga -> división -> club)
+ * - Rellena los selects en cadena (país de la liga -> división -> club)
  * - Maneja la selección de posición (tarjetas tipo radio)
+ * - Muestra el escudo del club elegido
  * - Valida el formulario y arma el objeto "jugador" al iniciar carrera
  * -----------------------------------------
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   const selectPais = document.getElementById("select-pais");
-  const selectLiga = document.getElementById("select-liga");
+  const selectLigaPais = document.getElementById("select-liga-pais");
   const selectDivision = document.getElementById("select-division");
   const selectClub = document.getElementById("select-club");
+  const previewEscudo = document.getElementById("preview-escudo");
   const grupoPosiciones = document.getElementById("grupo-posiciones");
   const inputPosicion = document.getElementById("input-posicion");
   const form = document.getElementById("form-menu");
   const mensajeError = document.getElementById("mensaje-error");
-
   const botonAzar = document.getElementById("boton-azar");
+
+  // Guarda el id de la liga real (interno) asociada al país de liga elegido.
+  // El usuario solo ve el nombre del país; la liga se resuelve sola.
+  let idLigaActual = null;
 
   inicializarPaises();
   inicializarPosiciones();
   botonAzar.addEventListener("click", elegirAlAzar);
 
   // ---------------------------------------
-  // PAÍS -> LIGA -> DIVISIÓN -> CLUB
+  // NACIONALIDAD (independiente de la liga)
   // ---------------------------------------
 
   function inicializarPaises() {
     PAISES.forEach((pais) => {
-      const opcion = document.createElement("option");
-      opcion.value = pais.id;
-      opcion.textContent = `${pais.bandera} ${pais.nombre}`;
-      selectPais.appendChild(opcion);
+      const opcionNacionalidad = document.createElement("option");
+      opcionNacionalidad.value = pais.id;
+      opcionNacionalidad.textContent = `${pais.bandera} ${pais.nombre}`;
+      selectPais.appendChild(opcionNacionalidad);
+
+      const opcionLigaPais = document.createElement("option");
+      opcionLigaPais.value = pais.id;
+      opcionLigaPais.textContent = `${pais.bandera} ${pais.nombre}`;
+      selectLigaPais.appendChild(opcionLigaPais);
     });
   }
 
-  selectPais.addEventListener("change", () => {
-    const idPais = selectPais.value;
-    const ligas = LIGAS_POR_PAIS[idPais] || [];
-    rellenarSelect(selectLiga, ligas, "Elegí una liga");
-    resetearSelect(selectDivision, "Primero elegí una liga");
-    resetearSelect(selectClub, "Primero elegí una división");
-  });
+  // ---------------------------------------
+  // PAÍS DE LA LIGA -> DIVISIÓN -> CLUB
+  // ---------------------------------------
 
-  selectLiga.addEventListener("change", () => {
-    const idLiga = selectLiga.value;
-    const divisiones = DIVISIONES_POR_LIGA[idLiga] || [];
+  selectLigaPais.addEventListener("change", () => {
+    const idPais = selectLigaPais.value;
+    const ligas = LIGAS_POR_PAIS[idPais] || [];
+
+    // Por ahora cada país tiene una sola liga "principal".
+    // El usuario no la ve, pero la necesitamos para buscar las divisiones.
+    idLigaActual = ligas.length > 0 ? ligas[0].id : null;
+
+    const divisiones = idLigaActual ? DIVISIONES_POR_LIGA[idLigaActual] || [] : [];
     rellenarSelect(selectDivision, divisiones, "Elegí una división");
     resetearSelect(selectClub, "Primero elegí una división");
+    ocultarEscudo();
   });
 
   selectDivision.addEventListener("change", () => {
     const idDivision = selectDivision.value;
     const clubes = CLUBES_POR_DIVISION[idDivision] || [];
-    const opciones = clubes.map((club) => ({
-      id: club.id,
-      nombre: `${club.escudo} ${club.nombre}`,
-    }));
-    rellenarSelect(selectClub, opciones, "Elegí un club");
+    rellenarSelectClubes(clubes);
+    ocultarEscudo();
   });
+
+  selectClub.addEventListener("change", () => {
+    const opcionElegida = selectClub.selectedOptions[0];
+    const ruta = opcionElegida ? opcionElegida.dataset.escudo : "";
+    mostrarEscudo(ruta);
+  });
+
+  function mostrarEscudo(ruta) {
+    if (!ruta) {
+      ocultarEscudo();
+      return;
+    }
+    previewEscudo.src = ruta;
+    previewEscudo.alt = "Escudo del club";
+    previewEscudo.hidden = false;
+    // Si la ruta está mal escrita o el archivo no existe todavía,
+    // ocultamos el preview en vez de mostrar el ícono roto del navegador.
+    previewEscudo.onerror = () => {
+      previewEscudo.hidden = true;
+    };
+  }
+
+  function ocultarEscudo() {
+    previewEscudo.hidden = true;
+    previewEscudo.removeAttribute("src");
+  }
+
+  function rellenarSelectClubes(clubes) {
+    selectClub.innerHTML = "";
+    const opcionPlaceholder = document.createElement("option");
+    opcionPlaceholder.value = "";
+    opcionPlaceholder.disabled = true;
+    opcionPlaceholder.selected = true;
+    opcionPlaceholder.textContent = clubes.length ? "Elegí un club" : "Elegí la división";
+    selectClub.appendChild(opcionPlaceholder);
+
+    clubes.forEach((club) => {
+      const opcion = document.createElement("option");
+      opcion.value = club.id;
+      opcion.textContent = club.nombre;
+      opcion.dataset.escudo = club.escudo || "";
+      selectClub.appendChild(opcion);
+    });
+
+    selectClub.disabled = clubes.length === 0;
+  }
 
   function rellenarSelect(select, items, placeholder) {
     select.innerHTML = "";
@@ -114,17 +170,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function elegirAlAzar() {
     const azar = (lista) => lista[Math.floor(Math.random() * lista.length)];
 
-    const pais = azar(PAISES);
-    selectPais.value = pais.id;
-    selectPais.dispatchEvent(new Event("change"));
+    if (!selectPais.value) {
+      const pais = azar(PAISES);
+      selectPais.value = pais.id;
+    }
 
-    const ligas = LIGAS_POR_PAIS[pais.id] || [];
-    if (ligas.length === 0) return;
-    const liga = azar(ligas);
-    selectLiga.value = liga.id;
-    selectLiga.dispatchEvent(new Event("change"));
+    const paisLiga = azar(PAISES);
+    selectLigaPais.value = paisLiga.id;
+    selectLigaPais.dispatchEvent(new Event("change"));
 
-    const divisiones = DIVISIONES_POR_LIGA[liga.id] || [];
+    const divisiones = idLigaActual ? DIVISIONES_POR_LIGA[idLigaActual] || [] : [];
     if (divisiones.length === 0) return;
     const division = azar(divisiones);
     selectDivision.value = division.id;
@@ -134,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (clubes.length === 0) return;
     const club = azar(clubes);
     selectClub.value = club.id;
+    selectClub.dispatchEvent(new Event("change"));
 
     const tarjetas = Array.from(grupoPosiciones.querySelectorAll(".pos-card"));
     const tarjetaElegida = azar(tarjetas);
@@ -156,7 +212,8 @@ document.addEventListener("DOMContentLoaded", () => {
       nombre: document.getElementById("input-nombre").value.trim(),
       dorsal: document.getElementById("input-dorsal").value,
       pais: selectPais.value,
-      liga: selectLiga.value,
+      ligaPais: selectLigaPais.value,
+      liga: idLigaActual,
       division: selectDivision.value,
       club: selectClub.value,
       posicion: inputPosicion.value,
@@ -178,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return "El dorsal tiene que ser un número entre 1 y 99.";
     }
     if (!datos.pais) return "Elegí una nacionalidad.";
-    if (!datos.liga) return "Elegí una liga.";
+    if (!datos.ligaPais) return "Elegí el país de la liga.";
     if (!datos.division) return "Elegí una división.";
     if (!datos.club) return "Elegí un club para arrancar.";
     if (!datos.posicion) return "Elegí una posición para jugar.";
@@ -199,6 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
       nombre: datos.nombre,
       dorsal: Number(datos.dorsal),
       pais: datos.pais,
+      ligaPais: datos.ligaPais,
       liga: datos.liga,
       division: datos.division,
       club: datos.club,

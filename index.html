@@ -58,8 +58,8 @@
       </div>
 
       <div class="campo">
-        <label for="select-liga">País de la liga</label>
-        <select id="select-liga" name="liga" required disabled>
+        <label for="select-liga-pais">País de la liga</label>
+        <select id="select-liga-pais" name="liga-pais" required>
           <option value="" disabled selected>Elegí...</option>
         </select>
       </div>
@@ -71,11 +71,14 @@
         </select>
       </div>
 
-      <div class="campo">
+      <div class="campo campo--club">
         <label for="select-club">Equipo</label>
-        <select id="select-club" name="club" required disabled>
-          <option value="" disabled selected>Elegí la división</option>
-        </select>
+        <div class="campo-club__fila">
+          <img id="preview-escudo" class="preview-escudo" alt="" hidden>
+          <select id="select-club" name="club" required disabled>
+            <option value="" disabled selected>Elegí la división</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -89,22 +92,18 @@
 
     <div class="posiciones" id="grupo-posiciones" role="radiogroup" aria-label="Elegir posición">
       <button type="button" class="pos-card" data-posicion="delantero" data-dorsal-sugerido="9" role="radio" aria-checked="false">
-        <span class="pos-card__numero">9</span>
         <span class="pos-card__nombre">Delantero</span>
       </button>
 
       <button type="button" class="pos-card" data-posicion="enganche" data-dorsal-sugerido="10" role="radio" aria-checked="false">
-        <span class="pos-card__numero">10</span>
         <span class="pos-card__nombre">Enganche</span>
       </button>
 
       <button type="button" class="pos-card" data-posicion="central" data-dorsal-sugerido="4" role="radio" aria-checked="false">
-        <span class="pos-card__numero">4</span>
         <span class="pos-card__nombre">Def. Central</span>
       </button>
 
       <button type="button" class="pos-card" data-posicion="arquero" data-dorsal-sugerido="1" role="radio" aria-checked="false">
-        <span class="pos-card__numero">1</span>
         <span class="pos-card__nombre">Arquero</span>
       </button>
     </div>
