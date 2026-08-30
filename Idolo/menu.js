@@ -1,134 +1,222 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Elementos del DOM
-    const nombreInput = document.getElementById('nombre');
-    const dorsalInput = document.getElementById('dorsal');
-    const nacionalidadSelect = document.getElementById('nacionalidad');
-    const paisLigaSelect = document.getElementById('paisLiga');
-    const divisionSelect = document.getElementById('division');
-    const clubSelect = document.getElementById('club');
-    const posicionBtns = document.querySelectorAll('.posicion-btn');
-    const iniciarBtn = document.getElementById('iniciar');
-    const errorMsg = document.getElementById('mensaje-error');
+/**
+ * menu.js
+ * -----------------------------------------
+ * Lógica del menú principal.
+ * - Rellena los selects en cadena (país -> liga -> división -> club)
+ * - Maneja la selección de posición (tarjetas tipo radio)
+ * - Valida el formulario y arma el objeto "jugador" al iniciar carrera
+ * -----------------------------------------
+ */
 
-    let posicionSeleccionada = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const selectPais = document.getElementById("select-pais");
+  const selectLiga = document.getElementById("select-liga");
+  const selectDivision = document.getElementById("select-division");
+  const selectClub = document.getElementById("select-club");
+  const grupoPosiciones = document.getElementById("grupo-posiciones");
+  const inputPosicion = document.getElementById("input-posicion");
+  const form = document.getElementById("form-menu");
+  const mensajeError = document.getElementById("mensaje-error");
 
-    // Cargar nacionalidades
-    DATOS.nacionalidades.forEach(nac => {
-        const option = document.createElement('option');
-        option.value = nac;
-        option.textContent = nac;
-        nacionalidadSelect.appendChild(option);
+  const botonAzar = document.getElementById("boton-azar");
+
+  inicializarPaises();
+  inicializarPosiciones();
+  botonAzar.addEventListener("click", elegirAlAzar);
+
+  // ---------------------------------------
+  // PAÍS -> LIGA -> DIVISIÓN -> CLUB
+  // ---------------------------------------
+
+  function inicializarPaises() {
+    PAISES.forEach((pais) => {
+      const opcion = document.createElement("option");
+      opcion.value = pais.id;
+      opcion.textContent = `${pais.bandera} ${pais.nombre}`;
+      selectPais.appendChild(opcion);
+    });
+  }
+
+  selectPais.addEventListener("change", () => {
+    const idPais = selectPais.value;
+    const ligas = LIGAS_POR_PAIS[idPais] || [];
+    rellenarSelect(selectLiga, ligas, "Elegí una liga");
+    resetearSelect(selectDivision, "Primero elegí una liga");
+    resetearSelect(selectClub, "Primero elegí una división");
+  });
+
+  selectLiga.addEventListener("change", () => {
+    const idLiga = selectLiga.value;
+    const divisiones = DIVISIONES_POR_LIGA[idLiga] || [];
+    rellenarSelect(selectDivision, divisiones, "Elegí una división");
+    resetearSelect(selectClub, "Primero elegí una división");
+  });
+
+  selectDivision.addEventListener("change", () => {
+    const idDivision = selectDivision.value;
+    const clubes = CLUBES_POR_DIVISION[idDivision] || [];
+    const opciones = clubes.map((club) => ({
+      id: club.id,
+      nombre: `${club.escudo} ${club.nombre}`,
+    }));
+    rellenarSelect(selectClub, opciones, "Elegí un club");
+  });
+
+  function rellenarSelect(select, items, placeholder) {
+    select.innerHTML = "";
+    const opcionPlaceholder = document.createElement("option");
+    opcionPlaceholder.value = "";
+    opcionPlaceholder.disabled = true;
+    opcionPlaceholder.selected = true;
+    opcionPlaceholder.textContent = placeholder;
+    select.appendChild(opcionPlaceholder);
+
+    items.forEach((item) => {
+      const opcion = document.createElement("option");
+      opcion.value = item.id;
+      opcion.textContent = item.nombre;
+      select.appendChild(opcion);
     });
 
-    // Cargar países de liga (solo los que tienen ligas definidas)
-    Object.keys(DATOS.ligas).forEach(pais => {
-        const option = document.createElement('option');
-        option.value = pais;
-        option.textContent = pais;
-        paisLigaSelect.appendChild(option);
+    select.disabled = items.length === 0;
+  }
+
+  function resetearSelect(select, placeholder) {
+    rellenarSelect(select, [], placeholder);
+  }
+
+  // ---------------------------------------
+  // POSICIÓN (tarjetas)
+  // ---------------------------------------
+
+  function inicializarPosiciones() {
+    const tarjetas = grupoPosiciones.querySelectorAll(".pos-card");
+
+    tarjetas.forEach((tarjeta) => {
+      tarjeta.addEventListener("click", () => {
+        seleccionarPosicion(tarjeta);
+      });
     });
-    // Habilitar el select de país de liga
-    paisLigaSelect.disabled = false;
+  }
 
-    // Evento: al elegir país de liga, cargar divisiones
-    paisLigaSelect.addEventListener('change', () => {
-        const pais = paisLigaSelect.value;
-        divisionSelect.innerHTML = '<option value="">Selecciona...</option>';
-        clubSelect.innerHTML = '<option value="">Selecciona...</option>';
-        if (pais && DATOS.ligas[pais]) {
-            Object.keys(DATOS.ligas[pais].divisiones).forEach(div => {
-                const option = document.createElement('option');
-                option.value = div;
-                option.textContent = div;
-                divisionSelect.appendChild(option);
-            });
-            divisionSelect.disabled = false;
-        } else {
-            divisionSelect.disabled = true;
-            clubSelect.disabled = true;
-        }
-    });
+  function seleccionarPosicion(tarjeta) {
+    const tarjetas = grupoPosiciones.querySelectorAll(".pos-card");
+    tarjetas.forEach((t) => t.setAttribute("aria-checked", "false"));
+    tarjeta.setAttribute("aria-checked", "true");
+    inputPosicion.value = tarjeta.dataset.posicion;
+    ocultarError();
+  }
 
-    // Evento: al elegir división, cargar clubes
-    divisionSelect.addEventListener('change', () => {
-        const pais = paisLigaSelect.value;
-        const division = divisionSelect.value;
-        clubSelect.innerHTML = '<option value="">Selecciona...</option>';
-        if (pais && division && DATOS.ligas[pais].divisiones[division]) {
-            DATOS.ligas[pais].divisiones[division].clubes.forEach(club => {
-                const option = document.createElement('option');
-                option.value = club;
-                option.textContent = club;
-                clubSelect.appendChild(option);
-            });
-            clubSelect.disabled = false;
-        } else {
-            clubSelect.disabled = true;
-        }
-    });
+  // ---------------------------------------
+  // "AL AZAR"
+  // ---------------------------------------
 
-    // Evento: selección de posición
-    posicionBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            posicionBtns.forEach(b => b.classList.remove('seleccionada'));
-            btn.classList.add('seleccionada');
-            posicionSeleccionada = btn.dataset.posicion;
-        });
-    });
+  function elegirAlAzar() {
+    const azar = (lista) => lista[Math.floor(Math.random() * lista.length)];
 
-    // Evento: iniciar carrera
-    iniciarBtn.addEventListener('click', () => {
-        // Validaciones
-        const nombre = nombreInput.value.trim();
-        const dorsal = parseInt(dorsalInput.value);
-        const nacionalidad = nacionalidadSelect.value;
-        const paisLiga = paisLigaSelect.value;
-        const division = divisionSelect.value;
-        const club = clubSelect.value;
+    const pais = azar(PAISES);
+    selectPais.value = pais.id;
+    selectPais.dispatchEvent(new Event("change"));
 
-        if (!nombre) {
-            mostrarError('Por favor ingresa tu nombre.');
-            return;
-        }
-        if (!dorsal || dorsal < 1 || dorsal > 99) {
-            mostrarError('El número de camiseta debe estar entre 1 y 99.');
-            return;
-        }
-        if (!nacionalidad) {
-            mostrarError('Selecciona tu nacionalidad.');
-            return;
-        }
-        if (!paisLiga || !division || !club) {
-            mostrarError('Completa la información de la liga (país, división y club).');
-            return;
-        }
-        if (!posicionSeleccionada) {
-            mostrarError('Selecciona una posición.');
-            return;
-        }
+    const ligas = LIGAS_POR_PAIS[pais.id] || [];
+    if (ligas.length === 0) return;
+    const liga = azar(ligas);
+    selectLiga.value = liga.id;
+    selectLiga.dispatchEvent(new Event("change"));
 
-        // Crear objeto jugador
-        const jugador = {
-            nombre,
-            dorsal,
-            nacionalidad,
-            paisLiga,
-            division,
-            club,
-            posicion: posicionSeleccionada,
-            // Puedes agregar estadísticas iniciales según posición más adelante
-        };
+    const divisiones = DIVISIONES_POR_LIGA[liga.id] || [];
+    if (divisiones.length === 0) return;
+    const division = azar(divisiones);
+    selectDivision.value = division.id;
+    selectDivision.dispatchEvent(new Event("change"));
 
-        // Guardar en localStorage (para usarlo en el juego)
-        localStorage.setItem('jugador', JSON.stringify(jugador));
-        
-        // Por ahora mostramos éxito (luego redirigir o cargar juego)
-        mostrarError(''); // Limpiar errores
-        alert(`✅ Jugador creado:\n${jugador.nombre} (#${jugador.dorsal})\n${jugador.nacionalidad}\n${jugador.club} (${jugador.division})\nPosición: ${jugador.posicion}`);
-        console.log('Jugador guardado:', jugador);
-    });
+    const clubes = CLUBES_POR_DIVISION[division.id] || [];
+    if (clubes.length === 0) return;
+    const club = azar(clubes);
+    selectClub.value = club.id;
 
-    function mostrarError(mensaje) {
-        errorMsg.textContent = mensaje;
+    const tarjetas = Array.from(grupoPosiciones.querySelectorAll(".pos-card"));
+    const tarjetaElegida = azar(tarjetas);
+    seleccionarPosicion(tarjetaElegida);
+
+    const dorsalInput = document.getElementById("input-dorsal");
+    if (!dorsalInput.value) {
+      dorsalInput.value = tarjetaElegida.dataset.dorsalSugerido;
     }
+  }
+
+  // ---------------------------------------
+  // VALIDACIÓN + ENVÍO
+  // ---------------------------------------
+
+  form.addEventListener("submit", (evento) => {
+    evento.preventDefault();
+
+    const datos = {
+      nombre: document.getElementById("input-nombre").value.trim(),
+      dorsal: document.getElementById("input-dorsal").value,
+      pais: selectPais.value,
+      liga: selectLiga.value,
+      division: selectDivision.value,
+      club: selectClub.value,
+      posicion: inputPosicion.value,
+    };
+
+    const error = validarDatos(datos);
+    if (error) {
+      mostrarError(error);
+      return;
+    }
+
+    const jugador = construirJugador(datos);
+    iniciarCarrera(jugador);
+  });
+
+  function validarDatos(datos) {
+    if (!datos.nombre) return "Ingresá un nombre para tu jugador.";
+    if (!datos.dorsal || datos.dorsal < 1 || datos.dorsal > 99) {
+      return "El dorsal tiene que ser un número entre 1 y 99.";
+    }
+    if (!datos.pais) return "Elegí una nacionalidad.";
+    if (!datos.liga) return "Elegí una liga.";
+    if (!datos.division) return "Elegí una división.";
+    if (!datos.club) return "Elegí un club para arrancar.";
+    if (!datos.posicion) return "Elegí una posición para jugar.";
+    return null;
+  }
+
+  function mostrarError(texto) {
+    mensajeError.textContent = texto;
+    mensajeError.hidden = false;
+  }
+
+  function ocultarError() {
+    mensajeError.hidden = true;
+  }
+
+  function construirJugador(datos) {
+    return {
+      nombre: datos.nombre,
+      dorsal: Number(datos.dorsal),
+      pais: datos.pais,
+      liga: datos.liga,
+      division: datos.division,
+      club: datos.club,
+      posicion: datos.posicion,
+      edad: 17,
+      año: new Date().getFullYear(),
+      cariño: 0,
+      seleccion: "sin-chances",
+      valor: 0,
+    };
+  }
+
+  function iniciarCarrera(jugador) {
+    // Por ahora, mientras no exista la pantalla de juego (HUD),
+    // guardamos al jugador y avisamos por consola.
+    // Más adelante esto va a ocultar el menú y mostrar el HUD.
+    console.log("Carrera iniciada con:", jugador);
+    window.jugadorActual = jugador;
+    alert(`¡Carrera iniciada!\n\n${jugador.nombre} #${jugador.dorsal}\nPosición: ${jugador.posicion}`);
+  }
 });
