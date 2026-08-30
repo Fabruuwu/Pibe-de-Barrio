@@ -201,7 +201,6 @@ function abrirModalCartas() {
       pintarHUD(Estado.obtener());
       // Cerramos modal
       document.getElementById("modal-cartas").hidden = true;
-      alert(`¡Mejoraste ${carta.stats.join(" y ")}! Nueva media: ${resultado.media}, Nuevo valor: $${resultado.valor}M`);
     });
 
     contenedor.appendChild(cartaDiv);
