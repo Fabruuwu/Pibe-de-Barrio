@@ -1,25 +1,9 @@
-/**
- * hud.js
- * -----------------------------------------
- * Pinta la pantalla de juego (HUD) a partir de Estado.obtener().
- * No decide nada de gameplay: solo toma números y los muestra.
- * -----------------------------------------
- */
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Si venimos del menú (formulario enviado), inicializamos acá.
-  // Si esta página se abre suelta para probar el HUD, Estado.cargar()
-  // arma un jugador de prueba solo.
   const jugador = Estado.cargar();
   if (jugador) pintarHUD(jugador);
-
-  // Botón rojo de retiro: lo maneja retiro.js, pero le avisamos
-  // acá que puede engancharse (evita depender del orden de <script>).
   document.dispatchEvent(new CustomEvent("hud:listo", { detail: jugador }));
 });
 
-// Diccionario de nombres para los datos "crudos" (id -> texto legible).
-// Por ahora alcanza con lo que ya usa el menú.
 const NOMBRES_PAISES = {};
 const PAISES_POR_ID = {};
 if (typeof PAISES !== "undefined") {
@@ -30,15 +14,11 @@ if (typeof PAISES !== "undefined") {
 }
 const NOMBRES_CLUBES = {};
 if (typeof CLUBES_POR_DIVISION !== "undefined") {
-  Object.values(CLUBES_POR_DIVISION)
-    .flat()
-    .forEach((c) => (NOMBRES_CLUBES[c.id] = c));
+  Object.values(CLUBES_POR_DIVISION).flat().forEach((c) => (NOMBRES_CLUBES[c.id] = c));
 }
 const NOMBRES_LIGAS = {};
 if (typeof LIGAS_POR_PAIS !== "undefined") {
-  Object.values(LIGAS_POR_PAIS)
-    .flat()
-    .forEach((l) => (NOMBRES_LIGAS[l.id] = l.nombre));
+  Object.values(LIGAS_POR_PAIS).flat().forEach((l) => (NOMBRES_LIGAS[l.id] = l.nombre));
 }
 
 const ETAPAS_CARIÑO = [
@@ -59,7 +39,6 @@ const ESTADOS_SELECCION = {
 
 function pintarHUD(jugador) {
   const config = obtenerConfigPosicion(jugador.posicion);
-
   pintarCabecera(jugador);
   pintarEquipoYLiga(jugador);
   pintarBurbujasSuperiores(jugador, config);
@@ -72,15 +51,11 @@ function pintarHUD(jugador) {
 function obtenerConfigPosicion(posicion) {
   const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[posicion];
   if (!config) {
-    console.warn(`No hay configuración cargada para la posición "${posicion}".`);
+    console.warn(`No hay configuración cargada para la posición "${posicion}". Asegurate de cargar "posiciones/${posicion}.js"`);
     return { statsSuperiores: [], atributos: [] };
   }
   return config;
 }
-
-// ---------------------------------------
-// CABECERA (nombre, dorsal, media, equipo, año, edad, liga, forma)
-// ---------------------------------------
 
 function pintarCabecera(jugador) {
   document.getElementById("hud-nombre").textContent = jugador.nombre;
@@ -90,7 +65,13 @@ function pintarCabecera(jugador) {
   const bandera = document.getElementById("hud-bandera");
   const pais = PAISES_POR_ID[jugador.pais];
   bandera.alt = pais ? pais.nombre : "";
-  mostrarBandera(bandera, pais ? pais.bandera : "");
+  if (pais && pais.bandera) {
+    bandera.src = pais.bandera;
+    bandera.hidden = false;
+    bandera.onerror = () => (bandera.hidden = true);
+  } else {
+    bandera.hidden = true;
+  }
 }
 
 function pintarEquipoYLiga(jugador) {
@@ -99,7 +80,7 @@ function pintarEquipoYLiga(jugador) {
   document.getElementById("hud-año").textContent = jugador.año;
   document.getElementById("hud-edad").textContent = `${jugador.edad} años`;
   document.getElementById("hud-liga").textContent = NOMBRES_LIGAS[jugador.liga] || "—";
-  document.getElementById("hud-forma").textContent = "Normal"; // placeholder hasta tener mecánica de forma
+  document.getElementById("hud-forma").textContent = "Normal";
 
   const escudo = document.getElementById("hud-escudo-club");
   if (club && club.escudo) {
@@ -111,19 +92,12 @@ function pintarEquipoYLiga(jugador) {
   }
 }
 
-// ---------------------------------------
-// BURBUJAS DE ESTADÍSTICAS
-// ---------------------------------------
-
 function pintarBurbujasSuperiores(jugador, config) {
   const contenedor = document.getElementById("hud-stats-superiores");
   contenedor.innerHTML = "";
 
   const items = [
-    ...config.statsSuperiores.map((s) => ({
-      valor: jugador.stats[s.clave] ?? 0,
-      etiqueta: s.etiqueta,
-    })),
+    ...(config.statsSuperiores || []).map((s) => ({ valor: jugador.stats[s.clave] ?? 0, etiqueta: s.etiqueta })),
     { valor: jugador.stats.partidos ?? 0, etiqueta: "Partidos" },
     { valor: jugador.stats.titulos ?? 0, etiqueta: "Títulos" },
   ];
@@ -136,10 +110,7 @@ function pintarAtributos(jugador, config) {
   contenedor.innerHTML = "";
 
   const items = [
-    ...config.atributos.map((a) => ({
-      valor: jugador.stats[a.clave] ?? 0,
-      etiqueta: a.etiqueta,
-    })),
+    ...(config.atributos || []).map((a) => ({ valor: jugador.stats[a.clave] ?? 0, etiqueta: a.etiqueta })),
     { valor: jugador.stats.liderazgo ?? 0, etiqueta: "Liderazgo" },
     { valor: jugador.stats.resistencia ?? 0, etiqueta: "Resistencia" },
   ];
@@ -175,10 +146,6 @@ function formatearDinero(millones) {
   return `$${millones.toFixed(1)}M`;
 }
 
-// ---------------------------------------
-// BARRA DE CARIÑO
-// ---------------------------------------
-
 function pintarCariño(jugador) {
   const cariño = Math.max(0, Math.min(100, jugador.cariño ?? 0));
   const barra = document.getElementById("hud-cariño-barra");
@@ -192,43 +159,21 @@ function pintarCariño(jugador) {
   etiqueta.textContent = etapa.nombre;
 }
 
-// ---------------------------------------
-// SELECCIÓN NACIONAL
-// ---------------------------------------
-
 function pintarSeleccion(jugador) {
   const bandera = document.getElementById("hud-bandera-seleccion");
   const pais = PAISES_POR_ID[jugador.pais];
   bandera.alt = pais ? pais.nombre : "";
-  mostrarBandera(bandera, pais ? pais.bandera : "");
+  if (pais && pais.bandera) {
+    bandera.src = pais.bandera;
+    bandera.hidden = false;
+    bandera.onerror = () => (bandera.hidden = true);
+  } else {
+    bandera.hidden = true;
+  }
 
-  document.getElementById("hud-estado-seleccion").textContent =
-    ESTADOS_SELECCION[jugador.seleccion] || "Sin chances";
+  document.getElementById("hud-estado-seleccion").textContent = ESTADOS_SELECCION[jugador.seleccion] || "Sin chances";
 }
-
-// ---------------------------------------
-// UTILIDAD
-// ---------------------------------------
 
 function capitalizar(texto) {
-  return texto
-    .split("-")
-    .map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1))
-    .join("");
-}
-
-// Muestra la bandera si el país tiene una ruta cargada en data.js;
-// si no tiene ruta, o si la imagen no existe todavía, la oculta
-// en vez de mostrar el ícono roto del navegador.
-function mostrarBandera(imgElemento, ruta) {
-  if (!ruta) {
-    imgElemento.hidden = true;
-    imgElemento.removeAttribute("src");
-    return;
-  }
-  imgElemento.src = ruta;
-  imgElemento.hidden = false;
-  imgElemento.onerror = () => {
-    imgElemento.hidden = true;
-  };
+  return texto.split("-").map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join("");
 }

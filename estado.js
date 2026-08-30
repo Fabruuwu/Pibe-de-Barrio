@@ -2,10 +2,7 @@
  * estado.js
  * -----------------------------------------
  * Dueño único de los datos de la carrera actual.
- * Nadie pinta nada acá: solo se lee y se escribe el estado.
- * - Si hay una carrera guardada en localStorage, la carga.
- * - Si no hay nada (o estamos probando el HUD suelto), arma un
- *   jugador de PRUEBA para poder ver la interfaz funcionando.
+ * Ahora genera edad, stats base, media y valor según las reglas.
  * -----------------------------------------
  */
 
@@ -15,14 +12,12 @@ const Estado = (() => {
   let jugador = null;
 
   function cargar() {
-    // 1) Si menu.js ya dejó un jugador recién creado, arrancamos de ahí.
     if (window.jugadorActual) {
       jugador = expandirJugador(window.jugadorActual);
       guardar();
       return jugador;
     }
 
-    // 2) Si hay una carrera guardada de antes, la recuperamos.
     const guardado = localStorage.getItem(CLAVE_STORAGE);
     if (guardado) {
       try {
@@ -33,18 +28,68 @@ const Estado = (() => {
       }
     }
 
-    // 3) Nada de lo anterior: jugador de PRUEBA para ir viendo el HUD.
     jugador = jugadorDePrueba();
     guardar();
     return jugador;
   }
 
-  // Completa un jugador recién armado por menu.js (que solo trae los
-  // datos del formulario) con todas las estadísticas que necesita el HUD.
+  // ------- NUEVAS MECÁNICAS -------
+
+  function generarEdad() {
+    const prob = Math.random() * 100;
+    if (prob < 5) return 15;
+    if (prob < 30) return 16;
+    if (prob < 70) return 17;
+    if (prob < 95) return 18;
+    return 19;
+  }
+
+  function numeroAleatorio(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function generarStatsBase() {
+    return {
+      pegada: numeroAleatorio(55, 68),
+      velocidad: numeroAleatorio(51, 62),
+      gambeta: numeroAleatorio(53, 65),
+      liderazgo: numeroAleatorio(40, 55),
+      resistencia: numeroAleatorio(55, 62),
+    };
+  }
+
+  function calcularMedia(stats) {
+    return Math.round((stats.pegada + stats.velocidad + stats.gambeta + stats.liderazgo + stats.resistencia) / 5);
+  }
+
+  function calcularValor(stats, media, edad) {
+    // Multiplicador según edad
+    let mult = 1;
+    if (edad >= 15 && edad <= 21) mult = 2;      // Joven Promesa
+    else if (edad >= 22 && edad <= 28) mult = 1.5; // Prime
+    else if (edad >= 29 && edad <= 33) mult = 1;   // Experimentado
+    else mult = 0.5;                                // Declive
+
+    // Valor base = (Pegada * Vel * Gambeta) * Media
+    const valorBruto = (stats.pegada * stats.velocidad * stats.gambeta) * media * mult;
+    
+    // Lo devolvemos en millones para que el HUD lo muestre como $X.XM
+    return Math.round(valorBruto / 1000000);
+  }
+
+  // ------- FIN NUEVAS MECÁNICAS -------
+
   function expandirJugador(base) {
+    const edad = generarEdad();
+    const statsBase = generarStatsBase();
+    const media = calcularMedia(statsBase);
+    const valor = calcularValor(statsBase, media, edad);
+
     return {
       ...base,
-      media: 62,
+      edad: edad,
+      media: media,
+      valor: valor, // en millones
       dinero: 0,
       historialClubes: [
         {
@@ -57,15 +102,9 @@ const Estado = (() => {
         },
       ],
       stats: {
-        // Stats propias por posición (delantero por ahora).
+        ...statsBase,
         goles: 0,
         asistencias: 0,
-        pegada: 45,
-        velocidad: 50,
-        gambeta: 48,
-        // Stats globales.
-        liderazgo: 20,
-        resistencia: 55,
         partidos: 0,
         titulos: 0,
       },
@@ -73,7 +112,8 @@ const Estado = (() => {
   }
 
   function jugadorDePrueba() {
-    return {
+    // Si no venís del menú, se genera uno aleatorio para probar el HUD
+    return expandirJugador({
       nombre: "Fabricio Álvarez",
       dorsal: 9,
       pais: "argentina",
@@ -82,61 +122,17 @@ const Estado = (() => {
       division: "primera-division-argentina",
       club: "boca-juniors",
       posicion: "delantero",
-      edad: 21,
-      año: 2026,
+      año: new Date().getFullYear(),
       cariño: 34,
       seleccion: "en-carpeta",
-      valor: 8.4, // en millones
-      dinero: 1.2, // en millones
-      media: 74,
-      historialClubes: [
-        {
-          club: "boca-juniors",
-          desde: 2024,
-          hasta: null,
-          cariñoFinal: 34,
-          partidos: 58,
-          titulos: [],
-        },
-      ],
-      stats: {
-        goles: 41,
-        asistencias: 17,
-        pegada: 78,
-        velocidad: 71,
-        gambeta: 69,
-        liderazgo: 38,
-        resistencia: 64,
-        partidos: 58,
-        titulos: 1,
-      },
-    };
+    });
   }
 
-  function obtener() {
-    return jugador;
-  }
-
-  function actualizar(cambios) {
-    jugador = { ...jugador, ...cambios };
-    guardar();
-    return jugador;
-  }
-
-  function actualizarStats(cambiosStats) {
-    jugador = { ...jugador, stats: { ...jugador.stats, ...cambiosStats } };
-    guardar();
-    return jugador;
-  }
-
-  function guardar() {
-    localStorage.setItem(CLAVE_STORAGE, JSON.stringify(jugador));
-  }
-
-  function borrar() {
-    localStorage.removeItem(CLAVE_STORAGE);
-    jugador = null;
-  }
+  function obtener() { return jugador; }
+  function actualizar(cambios) { jugador = { ...jugador, ...cambios }; guardar(); return jugador; }
+  function actualizarStats(cambiosStats) { jugador = { ...jugador, stats: { ...jugador.stats, ...cambiosStats } }; guardar(); return jugador; }
+  function guardar() { localStorage.setItem(CLAVE_STORAGE, JSON.stringify(jugador)); }
+  function borrar() { localStorage.removeItem(CLAVE_STORAGE); jugador = null; }
 
   return { cargar, obtener, actualizar, actualizarStats, guardar, borrar };
 })();
