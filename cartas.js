@@ -1,45 +1,28 @@
-/**
- * cartas.js
- * -----------------------------------------
- * Sistema de cartas de mejora para inicio de temporada.
- * Genera 3 cartas con rarezas, stats mejoradas, nombres y descripciones.
- * Al elegir una, aplica los puntos al jugador.
- * -----------------------------------------
- */
-
-// Definición de rarezas con probabilidades
 const RAREZAS = {
-  comun: { nombre: "Común", prob: 50, borde: "#33334a", fondo: "#1a1f2e" }, // Azul oscuro
+  comun: { nombre: "Común", prob: 50, borde: "#33334a", fondo: "#1a1f2e" },
   rara: { nombre: "Rara", prob: 35, borde: "#9aa196", fondo: "#2a2f2a" },
   dorada: { nombre: "Dorada", prob: 13, borde: "#f5c542", fondo: "#3a2f12" },
   leyenda: { nombre: "Leyenda", prob: 2, borde: "#a855f7", fondo: "#2a1a3a" }
 };
 
-// Pool de mejoras para 1 estadística (Comunes y Raras)
 const MEJORAS_1_STAT = [
-  // Pegada
   { stat: "pegada", nombre: "Tiro libre al ángulo", desc: "Te quedaste practicando tiros libres después de hora. La barrera de entrenamiento no fue rival para tu derecha." },
   { stat: "pegada", nombre: "Remate de volea", desc: "Ensayaste engancharla de aire tras los centros de tu compañero. Tus remates ahora van con puro veneno." },
   { stat: "pegada", nombre: "Definición bajo presión", desc: "Entrenamiento de penales con la hinchada (imaginaria) gritándote en contra. Aprendiste a asegurar el tiro." },
-  // Velocidad
   { stat: "velocidad", nombre: "Pasadas en la arena", desc: "El profe te mandó a correr médanos. Sufriste, pero ahora tus piernas responden el doble de rápido en el arranque." },
   { stat: "velocidad", nombre: "Pique corto explosivo", desc: "Práctica de reacción con silbato. Ahora arrancás los primeros cinco metros como un Fórmula 1." },
   { stat: "velocidad", nombre: "Carrera de relevos", desc: "Competencia de velocidad pura contra los extremos del equipo. Nadie te saca ventaja en el sprint final." },
-  // Gambeta
   { stat: "gambeta", nombre: "Locura en el rondo", desc: "Te metiste en el medio del clásico 'loco' y sacaste a pasear a dos defensores con una pisada hermosa." },
   { stat: "gambeta", nombre: "Dribbling en baldosa", desc: "Entrenamiento en espacios hiper reducidos. Aprendiste a esconder la pelota donde no entra ni un alfiler." },
   { stat: "gambeta", nombre: "El caño desmoralizador", desc: "Le metiste un caño de lujo al central en la práctica. Te ganaste una patada, pero tu confianza está por las nubes." },
-  // Liderazgo
   { stat: "liderazgo", nombre: "Charla de vestuario", desc: "Hubo un momento tenso antes de salir a la cancha y tomaste la palabra. El grupo te escucha con atención." },
   { stat: "liderazgo", nombre: "Orden táctico", desc: "El DT te pidió que acomodes a los más chicos durante la práctica. Tu voz de mando pesa cada vez más en la cancha." },
   { stat: "liderazgo", nombre: "Defensa del compañero", desc: "Fuiste a separar en un amistoso picante y marcaste territorio frente al rival. La cinta de capitán no te quedaría mal." },
-  // Resistencia
   { stat: "resistencia", nombre: "Doble turno infernal", desc: "Sobreviviste a la pretemporada más dura que recuerdes. Tus pulmones ahora son de acero inoxidable." },
   { stat: "resistencia", nombre: "Fondo físico de 90'", desc: "Mientras otros piden el cambio ahogados, vos seguís corriendo. Completaste el circuito aeróbico sin despeinarte." },
   { stat: "resistencia", nombre: "Nutrición de élite", desc: "Cambiaste la dieta y mejoraste el descanso. Tu cuerpo se recupera rapidísimo y sos inalcanzable en el segundo tiempo." }
 ];
 
-// Pool de mejoras para 2 estadísticas (Doradas y Leyenda)
 const MEJORAS_2_STATS = [
   { stats: ["pegada", "velocidad"], nombre: "Contragolpe letal", desc: "Pique de área a área en diez segundos para definir cruzado ante la salida del arquero. Inalcanzable e infalible." },
   { stats: ["pegada", "gambeta"], nombre: "Mago del borde del área", desc: "Amague sutil para limpiar la marca y remate milimétrico al segundo palo. Una verdadera obra de arte en movimiento." },
@@ -53,7 +36,6 @@ const MEJORAS_2_STATS = [
   { stats: ["liderazgo", "resistencia"], nombre: "El alma del equipo", desc: "Corriste por todos tus compañeros y alentaste hasta el pitazo final del entrenamiento. Sos el pulmón y el corazón del plantel." }
 ];
 
-// Generar 3 cartas aleatorias según probabilidades
 function generarCartas() {
   const cartas = [];
   for (let i = 0; i < 3; i++) {
@@ -62,7 +44,6 @@ function generarCartas() {
   return cartas;
 }
 
-// Genera una carta individual
 function generarCarta() {
   const rareza = elegirRareza();
   let stats = [];
@@ -123,9 +104,6 @@ function aplicarCarta(jugador, carta) {
   return { media: nuevaMedia, valor: nuevoValor };
 }
 
-// ... (resto igual)
-
-// Función auxiliar para recalcular valor (copia de la fórmula)
 function calcularValorActualizado(media, edad) {
   let mult = 1;
   if (edad >= 15 && edad <= 21) mult = 2;
@@ -137,7 +115,6 @@ function calcularValorActualizado(media, edad) {
   return Math.round(valorBruto / 1000000);
 }
 
-// Utilidades
 function elegirRareza() {
   const random = Math.random() * 100;
   if (random < 50) return "comun";

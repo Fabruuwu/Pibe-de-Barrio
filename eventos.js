@@ -1,11 +1,3 @@
-/**
- * eventos.js
- * -----------------------------------------
- * Sistema de Eventos de Vida.
- * Genera eventos aleatorios y aplica sus consecuencias al jugador.
- * -----------------------------------------
- */
-
 const EVENTOS = [
   // ---------- VESTUARIO Y CLUB ----------
   {
@@ -186,10 +178,9 @@ const EVENTOS = [
       { texto: "Adoptarlo como mascota", efecto: { cariño: +5, mensaje: "Adoptaste al perro de la sede y se convirtió en la mascota oficial y amuleto de tu casa." } },
       { texto: "Llamar a un refugio", efecto: { cariño: +2, mensaje: "Te aseguraste de que el perrito perdido llegara a un refugio seguro antes de entrar a entrenar." } }
     ]
-  }
+  },
 
   // ---------- NUEVOS EVENTOS ----------
-
   // Cancha y Vestuario
   {
     id: "pibe_debutante", titulo: "Pibe debutante", descripcion: "Un juvenil entra a jugar su primer partido temblando de los nervios.",
@@ -212,7 +203,6 @@ const EVENTOS = [
       { texto: "Irte así nomás", efecto: { cariño: -1, mensaje: "Huiste del vestuario sin bañarte para no congelarte." } }
     ]
   },
-
   // Vida Personal
   {
     id: "vecino_ruidoso", titulo: "Vecino ruidoso", descripcion: "Hay una fiesta al lado de tu casa la noche previa al clásico.",
@@ -235,7 +225,6 @@ const EVENTOS = [
       { texto: "Pedir grúa", efecto: { cariño: -1, mensaje: "Llegaste tarde a la práctica pero con la ropa impecable." } }
     ]
   },
-
   // Prensa y Redes
   {
     id: "el_meme", titulo: "El meme", descripcion: "Hacés una cara rara en un partido y te volvés un meme viral.",
@@ -258,7 +247,6 @@ const EVENTOS = [
       { texto: "Ignorarlo", efecto: { cariño: 0, mensaje: "Dejaste que el chimento muera solo ignorando a la prensa." } }
     ]
   },
-
   // La Hinchada
   {
     id: "el_invasor", titulo: "El invasor", descripcion: "Un nene esquiva la seguridad y corre a abrazarte en medio del partido.",
@@ -280,7 +268,7 @@ const EVENTOS = [
       { texto: "Hacerle un gesto", efecto: { cariño: -1, mensaje: "Te cruzaste feo con la platea y el clima quedó tenso." } },
       { texto: "Mirarlo tras un gol", efecto: { cariño: +5, mensaje: "Le respondiste a las críticas haciendo lo que mejor sabés." } }
     ]
-  },
+  }
 ];
 
 // Genera un evento aleatorio
@@ -294,11 +282,9 @@ function aplicarEvento(jugador, evento, opcionIndex) {
   const cariñoActual = jugador.cariño || 0;
   const nuevoCariño = Math.max(0, Math.min(100, cariñoActual + opcion.efecto.cariño));
 
-  // Registrar el evento en el historial para el resumen de temporada
   if (!jugador.historialEventos) jugador.historialEventos = [];
   jugador.historialEventos.push(opcion.efecto.mensaje);
 
-  // Actualizar el estado
   Estado.actualizar({
     cariño: nuevoCariño,
     historialEventos: jugador.historialEventos
