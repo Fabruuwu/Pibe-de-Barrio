@@ -393,7 +393,7 @@ function ejecutarInternacionales(callback) {
       contenedor.hidden = true;
       callback();
     });
-  });
+  }, jugador, tipo);
 }
 
 // ---------- Mostrar Recopa (igual que antes) ----------
