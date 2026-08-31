@@ -278,8 +278,12 @@ function procesarEventos() {
           jugador.resultadoCopa = resCopa;
 
           agendarProximasCopas(jugador, año, resLiga, resCopa);
-          Estado.guardar();
-          mostrarResumenAnual();
+          
+          // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
+          ejecutarInternacionales(() => {
+            Estado.guardar();
+            mostrarResumenAnual();
+          });
         });
       } else {
         const hist = jugador.campeonesHistorial.find(h => h.año === año);
@@ -288,8 +292,12 @@ function procesarEventos() {
         jugador.resultadoCopa = { esCampeon: false, ronda: resultadoCopa.ronda || "Eliminado" };
 
         agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
-        Estado.guardar();
-        mostrarResumenAnual();
+        
+        // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
+        ejecutarInternacionales(() => {
+          Estado.guardar();
+          mostrarResumenAnual();
+        });
       }
     });
   }
@@ -511,6 +519,20 @@ function mostrarResumenAnual() {
     else textosCopasEspeciales += `🥈 Subcampeón de ${nombre}.\n`;
   });
 
+  // Resultados internacionales (Libertadores, Sudamericana, Recopa)
+  let textosInternacionales = "";
+  const internacionales = (jugador.resultadosInternacionales || []).filter(c => c.año === año);
+  internacionales.forEach(copa => {
+    if (copa.copa === "Libertadores") {
+      if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la Copa Libertadores!\n";
+      else if (copa.resultado === "subcampeon") textosInternacionales += "🥈 Subcampeón de la Copa Libertadores.\n";
+      else textosInternacionales += "❌ Eliminado de la Copa Libertadores.\n";
+    } else if (copa.copa === "Recopa") {
+      if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la Recopa Sudamericana!\n";
+      else textosInternacionales += "🥈 Subcampeón de la Recopa Sudamericana.\n";
+    }
+  });
+
   const posicion = "2°";
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
     ? jugador.historialEventos.slice(-3).join("\n")
@@ -550,6 +572,7 @@ function mostrarResumenAnual() {
       <br><br>
       <strong>Copa Argentina:</strong><br>${textoCopa || "No participó o sin datos."}
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
+      ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;
@@ -596,6 +619,7 @@ function mostrarResumenAnual() {
     }
   });
 }
+
 function obtenerNombreClub(idClub) {
   const club = NOMBRES_CLUBES[idClub];
   return club ? club.nombre : "Club";
