@@ -251,7 +251,21 @@ function procesarEventos() {
 
       // Guardar historial de liga
       if (!jugador.campeonesHistorial) jugador.campeonesHistorial = [];
-      jugador.campeonesHistorial.push({ año: año, liga: jugador.club, copa: null, trofeo: null, superCopaInt: null });
+
+      // Las copas especiales (SuperCopa, Trofeo, SuperCopa Internacional) de este año
+      // ya se jugaron y resolvieron ANTES de llegar acá (al arrancar el año, en
+      // mostrarCopaPendiente), así que su resultado ya está en resultadoCopasEspeciales.
+      // Los usamos para completar la entrada del historial en el momento en que se crea,
+      // en vez de intentar buscarla después (esa entrada todavía no existía).
+      const especialesDelAño = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
+      const nuevaEntrada = { año: año, liga: jugador.club, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
+      especialesDelAño.forEach((c) => {
+        if (c.resultado !== "campeon") return;
+        if (c.tipo === "supercopa") nuevaEntrada.superCopa = jugador.club;
+        if (c.tipo === "trofeo") nuevaEntrada.trofeo = jugador.club;
+        if (c.tipo === "supercopaInt") nuevaEntrada.superCopaInt = jugador.club;
+      });
+      jugador.campeonesHistorial.push(nuevaEntrada);
 
       // Mostrar Copa
       if (resultadoCopa.enFinal) {
