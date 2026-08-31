@@ -214,39 +214,38 @@ function minijuegoAereo(callback, jugador, rival) {
     <div class="competition-card">
       <h3>¡Anticipo Aéreo!</h3>
       <p>Hacé clic cuando el borde del círculo exterior toque el círculo interior (¡margen mínimo!).</p>
-      <div class="aerial-container">
+      <div class="aerial-container" id="aerial-container" style="width:200px; height:200px; position:relative; cursor:crosshair;">
         <div class="aerial-inner-circle" style="width:15%; height:15%;"></div>
-        <div class="aerial-outer-circle" id="aerial-outer"></div>
+        <div class="aerial-outer-circle" id="aerial-outer" style="position:absolute; top:0; left:0;"></div>
       </div>
     </div>
   `;
 
+  const contenedorAereo = document.getElementById("aerial-container");
   const outer = document.getElementById("aerial-outer");
   let size = 100;
-  let velocidad = 1.0; // velocidad inicial baja
+  let velocidad = 1.0;
   let interval;
 
   interval = setInterval(() => {
-    // La velocidad aumenta con el tiempo (aceleración)
     velocidad += 0.08;
     size -= velocidad;
-
     if (size <= 0) {
       clearInterval(interval);
       contenedor.innerHTML = "";
       callback(false);
+      return;
     }
-
+    // Actualizamos el tamaño del círculo exterior
     outer.style.width = `${size}%`;
     outer.style.height = `${size}%`;
-
-    // Margen de acierto: SOLO entre 16% y 18% (un 2% de tolerancia)
-    if (size < 18 && size > 16) {
-      // NO se auto-gana, espera el click
-    }
+    // También centramos el círculo exterior (para que quede concéntrico)
+    outer.style.top = `${(100 - size) / 2}%`;
+    outer.style.left = `${(100 - size) / 2}%`;
   }, 60);
 
-  outer.addEventListener("click", () => {
+  // El clic se detecta en TODO el contenedor (área de 200x200)
+  contenedorAereo.addEventListener("click", (e) => {
     if (size < 18 && size > 16) {
       clearInterval(interval);
       contenedor.innerHTML = "";
