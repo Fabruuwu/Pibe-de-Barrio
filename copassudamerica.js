@@ -193,7 +193,8 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
 
   function actualizarCabecera() {
     const nuevaCabecera = crearCabeceraMinijuego(jugador, rivalActual);
-    contenedor.querySelector('.minijuego-marcador')?.outerHTML = nuevaCabecera;
+    const marcadorActual = contenedor.querySelector('.minijuego-marcador');
+    if (marcadorActual) marcadorActual.outerHTML = nuevaCabecera;
   }
 
   function jugarPartido(etapa, callbackPartido) {
