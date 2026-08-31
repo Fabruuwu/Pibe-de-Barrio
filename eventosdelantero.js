@@ -29,16 +29,13 @@ const BONUS_MEDIA = [
 
 // ---------- SIMULACIÓN DE LIGA ----------
 function simularLiga(jugador) {
-  // Obtener todos los clubes de la división argentina
   const clubes = CLUBES_POR_DIVISION[DIVISION_ARGENTINA];
   const clubJugador = jugador.club;
   
-  // Calcular probabilidad base de cada club
   let totalProb = 0;
   const probClubes = clubes.map(club => {
     let prob = PROB_CATEGORIA[club.categoria] / clubes.filter(c => c.categoria === club.categoria).length;
     if (club.id === clubJugador) {
-      // Sumar bonus del jugador
       const media = jugador.media;
       const bonus = BONUS_MEDIA.find(rango => media >= rango.min && media <= rango.max)?.bonus || 0;
       prob += bonus;
@@ -47,7 +44,6 @@ function simularLiga(jugador) {
     return { club: club, prob: prob };
   });
   
-  // Elegir campeón según probabilidades (normalizado)
   let random = Math.random() * totalProb;
   let campeon = null;
   for (let item of probClubes) {
@@ -59,42 +55,75 @@ function simularLiga(jugador) {
   }
   if (!campeon) campeon = probClubes[probClubes.length - 1].club;
   
-  // Verificar si el campeón es el equipo del jugador
   const esCampeon = campeon.id === clubJugador;
   
   if (!esCampeon) {
-    // Si no es campeón, asignar una posición random (2 a 18)
-    const posicion = Math.floor(Math.random() * 17) + 2; // 2-18
+    const posicion = Math.floor(Math.random() * 17) + 2;
     return { esCampeon: false, posicion: posicion, subcampeon: false };
   }
   
-  // Si es campeón, decidir si es directo o minijuego
   const resultado = { esCampeon: true, posicion: 1, subcampeon: false };
   if (Math.random() < 0.6) {
-    // 60% campeón directo
     return resultado;
   } else {
-    // 40% minijuego
     return { esCampeon: true, posicion: 1, subcampeon: false, minijuego: true };
   }
 }
 
+// ---------- HELPER PARA OBTENER UN RIVAL ALEATORIO ----------
+function obtenerClubRival(jugador) {
+  const clubes = CLUBES_POR_DIVISION[DIVISION_ARGENTINA];
+  // Filtrar todos excepto el club del jugador
+  const rivales = clubes.filter(c => c.id !== jugador.club);
+  return rivales[Math.floor(Math.random() * rivales.length)];
+}
+
+// ---------- CABECERA DE MINIJUEGOS ----------
+function crearCabeceraMinijuego(jugador, rival) {
+  const clubJugador = NOMBRES_CLUBES[jugador.club];
+  const escudoJugador = clubJugador ? clubJugador.escudo : "";
+  const escudoRival = rival ? rival.escudo : "";
+  
+  return `
+    <div class="minijuego-marcador">
+      <div class="equipo">
+        <img src="${escudoJugador}" alt="Tu club" onerror="this.hidden=true">
+        <span>${clubJugador ? clubJugador.nombre : "Tu club"}</span>
+      </div>
+      <span class="en-vivo">🔴 EN VIVO</span>
+      <div class="equipo">
+        <img src="${escudoRival}" alt="Rival" onerror="this.hidden=true">
+        <span>${rival ? rival.nombre : "Rival"}</span>
+      </div>
+    </div>
+  `;
+}
+
 // ---------- MINIJUEGOS ----------
 function mostrarMinijuego(callback) {
-  // Elegir un minijuego al azar (0,1,2)
+  const jugador = Estado.obtener();
+  const rival = obtenerClubRival(jugador);
   const tipo = Math.floor(Math.random() * 3);
-  if (tipo === 0) minijuegoPenal(callback);
-  else if (tipo === 1) minijuegoMemoria(callback);
-  else minijuegoQTE(callback);
+  if (tipo === 0) minijuegoPenal(callback, jugador, rival);
+  else if (tipo === 1) minijuegoMemoria(callback, jugador, rival);
+  else minijuegoQTE(callback, jugador, rival);
 }
 
 // Minijuego 1: Penal
-function minijuegoPenal(callback) {
+function minijuegoPenal(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
   contenedor.innerHTML = `
-    <div class="competition-card">
-      <h3>¡Penal decisivo!</h3>
-      <p>Elegí un palo para patear y salir campeón.</p>
+    ${cabecera}
+    <div class="competition-card minijuego-penal">
+      <div class="arco">
+        <span class="travesaño"></span>
+        <span class="poste poste-izq"></span>
+        <span class="poste poste-der"></span>
+        <span class="red"></span>
+        <span class="pelota">⚽</span>
+      </div>
+      <p>¡Penal decisivo! Elegí un palo para patear y salir campeón.</p>
       <div class="minijuego-botones">
         <button class="opcion-penal" data-lado="izquierda">Izquierda</button>
         <button class="opcion-penal" data-lado="centro">Centro</button>
@@ -115,12 +144,14 @@ function minijuegoPenal(callback) {
 }
 
 // Minijuego 2: Memoria
-function minijuegoMemoria(callback) {
+function minijuegoMemoria(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
   contenedor.innerHTML = `
+    ${cabecera}
     <div class="competition-card">
       <h3>¡La jugada preparada!</h3>
-      <p>Memorizá la secuencia y reproducila.</p>
+      <p>Memorizá la secuencia de pases y reproducila en orden.</p>
       <div class="memoria-grid"></div>
     </div>
   `;
@@ -134,18 +165,15 @@ function minijuegoMemoria(callback) {
     puntos.push(div);
   }
   
-  // Generar secuencia aleatoria de 4 puntos (índices 0-4)
   const secuencia = [];
   for (let i = 0; i < 4; i++) {
     secuencia.push(Math.floor(Math.random() * 5));
   }
   
-  // Resaltar secuencia
   let paso = 0;
   const intervalo = setInterval(() => {
     if (paso >= secuencia.length) {
       clearInterval(intervalo);
-      // Habilitar clics
       puntos.forEach(p => p.classList.add("activo"));
       let ordenUsuario = [];
       puntos.forEach(p => {
@@ -154,7 +182,6 @@ function minijuegoMemoria(callback) {
             this.classList.add("usado");
             ordenUsuario.push(parseInt(this.dataset.index));
             if (ordenUsuario.length === secuencia.length) {
-              // Verificar
               const exito = secuencia.every((val, idx) => val === ordenUsuario[idx]);
               contenedor.innerHTML = "";
               callback(exito);
@@ -173,20 +200,31 @@ function minijuegoMemoria(callback) {
   }, 500);
 }
 
-// Minijuego 3: QTE (3 botones rápidos)
-function minijuegoQTE(callback) {
+// Minijuego 3: QTE (con instrucciones y retraso)
+function minijuegoQTE(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
   contenedor.innerHTML = `
+    ${cabecera}
     <div class="competition-card">
       <h3>¡Slalom final!</h3>
-      <p>Hacé clic en el botón cuando aparezca, ¡rápido!</p>
-      <div class="qte-area"></div>
+      <p>Cuando aparezca el botón rojo, hacé clic lo más rápido posible.</p>
+      <p>Tenés <strong>0.8 segundos</strong> para reaccionar. ¡3 defensores te esperan!</p>
+      <button class="boton-iniciar-qte">Iniciar</button>
+      <div class="qte-area" style="display:none;"></div>
     </div>
   `;
+  const botonIniciar = contenedor.querySelector(".boton-iniciar-qte");
   const area = contenedor.querySelector(".qte-area");
   let exitos = 0;
   const total = 3;
-  
+
+  botonIniciar.addEventListener("click", () => {
+    botonIniciar.style.display = "none";
+    area.style.display = "block";
+    lanzarSiguiente();
+  });
+
   function lanzarSiguiente() {
     area.innerHTML = "";
     if (exitos >= total) {
@@ -194,31 +232,45 @@ function minijuegoQTE(callback) {
       callback(true);
       return;
     }
-    const boton = document.createElement("button");
-    boton.className = "qte-boton";
-    boton.textContent = "¡AHORA!";
-    area.appendChild(boton);
-    
-    const timeout = setTimeout(() => {
-      boton.remove();
-      callback(false);
-    }, 1000);
-    
-    boton.addEventListener("click", () => {
-      clearTimeout(timeout);
-      exitos++;
-      lanzarSiguiente();
-    });
+
+    // Instrucción previa (se muestra brevemente)
+    const aviso = document.createElement("div");
+    aviso.className = "qte-aviso";
+    aviso.textContent = `Defensor ${exitos + 1} de ${total}`;
+    area.appendChild(aviso);
+
+    setTimeout(() => {
+      aviso.remove();
+      const boton = document.createElement("button");
+      boton.className = "qte-boton";
+      boton.textContent = "¡AHORA!";
+      area.appendChild(boton);
+
+      // El botón tiene 0.8 segundos para ser clickeado
+      const timeout = setTimeout(() => {
+        boton.remove();
+        callback(false);
+      }, 800);
+
+      boton.addEventListener("click", () => {
+        clearTimeout(timeout);
+        exitos++;
+        lanzarSiguiente();
+      });
+    }, 600); // Pequeño retraso antes de que aparezca el botón
   }
-  lanzarSiguiente();
 }
 
-// ---------- RESULTADO EN PANTALLA ----------
+// ---------- RESULTADO EN PANTALLA (con cabecera) ----------
 function mostrarResultadoLiga(resultado, callback) {
   const contenedor = document.getElementById("competition-container");
+  const jugador = Estado.obtener();
+  const rival = obtenerClubRival(jugador);
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+  
   if (!resultado.esCampeon) {
-    // No campeón: mostrar posición
     contenedor.innerHTML = `
+      ${cabecera}
       <div class="competition-card">
         <p>Tu equipo terminó en la posición <strong>${resultado.posicion}</strong> de la liga.</p>
         <button class="boton-continuar">Continuar</button>
@@ -231,8 +283,8 @@ function mostrarResultadoLiga(resultado, callback) {
       callback(resultado);
     });
   } else if (resultado.subcampeon) {
-    // Subcampeón
     contenedor.innerHTML = `
+      ${cabecera}
       <div class="competition-card subcampeon">
         <p>Subcampeón 🥈</p>
         <p>El sueño se escurrió entre los dedos en el último suspiro.</p>
@@ -246,10 +298,9 @@ function mostrarResultadoLiga(resultado, callback) {
       callback(resultado);
     });
   } else {
-    // Campeón: cartel dorado (sin minijuego)
     if (!resultado.minijuego) {
-      // Campeón directo
       contenedor.innerHTML = `
+        ${cabecera}
         <div class="competition-card campeon">
           <h2>¡CAMPEÓN!</h2>
           <img src="Trofeos/LigaArgentina.png" alt="Copa">
@@ -258,8 +309,8 @@ function mostrarResultadoLiga(resultado, callback) {
         </div>
       `;
     } else {
-      // Si es minijuego, lo mostramos y luego damos el resultado
       contenedor.innerHTML = `
+        ${cabecera}
         <div class="competition-card">
           <p>¡Tu equipo llegó a la final! Para ser campeón, jugá este minijuego:</p>
           <button class="boton-jugar-minijuego">¡Jugar!</button>
@@ -269,8 +320,8 @@ function mostrarResultadoLiga(resultado, callback) {
       btnJugar.addEventListener("click", () => {
         mostrarMinijuego((exito) => {
           if (exito) {
-            // Campeón tras minijuego
             contenedor.innerHTML = `
+              ${cabecera}
               <div class="competition-card campeon">
                 <h2>¡CAMPEÓN!</h2>
                 <img src="Trofeos/LigaArgentina.png" alt="Copa">
@@ -284,8 +335,8 @@ function mostrarResultadoLiga(resultado, callback) {
               callback({ esCampeon: true, subcampeon: false });
             });
           } else {
-            // Perdió minijuego -> Subcampeón
             contenedor.innerHTML = `
+              ${cabecera}
               <div class="competition-card subcampeon">
                 <p>Subcampeón 🥈</p>
                 <p>El sueño se escurrió entre los dedos en el último suspiro.</p>
