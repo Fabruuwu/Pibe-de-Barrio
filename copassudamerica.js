@@ -181,7 +181,6 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   let ganadosGrupos = 0;
   let rivalActual = rivalInicial;
 
-  // Genera secuencia aleatoria sin repetir
   function generarSecuencia(longitud) {
     const indices = [];
     const disponibles = Array.from({ length: 20 }, (_, i) => i);
@@ -192,14 +191,11 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     return indices;
   }
 
-  // Cambiar rival en el marcador (actualizar cabecera)
   function actualizarCabecera() {
     const nuevaCabecera = crearCabeceraMinijuego(jugador, rivalActual);
-    // Reemplazamos la parte de cabecera del contenedor
     contenedor.querySelector('.minijuego-marcador')?.outerHTML = nuevaCabecera;
   }
 
-  // Jugar un partido
   function jugarPartido(etapa, callbackPartido) {
     const secuencia = generarSecuencia(etapa.longitud);
     let paso = 0;
@@ -243,75 +239,13 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     bloques.forEach(b => b.addEventListener("click", handlerClick));
   }
 
-  // Siguiente partido
+  // Función corregida que evalúa fase de grupos al llegar a octavos
   function siguientePartido() {
     if (indiceEtapa >= etapas.length) {
-      // Ganó toda la copa
       callback({ resultado: "campeon" });
       return;
     }
 
-    const etapa = etapas[indiceEtapa];
-    tituloCopa.textContent = `Copa Libertadores - ${etapa.nombre}`;
-
-    // Elegir nuevo rival para cada partido
-    rivalActual = obtenerRivalInternacional(jugador);
-    actualizarCabecera();
-
-    if (indiceEtapa === 0) {
-      info.textContent = "Listo?";
-      btnComenzar.disabled = false;
-      btnComenzar.textContent = "Comenzar";
-      btnComenzar.onclick = () => {
-        btnComenzar.disabled = true;
-        jugarPartido(etapa, (exito) => {
-          if (exito) {
-            ganadosGrupos++;
-          } else {
-            erroresGrupos++;
-          }
-          indiceEtapa++;
-          siguientePartido();
-        });
-      };
-    } else {
-      info.textContent = "Pasaste de ronda!";
-      btnComenzar.disabled = true;
-      setTimeout(() => {
-        info.textContent = "Listo?";
-        btnComenzar.disabled = false;
-        btnComenzar.textContent = "Comenzar";
-        btnComenzar.onclick = () => {
-          btnComenzar.disabled = true;
-          jugarPartido(etapa, (exito) => {
-            if (exito) {
-              if (etapa.fase === "grupos") ganadosGrupos++;
-              else { /* nada */ }
-            } else {
-              if (etapa.fase === "grupos") erroresGrupos++;
-            }
-            indiceEtapa++;
-            siguientePartido();
-          });
-        };
-      }, 3000);
-    }
-  }
-
-  // Al terminar fase de grupos (después del 3er partido), decidir si avanza
-  // Modificamos la lógica para que después del 3er partido se evalúe
-  // Esto se hace en el flujo, pero podemos insertar una evaluación al llegar al índice 3
-  // Para simplificar, en `siguientePartido` cuando indiceEtapa es 3, evaluamos.
-  // Vamos a reescribir `siguientePartido` para que al pasar a octavos verifique resultados.
-
-  // Reemplazamos la función original con esta versión que evalúa en el paso 3
-  function siguientePartido2() {
-    if (indiceEtapa >= etapas.length) {
-      callback({ resultado: "campeon" });
-      return;
-    }
-
-    // Al llegar a octavos (indiceEtapa === 3), evaluamos fase de grupos
     if (indiceEtapa === 3) {
       if (ganadosGrupos < 2) {
         callback({ resultado: "eliminado", fase: "Fase de Grupos" });
@@ -334,7 +268,7 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
           if (exito) ganadosGrupos++;
           else erroresGrupos++;
           indiceEtapa++;
-          siguientePartido2();
+          siguientePartido();
         });
       };
     } else {
@@ -355,15 +289,14 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
               return;
             }
             indiceEtapa++;
-            siguientePartido2();
+            siguientePartido();
           });
         };
       }, 3000);
     }
   }
 
-  // Iniciar con la función corregida
-  siguientePartido2();
+  siguientePartido();
 }
 
 // ---------- Jugar Libertadores ----------
@@ -434,20 +367,16 @@ function ejecutarInternacionales(callback) {
     if (resultado) {
       resumen = "campeon";
       jugador.stats.titulos++;
-      // Clasifica a Recopa
       const rivalRecopa = obtenerRivalInternacional(jugador);
       jugador.copasPendientes.push({ año: año + 1, tipo: "recopa", rivalId: rivalRecopa.id });
-      // Mostrar cartel de campeón
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
     } else {
-      // Elegir fase random si no viene
       if (!fase) {
         const fases = ["Fase de Grupos", "Octavos", "Cuartos", "Semifinal", "Final"];
         fase = fases[Math.floor(Math.random() * fases.length)];
       }
       if (fase === "Final") resumen = "subcampeon";
       else resumen = `eliminado_${fase}`;
-      // Mostrar cartel de eliminado
       mostrarCartelInternacional(false, fase, "");
     }
     jugador.resultadosInternacionales.push({
@@ -459,9 +388,10 @@ function ejecutarInternacionales(callback) {
     // Esperar a que el usuario presione "Continuar" en el cartel
     const contenedor = document.getElementById("competition-container");
     contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
-     contenedor.innerHTML = "";
-     contenedor.hidden = true;
-    callback();
+      contenedor.innerHTML = "";
+      contenedor.hidden = true;
+      callback();
+    });
   });
 }
 
