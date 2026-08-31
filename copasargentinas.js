@@ -148,15 +148,15 @@ function simularSuperCopaInt(jugador, trofeoCampeon, copaCampeon) {
 function minijuegoTiroLibre(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  
-  // Tamaño de la zona verde según pegada
-  let greenSize;
+
+  // Tamaño de la zona verde MUCHO más chico
   const pegada = jugador.stats.pegada || 0;
-  if (pegada <= 60) greenSize = 3;
-  else if (pegada <= 75) greenSize = 6;
-  else if (pegada <= 85) greenSize = 10;
-  else if (pegada <= 95) greenSize = 15;
-  else greenSize = 20;
+  let greenSize;
+  if (pegada <= 60) greenSize = 1;
+  else if (pegada <= 75) greenSize = 2;
+  else if (pegada <= 85) greenSize = 3;
+  else if (pegada <= 95) greenSize = 5;
+  else greenSize = 8;
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -175,9 +175,9 @@ function minijuegoTiroLibre(callback, jugador, rival) {
   const boton = document.getElementById("btn-press-hold");
   let poder = 0, direccion = 1, interval;
 
-  // Velocidad 20% más rápida (2.4 en vez de 2)
+  // Velocidad mucho más rápida (4.5 por tick)
   interval = setInterval(() => {
-    poder += direccion * 2.4;
+    poder += direccion * 4.5;
     if (poder > 100) { poder = 100; direccion = -1; }
     if (poder < 0) { poder = 0; direccion = 1; }
     indicador.style.left = `${poder}%`;
@@ -208,49 +208,53 @@ function minijuegoTiroLibre(callback, jugador, rival) {
 function minijuegoAereo(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  
-  // Velocidad 50% más rápida (factor 1.5)
-  const speedFactor = 1.5; // antes 1.5 - ((vel+res)/200) → ahora fijo o puede variar según stats? El usuario dijo "aumentar la velocidad un 50% más rápido", así que multiplicamos la velocidad base por 1.5. Podemos usar la anterior * 1.5.
-  // Para no complicar, usamos 2.0 fijo? Pero él dijo "50% más rápido", así que partimos de la base 1.5 y lo multiplicamos por 1.5 → 2.25. Mejor lo dejamos en 2.25.
-  const velocidad = 2.25; // 50% más rápido que el original 1.5
 
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
       <h3>¡Anticipo Aéreo!</h3>
-      <p>Hacé clic cuando el borde del círculo exterior pase por el círculo interior.</p>
+      <p>Hacé clic cuando el borde del círculo exterior toque el círculo interior (¡margen mínimo!).</p>
       <div class="aerial-container">
-        <div class="aerial-inner-circle"></div>
+        <div class="aerial-inner-circle" style="width:15%; height:15%;"></div>
         <div class="aerial-outer-circle" id="aerial-outer"></div>
       </div>
     </div>
   `;
 
   const outer = document.getElementById("aerial-outer");
-  let size = 100; // porcentaje del contenedor
+  let size = 100;
+  let velocidad = 1.0; // velocidad inicial baja
   let interval;
 
   interval = setInterval(() => {
+    // La velocidad aumenta con el tiempo (aceleración)
+    velocidad += 0.08;
     size -= velocidad;
-    if (size <= 0) { clearInterval(interval); contenedor.innerHTML = ""; callback(false); }
+
+    if (size <= 0) {
+      clearInterval(interval);
+      contenedor.innerHTML = "";
+      callback(false);
+    }
+
     outer.style.width = `${size}%`;
     outer.style.height = `${size}%`;
 
-    // El círculo interior es el 25% del contenedor (permanece fijo). 
-    // Consideramos acierto cuando el borde exterior (size) está entre 20% y 30% (zona del trazo)
-    if (size < 30 && size > 20) {
-      // Si el jugador no ha clickeado, se auto-gana? El bug era que se ganaba solo.
-      // Ahora solo debe ganar si el jugador hace clic en ese momento.
-      // No auto-ganar, esperar click.
+    // Margen de acierto: SOLO entre 16% y 18% (un 2% de tolerancia)
+    if (size < 18 && size > 16) {
+      // NO se auto-gana, espera el click
     }
   }, 60);
 
-  // El jugador debe hacer clic en el botón (círculo exterior) cuando esté en la zona
   outer.addEventListener("click", () => {
-    if (size < 30 && size > 20) {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(true);
+    if (size < 18 && size > 16) {
+      clearInterval(interval);
+      contenedor.innerHTML = "";
+      callback(true);
     } else {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(false);
+      clearInterval(interval);
+      contenedor.innerHTML = "";
+      callback(false);
     }
   });
 }
@@ -259,7 +263,14 @@ function minijuegoAereo(callback, jugador, rival) {
 function minijuegoPenalReflejos(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  const greenSize = 8 + (jugador.stats.pegada || 0) * 0.1;
+
+  const pegada = jugador.stats.pegada || 0;
+  let greenSize;
+  if (pegada <= 60) greenSize = 1;
+  else if (pegada <= 75) greenSize = 2;
+  else if (pegada <= 85) greenSize = 3;
+  else if (pegada <= 95) greenSize = 5;
+  else greenSize = 8;
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -278,8 +289,9 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
   const boton = document.getElementById("btn-penal-click");
   let poder = 0, direccion = 1, interval;
 
+  // Velocidad más rápida (5 por tick)
   interval = setInterval(() => {
-    poder += direccion * 3;
+    poder += direccion * 5;
     if (poder > 100) { poder = 100; direccion = -1; }
     if (poder < 0) { poder = 0; direccion = 1; }
     indicador.style.left = `${poder}%`;
@@ -421,29 +433,21 @@ function mostrarCopaPendiente(copa, callback) {
   const cabecera = crearCabeceraMinijuego(jugador, rival);
 
   let titulo, imagen;
-  let tipoCopa = ""; // para guardar en historial
   if (copa.tipo === "supercopa") {
     titulo = "SuperCopa Argentina";
     imagen = "Trofeos/SuperCopaArgentina.png";
-    tipoCopa = "superCopa";
   } else if (copa.tipo === "trofeo") {
     titulo = "Trofeo de Campeones";
     imagen = "Trofeos/TrofeoDeCampeonesArgentina.png";
-    tipoCopa = "trofeo";
   } else {
     titulo = "SuperCopa Internacional Argentina";
     imagen = "Trofeos/SuperCopaInternacionalArgentina.png";
-    tipoCopa = "superCopaInt";
   }
 
   let minijuego;
-  if (copa.tipo === "supercopa") {
-    minijuego = (cb) => minijuegoMemoria(cb, jugador, rival);
-  } else if (copa.tipo === "trofeo") {
-    minijuego = (cb) => minijuegoQTE(cb, jugador, rival);
-  } else {
-    minijuego = (cb) => minijuegoTiroLibre(cb, jugador, rival);
-  }
+  if (copa.tipo === "supercopa") minijuego = (cb) => minijuegoMemoria(cb, jugador, rival);
+  else if (copa.tipo === "trofeo") minijuego = (cb) => minijuegoQTE(cb, jugador, rival);
+  else minijuego = (cb) => minijuegoTiroLibre(cb, jugador, rival);
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -465,14 +469,18 @@ function mostrarCopaPendiente(copa, callback) {
         resultado: exito ? "campeon" : "subcampeon"
       });
 
-      // Actualizar campeonesHistorial y contador de títulos
+      // ✅ SUMAR TÍTULO SIEMPRE QUE SE GANE
+      if (exito) {
+        jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+      }
+
+      // Intentar actualizar el historial (opcional, por si existe)
       const hist = (jugador.campeonesHistorial || []).find(h => h.año === copa.año);
       if (hist) {
-        if (tipoCopa === "trofeo") hist.trofeo = exito ? jugador.club : null;
-        if (tipoCopa === "superCopa") hist.superCopa = exito ? jugador.club : null;
-        if (tipoCopa === "superCopaInt") hist.superCopaInt = exito ? jugador.club : null;
+        if (copa.tipo === "supercopa") hist.superCopa = exito ? jugador.club : null;
+        if (copa.tipo === "trofeo") hist.trofeo = exito ? jugador.club : null;
+        if (copa.tipo === "supercopaInt") hist.superCopaInt = exito ? jugador.club : null;
       }
-      if (exito) jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
 
       Estado.guardar();
 
