@@ -100,6 +100,8 @@ const Estado = (() => {
         { club: base.club, desde: base.año, hasta: null, cariñoFinal: 0, partidos: 0, titulos: [] }
       ],
       historialEventos: [],
+      campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
+      copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
       stats: {
         ...statsBase,
         goles: 0,

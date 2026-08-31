@@ -39,6 +39,10 @@ const ESTADOS_SELECCION = {
 
 let eventosPendientes = 0;
 
+// ============================================
+// PINTADO DEL HUD
+// ============================================
+
 function pintarHUD(jugador) {
   const config = obtenerConfigPosicion(jugador.posicion);
   pintarCabecera(jugador);
@@ -181,6 +185,10 @@ function capitalizar(texto) {
   return texto.split("-").map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join("");
 }
 
+// ============================================
+// CARTAS Y EVENTOS
+// ============================================
+
 function abrirModalCartas() {
   const cartas = generarCartas();
   const contenedor = document.getElementById("contenedor-cartas");
@@ -221,25 +229,48 @@ function procesarEventos() {
     eventosPendientes--;
     mostrarEvento();
   } else {
-    // Simular liga argentina
     const jugador = Estado.obtener();
-    const resultado = simularLiga(jugador);
+    const año = jugador.año;
+
+    // Simular Liga
+    const resultadoLiga = simularLiga(jugador);
     
-    // Mostrar resultado de liga y procesar el resultado final
-    mostrarResultadoLiga(resultado, (res) => {
-      // ✅ 1. Guardar el resultado FINAL (si perdió el minijuego, esto actualiza a subcampeón)
-      jugador.resultadoLiga = res;
-      
-      // ✅ 2. Si es campeón, sumar 1 al contador de títulos
-      if (res.esCampeon) {
-        jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+    // Simular Copa Argentina
+    let resultadoCopa = null;
+    const simCopa = simularCopaArgentina(jugador);
+    if (simCopa.enFinal) {
+      resultadoCopa = { enFinal: true, rival: simCopa.rival, resultado: null };
+    } else {
+      resultadoCopa = { enFinal: false, ronda: simCopa.ronda || "Eliminado" };
+    }
+
+    // Mostrar Liga
+    mostrarResultadoLiga(resultadoLiga, (resLiga) => {
+      jugador.resultadoLiga = resLiga;
+      if (resLiga.esCampeon) jugador.stats.titulos++;
+
+      // Guardar historial de liga
+      if (!jugador.campeonesHistorial) jugador.campeonesHistorial = [];
+      jugador.campeonesHistorial.push({ año: año, liga: jugador.club, copa: null, trofeo: null, superCopaInt: null });
+
+      // Mostrar Copa
+      if (resultadoCopa.enFinal) {
+        mostrarResultadoCopa(resultadoCopa, (resCopa) => {
+          const hist = jugador.campeonesHistorial.find(h => h.año === año);
+          hist.copa = resCopa.esCampeon ? jugador.club : null;
+          if (resCopa.esCampeon) jugador.stats.titulos++;
+
+          agendarProximasCopas(jugador, año, resLiga, resCopa);
+          Estado.guardar();
+          mostrarResumenAnual();
+        });
+      } else {
+        const hist = jugador.campeonesHistorial.find(h => h.año === año);
+        hist.copa = null;
+        agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
+        Estado.guardar();
+        mostrarResumenAnual();
       }
-      
-      // Guardar el estado actualizado
-      Estado.guardar();
-      
-      // Mostrar resumen final
-      mostrarResumenAnual();
     });
   }
 }
@@ -275,6 +306,10 @@ function mostrarEvento() {
 
   contenedor.hidden = false;
 }
+
+// ============================================
+// RANGOS Y TÍTULOS
+// ============================================
 
 function obtenerRangosGolesAsist(media) {
   let golesMin, golesMax, asisMin, asisMax;
@@ -384,6 +419,10 @@ function obtenerTituloGeneral(nombre, club) {
   return opciones[Math.floor(Math.random() * opciones.length)];
 }
 
+// ============================================
+// RESUMEN ANUAL
+// ============================================
+
 function mostrarResumenAnual() {
   const jugador = Estado.obtener();
   const contenedor = document.getElementById("resumen-container");
@@ -407,7 +446,6 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
-  // Elegir título aleatorio (60% por goles, 40% general)
   let resumen;
   if (Math.random() < 0.6) {
     resumen = obtenerTituloPorGoles(jugador.statsAnuales.goles, jugador.nombre, obtenerNombreClub(jugador.club));
@@ -418,7 +456,6 @@ function mostrarResumenAnual() {
   const tituloResumen = resumen.titulo;
   const textoResumen = resumen.texto;
 
-  // Resultado de la liga
   const resultadoLiga = jugador.resultadoLiga || null;
   let textoLiga = "";
   if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
@@ -485,7 +522,194 @@ function mostrarResumenAnual() {
     contenedor.hidden = true;
 
     pintarHUD(Estado.obtener());
-    abrirModalCartas();
+
+    const añoNuevo = Estado.obtener().año;
+    const copasDelAño = (Estado.obtener().copasPendientes || []).filter(c => c.año === añoNuevo);
+
+    if (copasDelAño.length > 0) {
+      const copa = copasDelAño[0];
+      mostrarCopaPendiente(copa, () => {
+        Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
+        Estado.guardar();
+
+        const restantes = Estado.obtener().copasPendientes.filter(c => c.año === añoNuevo);
+        if (restantes.length > 0) {
+          mostrarCopaPendiente(restantes[0], () => {
+            Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c.año !== añoNuevo);
+            Estado.guardar();
+            abrirModalCartas();
+          });
+        } else {
+          abrirModalCartas();
+        }
+      });
+    } else {
+      abrirModalCartas();
+    }
+  });
+}
+
+// ============================================
+// FUNCIONES DE COPAS (a nivel global)
+// ============================================
+
+function mostrarResultadoCopa(resultadoCopa, callback) {
+  const contenedor = document.getElementById("competition-container");
+  const jugador = Estado.obtener();
+  const rival = resultadoCopa.rival;
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+
+  const tipo = Math.random() < 0.5 ? "aereo" : "penal";
+
+  contenedor.innerHTML = `
+    ${cabecera}
+    <div class="competition-card">
+      <p>¡Final de la Copa Argentina! Tenés que ganar esta instancia para levantar la copa.</p>
+      <button class="boton-jugar-minijuego" id="btn-jugar-copa">¡Jugar la Final!</button>
+    </div>
+  `;
+
+  document.getElementById("btn-jugar-copa").addEventListener("click", () => {
+    if (tipo === "aereo") {
+      minijuegoAereo((exito) => {
+        if (exito) {
+          contenedor.innerHTML = `${cabecera}<div class="competition-card campeon"><h2>¡CAMPEÓN COPA ARGENTINA!</h2><img src="Trofeos/CopaArgentina.png" alt="Copa"><p>¡Golazo de cabeza en el minuto 94!</p><button class="boton-continuar">Continuar</button></div>`;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback({ esCampeon: true });
+          });
+        } else {
+          contenedor.innerHTML = `${cabecera}<div class="competition-card subcampeon"><p>Subcampeón 🥈</p><p>Se escapó en el último minuto.</p><button class="boton-continuar">Continuar</button></div>`;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback({ esCampeon: false });
+          });
+        }
+      }, jugador, rival);
+    } else {
+      minijuegoPenalReflejos((exito) => {
+        if (exito) {
+          contenedor.innerHTML = `${cabecera}<div class="competition-card campeon"><h2>¡CAMPEÓN COPA ARGENTINA!</h2><img src="Trofeos/CopaArgentina.png" alt="Copa"><p>¡El arquero adivinó, pero tu pena fue perfecto!</p><button class="boton-continuar">Continuar</button></div>`;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback({ esCampeon: true });
+          });
+        } else {
+          contenedor.innerHTML = `${cabecera}<div class="competition-card subcampeon"><p>Subcampeón 🥈</p><p>Fallaste el penal y la copa se fue.</p><button class="boton-continuar">Continuar</button></div>`;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback({ esCampeon: false });
+          });
+        }
+      }, jugador, rival);
+    }
+  });
+}
+
+function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
+  const historial = jugador.campeonesHistorial;
+  const añoProximo = añoActual + 1;
+  const soyCampeonLiga = resLiga.esCampeon;
+  const soyCampeonCopa = resCopa.esCampeon;
+
+  // SuperCopa Argentina
+  if (soyCampeonLiga || soyCampeonCopa) {
+    let rivalId;
+    if (soyCampeonLiga && soyCampeonCopa) rivalId = elegirRivalAleatorio(jugador).id;
+    else if (soyCampeonLiga) rivalId = historial.find(h => h.año === añoActual).copa || elegirRivalAleatorio(jugador).id;
+    else rivalId = historial.find(h => h.año === añoActual).liga || elegirRivalAleatorio(jugador).id;
+
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+  }
+
+  // Trofeo de Campeones
+  const histAnterior = historial.find(h => h.año === añoActual - 1);
+  const histAnterior2 = historial.find(h => h.año === añoActual - 2);
+  if (histAnterior && histAnterior2) {
+    if (histAnterior.liga === jugador.club || histAnterior2.liga === jugador.club) {
+      let rivalId;
+      if (histAnterior.liga === jugador.club && histAnterior2.liga === jugador.club) rivalId = elegirRivalAleatorio(jugador).id;
+      else if (histAnterior.liga === jugador.club) rivalId = histAnterior2.liga;
+      else rivalId = histAnterior.liga;
+
+      jugador.copasPendientes.push({ año: añoProximo, tipo: "trofeo", rivalId: rivalId });
+    }
+  }
+
+  // SuperCopa Internacional
+  const histActual = historial.find(h => h.año === añoActual);
+  const histTrofeo = historial.find(h => h.año === añoActual - 1);
+  if (histActual && histTrofeo) {
+    if (histActual.copa === jugador.club || histTrofeo.trofeo === jugador.club) {
+      let rivalId;
+      if (histActual.copa === jugador.club && histTrofeo.trofeo === jugador.club) rivalId = elegirRivalAleatorio(jugador).id;
+      else if (histActual.copa === jugador.club) rivalId = histTrofeo.trofeo;
+      else rivalId = histActual.copa;
+
+      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopaInt", rivalId: rivalId });
+    }
+  }
+}
+
+function mostrarCopaPendiente(copa, callback) {
+  const jugador = Estado.obtener();
+  const rival = NOMBRES_CLUBES[copa.rivalId] || { nombre: "Rival", escudo: "" };
+  const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+
+  let titulo, imagen;
+  if (copa.tipo === "supercopa") {
+    titulo = "SuperCopa Argentina";
+    imagen = "Trofeos/SuperCopaArgentina.png";
+  } else if (copa.tipo === "trofeo") {
+    titulo = "Trofeo de Campeones";
+    imagen = "Trofeos/TrofeoDeCampeonesArgentina.png";
+  } else {
+    titulo = "SuperCopa Internacional Argentina";
+    imagen = "Trofeos/SuperCopaInternacionalArgentina.png";
+  }
+
+  let minijuego;
+  if (copa.tipo === "supercopa") {
+    minijuego = (cb) => minijuegoMemoria(cb, jugador, rival);
+  } else if (copa.tipo === "trofeo") {
+    minijuego = (cb) => minijuegoQTE(cb, jugador, rival);
+  } else {
+    minijuego = (cb) => minijuegoTiroLibre(cb, jugador, rival);
+  }
+
+  contenedor.innerHTML = `
+    ${cabecera}
+    <div class="competition-card">
+      <h3>${titulo}</h3>
+      <p>¡Partido especial! Jugate el todo por el todo para sumar otro título.</p>
+      <button class="boton-jugar-minijuego" id="btn-jugar-pendiente">¡Jugar!</button>
+    </div>
+  `;
+
+  document.getElementById("btn-jugar-pendiente").addEventListener("click", () => {
+    contenedor.innerHTML = "";
+    minijuego((exito) => {
+      if (exito) {
+        contenedor.innerHTML = `${cabecera}<div class="competition-card campeon"><h2>¡CAMPEÓN ${titulo.toUpperCase()}!</h2><img src="${imagen}" alt="Trofeo"><button class="boton-continuar">Continuar</button></div>`;
+        contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+          contenedor.innerHTML = "";
+          contenedor.hidden = true;
+          callback();
+        });
+      } else {
+        contenedor.innerHTML = `${cabecera}<div class="competition-card subcampeon"><p>Subcampeón 🥈</p><button class="boton-continuar">Continuar</button></div>`;
+        contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+          contenedor.innerHTML = "";
+          contenedor.hidden = true;
+          callback();
+        });
+      }
+    });
   });
 }
 

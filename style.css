@@ -1101,22 +1101,23 @@ html, body {
 }
 
 .competition-card.campeon {
-  background: linear-gradient(135deg, #f5c542, #d4af37);
-  border: 3px solid #ffd700;
-  color: #2a1a00;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d); /* Gris oscuro */
+  border: 3px solid #ffd700; /* Borde dorado */
+  color: #f5c542; /* Letras doradas */
   border-radius: 12px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* Sombra para que resalte */
 }
-
 .competition-card.campeon h2 {
   font-size: 28px;
   margin: 10px 0;
+  color: #ffd700; /* Título dorado */
 }
-
 .competition-card.campeon img {
   width: 80px;
   height: 80px;
   object-fit: contain;
   margin: 10px auto;
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.7)); /* Brillo dorado al trofeo */
 }
 
 .competition-card.subcampeon {
@@ -1337,4 +1338,65 @@ html, body {
 @keyframes pulse {
   from { transform: scale(0.95); }
   to { transform: scale(1.05); }
+}
+
+/* Tiro Libre y Penal Reflejos (Barra de potencia) */
+.power-bar-track {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  background: #222;
+  border-radius: 15px;
+  border: 2px solid #444;
+  margin: 20px auto;
+  overflow: hidden;
+}
+.power-bar-track.horizontal {
+  height: 20px;
+}
+.power-zone {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(0, 255, 100, 0.4);
+  border-radius: 15px;
+}
+.power-indicator {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: white;
+  box-shadow: 0 0 8px white;
+  left: 50%;
+}
+
+/* Anticipo Aéreo */
+.aerial-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 20px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.aerial-inner-circle {
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  background: rgba(139, 92, 246, 0.3);
+  border: 2px solid #a78bfa;
+  border-radius: 50%;
+  z-index: 2;
+}
+.aerial-outer-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 3px dashed #ffd700;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1;
 }
