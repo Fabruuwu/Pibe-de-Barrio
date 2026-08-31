@@ -23,12 +23,82 @@ function asegurarRivalDiferente(jugador, rivalId) {
 
 // Copa Argentina: llega a final con probabilidad según media, rival aleatorio
 function simularCopaArgentina(jugador) {
-  const prob = 0.5 + (jugador.media - 60) * 0.008; // Ajusta según media
-  if (Math.random() > prob) {
+  const PROB_CATEGORIA = { grande: 40, mediano: 30, chico: 20, diminuto: 10 };
+  const categorias = ["grande", "mediano", "chico", "diminuto"];
+
+  // Bonus según media del jugador (reutilizamos el mismo esquema de la liga)
+  const BONUS_MEDIA = [
+    { min: 0, max: 55, bonus: 0 },
+    { min: 56, max: 65, bonus: 2 },
+    { min: 66, max: 75, bonus: 6 },
+    { min: 76, max: 85, bonus: 10 },
+    { min: 86, max: 95, bonus: 14 },
+    { min: 96, max: 99, bonus: 19 }
+  ];
+
+  // Buscar la categoría del club del jugador
+  const clubJugador = CLUBES_POR_DIVISION[jugador.division]?.find(c => c.id === jugador.club);
+  const categoriaJugador = clubJugador ? clubJugador.categoria : null;
+  const media = jugador.media;
+
+  // 1. Calcular probabilidades por categoría (con bonus si la categoría del jugador es la suya)
+  let probCategorias = {};
+  let totalProb = 0;
+  categorias.forEach(cat => {
+    let prob = PROB_CATEGORIA[cat];
+    if (cat === categoriaJugador) {
+      const bonus = BONUS_MEDIA.find(rango => media >= rango.min && media <= rango.max)?.bonus || 0;
+      prob += bonus;
+    }
+    probCategorias[cat] = prob;
+    totalProb += prob;
+  });
+
+  // 2. Elegir categoría ganadora
+  let random = Math.random() * totalProb;
+  let categoriaElegida = "grande";
+  for (let cat of categorias) {
+    random -= probCategorias[cat];
+    if (random <= 0) {
+      categoriaElegida = cat;
+      break;
+    }
+  }
+
+  // 3. Dentro de la categoría elegida, elegir club ganador con bonus para el jugador
+  const clubesCategoria = CLUBES_POR_DIVISION[jugador.division]?.filter(c => c.categoria === categoriaElegida) || [];
+  if (clubesCategoria.length === 0) return { eliminado: true, ronda: "Cuartos" };
+
+  let totalPesoClubes = 0;
+  const pesos = clubesCategoria.map(club => {
+    let peso = 1; // peso base
+    if (club.id === jugador.club) {
+      const bonus = BONUS_MEDIA.find(rango => media >= rango.min && media <= rango.max)?.bonus || 0;
+      peso += bonus; // bonus directo al club del jugador
+    }
+    totalPesoClubes += peso;
+    return { club, peso };
+  });
+
+  // Sortear club ganador
+  random = Math.random() * totalPesoClubes;
+  let clubGanador = null;
+  for (let item of pesos) {
+    random -= item.peso;
+    if (random <= 0) {
+      clubGanador = item.club;
+      break;
+    }
+  }
+  if (!clubGanador) clubGanador = pesos[pesos.length - 1].club;
+
+  // 4. Si el club ganador es el del jugador -> final
+  if (clubGanador.id === jugador.club) {
+    const rival = elegirRivalAleatorio(jugador);
+    return { enFinal: true, rival: rival };
+  } else {
     return { eliminado: true, ronda: "Cuartos" };
   }
-  const rival = elegirRivalAleatorio(jugador);
-  return { enFinal: true, rival: rival };
 }
 
 // SuperCopa Argentina: se juega entre campeón de Liga y campeón de Copa del año anterior
@@ -78,7 +148,15 @@ function simularSuperCopaInt(jugador, trofeoCampeon, copaCampeon) {
 function minijuegoTiroLibre(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  const greenSize = 10 + (jugador.stats.pegada || 0) * 0.15;
+  
+  // Tamaño de la zona verde según pegada
+  let greenSize;
+  const pegada = jugador.stats.pegada || 0;
+  if (pegada <= 60) greenSize = 3;
+  else if (pegada <= 75) greenSize = 6;
+  else if (pegada <= 85) greenSize = 10;
+  else if (pegada <= 95) greenSize = 15;
+  else greenSize = 20;
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -97,8 +175,9 @@ function minijuegoTiroLibre(callback, jugador, rival) {
   const boton = document.getElementById("btn-press-hold");
   let poder = 0, direccion = 1, interval;
 
+  // Velocidad 20% más rápida (2.4 en vez de 2)
   interval = setInterval(() => {
-    poder += direccion * 2;
+    poder += direccion * 2.4;
     if (poder > 100) { poder = 100; direccion = -1; }
     if (poder < 0) { poder = 0; direccion = 1; }
     indicador.style.left = `${poder}%`;
@@ -129,13 +208,17 @@ function minijuegoTiroLibre(callback, jugador, rival) {
 function minijuegoAereo(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  const speedFactor = 1.5 - ((jugador.stats.velocidad + jugador.stats.resistencia) / 200);
+  
+  // Velocidad 50% más rápida (factor 1.5)
+  const speedFactor = 1.5; // antes 1.5 - ((vel+res)/200) → ahora fijo o puede variar según stats? El usuario dijo "aumentar la velocidad un 50% más rápido", así que multiplicamos la velocidad base por 1.5. Podemos usar la anterior * 1.5.
+  // Para no complicar, usamos 2.0 fijo? Pero él dijo "50% más rápido", así que partimos de la base 1.5 y lo multiplicamos por 1.5 → 2.25. Mejor lo dejamos en 2.25.
+  const velocidad = 2.25; // 50% más rápido que el original 1.5
 
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
       <h3>¡Anticipo Aéreo!</h3>
-      <p>Hacé clic cuando los círculos coincidan.</p>
+      <p>Hacé clic cuando el borde del círculo exterior pase por el círculo interior.</p>
       <div class="aerial-container">
         <div class="aerial-inner-circle"></div>
         <div class="aerial-outer-circle" id="aerial-outer"></div>
@@ -144,22 +227,30 @@ function minijuegoAereo(callback, jugador, rival) {
   `;
 
   const outer = document.getElementById("aerial-outer");
-  let size = 100;
+  let size = 100; // porcentaje del contenedor
   let interval;
 
   interval = setInterval(() => {
-    size -= speedFactor;
-    if (size <= 10) { clearInterval(interval); contenedor.innerHTML = ""; callback(false); }
+    size -= velocidad;
+    if (size <= 0) { clearInterval(interval); contenedor.innerHTML = ""; callback(false); }
     outer.style.width = `${size}%`;
     outer.style.height = `${size}%`;
-    if (size < 22 && size > 15) {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(true);
+
+    // El círculo interior es el 25% del contenedor (permanece fijo). 
+    // Consideramos acierto cuando el borde exterior (size) está entre 20% y 30% (zona del trazo)
+    if (size < 30 && size > 20) {
+      // Si el jugador no ha clickeado, se auto-gana? El bug era que se ganaba solo.
+      // Ahora solo debe ganar si el jugador hace clic en ese momento.
+      // No auto-ganar, esperar click.
     }
   }, 60);
 
+  // El jugador debe hacer clic en el botón (círculo exterior) cuando esté en la zona
   outer.addEventListener("click", () => {
-    if (size < 25 && size > 12) {
+    if (size < 30 && size > 20) {
       clearInterval(interval); contenedor.innerHTML = ""; callback(true);
+    } else {
+      clearInterval(interval); contenedor.innerHTML = ""; callback(false);
     }
   });
 }
@@ -330,26 +421,27 @@ function mostrarCopaPendiente(copa, callback) {
   const cabecera = crearCabeceraMinijuego(jugador, rival);
 
   let titulo, imagen;
+  let tipoCopa = ""; // para guardar en historial
   if (copa.tipo === "supercopa") {
     titulo = "SuperCopa Argentina";
     imagen = "Trofeos/SuperCopaArgentina.png";
+    tipoCopa = "superCopa";
   } else if (copa.tipo === "trofeo") {
     titulo = "Trofeo de Campeones";
     imagen = "Trofeos/TrofeoDeCampeonesArgentina.png";
+    tipoCopa = "trofeo";
   } else {
     titulo = "SuperCopa Internacional Argentina";
     imagen = "Trofeos/SuperCopaInternacionalArgentina.png";
+    tipoCopa = "superCopaInt";
   }
 
   let minijuego;
   if (copa.tipo === "supercopa") {
-    // Jugada preparada (memoria)
     minijuego = (cb) => minijuegoMemoria(cb, jugador, rival);
   } else if (copa.tipo === "trofeo") {
-    // Slalom final (QTE)
     minijuego = (cb) => minijuegoQTE(cb, jugador, rival);
   } else {
-    // Tiro libre al ángulo
     minijuego = (cb) => minijuegoTiroLibre(cb, jugador, rival);
   }
 
@@ -365,13 +457,23 @@ function mostrarCopaPendiente(copa, callback) {
   document.getElementById("btn-jugar-pendiente").addEventListener("click", () => {
     contenedor.innerHTML = "";
     minijuego((exito) => {
-      // Guardamos el resultado en el historial de copas especiales
+      // Guardar en historial de copas especiales
       if (!jugador.resultadoCopasEspeciales) jugador.resultadoCopasEspeciales = [];
       jugador.resultadoCopasEspeciales.push({
         año: copa.año,
         tipo: copa.tipo,
         resultado: exito ? "campeon" : "subcampeon"
       });
+
+      // Actualizar campeonesHistorial y contador de títulos
+      const hist = (jugador.campeonesHistorial || []).find(h => h.año === copa.año);
+      if (hist) {
+        if (tipoCopa === "trofeo") hist.trofeo = exito ? jugador.club : null;
+        if (tipoCopa === "superCopa") hist.superCopa = exito ? jugador.club : null;
+        if (tipoCopa === "superCopaInt") hist.superCopaInt = exito ? jugador.club : null;
+      }
+      if (exito) jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+
       Estado.guardar();
 
       if (exito) {

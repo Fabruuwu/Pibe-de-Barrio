@@ -151,13 +151,16 @@ function minijuegoMemoria(callback, jugador, rival) {
     ${cabecera}
     <div class="competition-card">
       <h3>¡La jugada preparada!</h3>
-      <p>Memorizá la secuencia de pases y reproducila en orden.</p>
+      <p>Memorizá la secuencia de pases y reproducila en orden (sin repetir el mismo botón).</p>
       <div class="memoria-grid"></div>
     </div>
   `;
   const grid = contenedor.querySelector(".memoria-grid");
+  grid.style.gridTemplateColumns = "repeat(5, 1fr)"; // 5 columnas, 2 filas = 10 botones
+  grid.style.maxWidth = "400px";
+
   const puntos = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     const div = document.createElement("div");
     div.className = "memoria-punto";
     div.dataset.index = i;
@@ -165,12 +168,16 @@ function minijuegoMemoria(callback, jugador, rival) {
     puntos.push(div);
   }
   
+  // Generar secuencia de 4 índices únicos (0-9)
   const secuencia = [];
+  const disponibles = [0,1,2,3,4,5,6,7,8,9];
   for (let i = 0; i < 4; i++) {
-    secuencia.push(Math.floor(Math.random() * 5));
+    const idx = Math.floor(Math.random() * disponibles.length);
+    secuencia.push(disponibles.splice(idx, 1)[0]);
   }
   
   let paso = 0;
+  // Velocidad 10% más rápida: 450ms en vez de 500ms
   const intervalo = setInterval(() => {
     if (paso >= secuencia.length) {
       clearInterval(intervalo);
@@ -194,10 +201,10 @@ function minijuegoMemoria(callback, jugador, rival) {
       puntos[idx].classList.add("iluminado");
       setTimeout(() => {
         puntos[idx].classList.remove("iluminado");
-      }, 400);
+      }, 350); // también más rápido
       paso++;
     }
-  }, 500);
+  }, 450);
 }
 
 // Minijuego 3: QTE (con instrucciones y retraso)
@@ -209,9 +216,9 @@ function minijuegoQTE(callback, jugador, rival) {
     <div class="competition-card">
       <h3>¡Slalom final!</h3>
       <p>Cuando aparezca el botón rojo, hacé clic lo más rápido posible.</p>
-      <p>Tenés <strong>0.8 segundos</strong> para reaccionar. ¡3 defensores te esperan!</p>
+      <p>Tenés <strong>0.5 segundos</strong> para reaccionar. ¡3 defensores te esperan!</p>
       <button class="boton-iniciar-qte">Iniciar</button>
-      <div class="qte-area" style="display:none;"></div>
+      <div class="qte-area" style="display:none; position:relative; min-height:150px;"></div>
     </div>
   `;
   const botonIniciar = contenedor.querySelector(".boton-iniciar-qte");
@@ -237,27 +244,42 @@ function minijuegoQTE(callback, jugador, rival) {
     const aviso = document.createElement("div");
     aviso.className = "qte-aviso";
     aviso.textContent = `Defensor ${exitos + 1} de ${total}`;
+    aviso.style.position = "absolute";
+    aviso.style.top = "10px";
+    aviso.style.left = "10px";
     area.appendChild(aviso);
 
+    // Espera aleatoria antes de mostrar el botón (300-900ms)
+    const delay = Math.floor(Math.random() * 600) + 300;
     setTimeout(() => {
       aviso.remove();
       const boton = document.createElement("button");
       boton.className = "qte-boton";
       boton.textContent = "¡AHORA!";
+      boton.style.position = "absolute";
+      boton.style.width = "60px";
+      boton.style.height = "60px";
+      boton.style.fontSize = "16px";
+      boton.style.padding = "0";
+      // Posición aleatoria dentro del área (max 80% - 60px)
+      const maxX = area.clientWidth - 70;
+      const maxY = area.clientHeight - 70;
+      boton.style.left = `${Math.random() * maxX}px`;
+      boton.style.top = `${Math.random() * maxY}px`;
       area.appendChild(boton);
 
-      // El botón tiene 0.8 segundos para ser clickeado
+      // Tiempo de reacción: 0.5s (500ms)
       const timeout = setTimeout(() => {
         boton.remove();
         callback(false);
-      }, 800);
+      }, 500);
 
       boton.addEventListener("click", () => {
         clearTimeout(timeout);
         exitos++;
         lanzarSiguiente();
       });
-    }, 600); // Pequeño retraso antes de que aparezca el botón
+    }, delay);
   }
 }
 

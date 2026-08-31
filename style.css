@@ -1400,3 +1400,19 @@ html, body {
   cursor: pointer;
   z-index: 1;
 }
+
+.qte-area {
+  position: relative;
+  min-height: 200px;
+  background: #1a1a24;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.memoria-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 15px auto;
+  max-width: 400px;
+}
