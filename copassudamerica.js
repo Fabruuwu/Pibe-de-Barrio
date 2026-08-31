@@ -1,102 +1,189 @@
 // copassudamerica.js
 // Depende de: NOMBRES_CLUBES, CLUBES_POR_DIVISION, crearCabeceraMinijuego
 
-// Clasificación a Libertadores (solo para ligas de Argentina o Brasil)
-function clasificaLibertadores(jugador) {
-  const liga = jugador.liga;
-  const club = jugador.club;
-  const posicion = jugador.resultadoLiga ? jugador.resultadoLiga.posicion : null;
-  const esCampeonLiga = jugador.resultadoLiga?.esCampeon || false;
-  const esSubcampeonLiga = jugador.resultadoLiga?.subcampeon || false;
-  const esCampeonCopa = jugador.resultadoCopa?.esCampeon || false;
-
-  // Condiciones para clasificar
-  const esLigaArgentina = liga === "liga-profesional-argentina";
-  const esLigaBrasil = liga === "brasileirao-brasil";
-
-  if (!esLigaArgentina && !esLigaBrasil) return false;
-
-  if (esCampeonCopa) return true;
-  if (esCampeonLiga) return true;
-  if (esSubcampeonLiga) return true;
-  if (posicion === 2 || posicion === 3) return true; // top 2,3 (posiciones 2 y 3)
-  return false;
-}
-
-// Simular Libertadores: elige entre copa completa (75%) o final directa (25%)
-function simularLibertadores(jugador) {
-  const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
-  return { tipo };
-}
-
-// Generar un rival aleatorio de la división del jugador (de su misma liga o Brasil)
+// ---------- Helpers ----------
 function obtenerRivalInternacional(jugador) {
-  // Lista de todas las divisiones (Argentina y Brasil por ahora)
   const divisiones = ["primera-division-argentina", "serie-a-brasil"];
-  const todosClubes = [];
+  let rivales = [];
   divisiones.forEach(div => {
     const clubes = CLUBES_POR_DIVISION[div] || [];
-    todosClubes.push(...clubes);
+    clubes.forEach(c => { if (c.id !== jugador.club) rivales.push(c); });
   });
-  // Filtrar el club del jugador
-  const rivales = todosClubes.filter(c => c.id !== jugador.club);
   return rivales[Math.floor(Math.random() * rivales.length)];
 }
 
-// Minijuego Copa Completa (Secuencias progresivas con 20 bloques)
-function minijuegoCopaCompleta(callback, jugador, rival) {
+// Verificar si clasifica a Libertadores
+function clasificaLibertadores(jugador) {
+  const resLiga = jugador.resultadoLiga;
+  const resCopa = jugador.resultadoCopa;
+  const pos = resLiga?.posicion;
+  const liga = jugador.liga;
+
+  if (liga !== "liga-profesional-argentina" && liga !== "brasileirao-brasil") return false;
+
+  if (resCopa?.esCampeon) return true;
+  if (resLiga?.esCampeon) return true;
+  if (resLiga?.subcampeon) return true;
+  if (pos === 2 || pos === 3) return true;
+  return false;
+}
+
+// ---------- Minijuego de BarraQTE (para finales) ----------
+function minijuegoBarraQTE(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  const totalBloques = 20;
-  
-  // Generar los 20 botones en pantalla
+
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
-      <h3>¡Copa Libertadores - Fase de Grupos!</h3>
-      <p>Memorizá las secuencias de bloques que se iluminan y repetilas.</p>
+      <h3>¡Final de la Copa!</h3>
+      <p>Presioná los botones correctos para llenar la barra. Rojo (+5), Rosa (-10), Bordo (perdés).</p>
+      <div class="barra-qte">
+        <div class="barra-progreso" id="barra-progreso"></div>
+        <span id="puntos-texto">0/20</span>
+      </div>
+      <div class="zona-botones" id="zona-botones" style="position:relative; height:200px; background:#1a1a24; border-radius:8px;"></div>
+      <p>Tiempo: <span id="timer">20</span>s</p>
+    </div>
+  `;
+
+  const zona = document.getElementById("zona-botones");
+  const barra = document.getElementById("barra-progreso");
+  const puntosTexto = document.getElementById("puntos-texto");
+  const timer = document.getElementById("timer");
+  let puntos = 0;
+  let tiempo = 20;
+  let terminado = false;
+
+  const timerInterval = setInterval(() => {
+    tiempo--;
+    timer.textContent = tiempo;
+    if (tiempo <= 0) {
+      clearInterval(timerInterval);
+      clearInterval(spawnInterval);
+      terminado = true;
+      contenedor.innerHTML = "";
+      callback(false);
+    }
+  }, 1000);
+
+  // Spawn de botones
+  let spawnInterval;
+  function spawnBoton() {
+    const tipo = Math.random() < 0.7 ? "rojo" : (Math.random() < 0.5 ? "rosa" : "bordo");
+    const btn = document.createElement("button");
+    btn.className = `qte-boton-internacional ${tipo}`;
+    btn.textContent = tipo === "rojo" ? "+5" : tipo === "rosa" ? "-10" : "X";
+    btn.style.position = "absolute";
+    btn.style.width = "50px";
+    btn.style.height = "50px";
+    btn.style.fontSize = "12px";
+    btn.style.padding = "0";
+    btn.style.background = tipo === "rojo" ? "#ff4444" : tipo === "rosa" ? "#ff69b4" : "#800000";
+    btn.style.color = "#fff";
+    btn.style.left = `${Math.random() * (zona.clientWidth - 60)}px`;
+    btn.style.top = `${Math.random() * (zona.clientHeight - 60)}px`;
+    zona.appendChild(btn);
+    setTimeout(() => btn.remove(), 600);
+  }
+
+  spawnInterval = setInterval(spawnBoton, 800);
+  setTimeout(() => {
+    clearInterval(spawnInterval);
+    spawnInterval = setInterval(spawnBoton, 600);
+  }, 5000);
+  setTimeout(() => {
+    clearInterval(spawnInterval);
+    spawnInterval = setInterval(spawnBoton, 400);
+  }, 10000);
+
+  zona.addEventListener("click", (e) => {
+    if (terminado) return;
+    const btn = e.target;
+    if (btn.classList.contains("qte-boton-internacional")) {
+      const tipo = btn.classList[1];
+      if (tipo === "rojo") {
+        puntos += 5;
+      } else if (tipo === "rosa") {
+        puntos -= 10;
+        if (puntos < 0) {
+          clearInterval(timerInterval);
+          clearInterval(spawnInterval);
+          terminado = true;
+          contenedor.innerHTML = "";
+          callback(false);
+          return;
+        }
+      } else if (tipo === "bordo") {
+        clearInterval(timerInterval);
+        clearInterval(spawnInterval);
+        terminado = true;
+        contenedor.innerHTML = "";
+        callback(false);
+        return;
+      }
+      barra.style.width = `${(puntos / 20) * 100}%`;
+      puntosTexto.textContent = `${puntos}/20`;
+      if (puntos >= 20) {
+        clearInterval(timerInterval);
+        clearInterval(spawnInterval);
+        terminado = true;
+        contenedor.innerHTML = "";
+        callback(true);
+      }
+    }
+  });
+}
+
+// ================== COPA LIBERTADORES - CAMINO PROGRESIVO ==================
+function minijuegoCopaCompleta(callback, jugador, rival) {
+  const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+  
+  contenedor.innerHTML = `
+    ${cabecera}
+    <div class="competition-card">
+      <h3>¡Copa Libertadores!</h3>
+      <p>Memorizá las secuencias de bloques iluminados. ¡Cuidado que aumentan!</p>
       <div class="libertadores-grid" id="libertadores-grid"></div>
       <div class="secuencia-info" id="secuencia-info"></div>
-      <button class="boton-iniciar-qte" id="btn-iniciar-secuencia">Comenzar</button>
+      <button class="boton-iniciar-qte" id="btn-comenzar-libertadores">Comenzar</button>
     </div>
   `;
   
   const grid = document.getElementById("libertadores-grid");
   const info = document.getElementById("secuencia-info");
-  const btnIniciar = document.getElementById("btn-iniciar-secuencia");
+  const btnComenzar = document.getElementById("btn-comenzar-libertadores");
   
-  // Crear los 20 bloques (grid de 5x4)
   grid.style.gridTemplateColumns = "repeat(5, 1fr)";
   grid.style.maxWidth = "500px";
-  for (let i = 0; i < totalBloques; i++) {
+  grid.style.margin = "20px auto";
+  const bloques = [];
+  for (let i = 0; i < 20; i++) {
     const div = document.createElement("div");
     div.className = "memoria-punto";
     div.dataset.index = i;
     grid.appendChild(div);
+    bloques.push(div);
   }
   
-  const bloques = grid.querySelectorAll(".memoria-punto");
-  
-  // Definir los patrones por partido (1,2,3 grupos; 4,5,6,7 eliminatoria)
-  const partidos = [
-    { nombre: "Fase de Grupos - Partido 1", longitud: 1 },
-    { nombre: "Fase de Grupos - Partido 2", longitud: 2 },
-    { nombre: "Fase de Grupos - Partido 3", longitud: 3 },
-    { nombre: "Octavos de Final", longitud: 4 },
-    { nombre: "Cuartos de Final", longitud: 5 },
-    { nombre: "Semifinal", longitud: 6 },
-    { nombre: "Final", longitud: 7 }
+  const etapas = [
+    { nombre: "Fase de Grupos - Partido 1", longitud: 1, fase: "grupos" },
+    { nombre: "Fase de Grupos - Partido 2", longitud: 2, fase: "grupos" },
+    { nombre: "Fase de Grupos - Partido 3", longitud: 3, fase: "grupos" },
+    { nombre: "Octavos de Final", longitud: 4, fase: "eliminatoria" },
+    { nombre: "Cuartos de Final", longitud: 5, fase: "eliminatoria" },
+    { nombre: "Semifinal", longitud: 6, fase: "eliminatoria" },
+    { nombre: "Final", longitud: 7, fase: "eliminatoria" }
   ];
   
-  let partidoActual = 0;
+  let indiceEtapa = 0;
   let erroresGrupos = 0;
   let ganadosGrupos = 0;
-  let faseActual = "grupos";
   
-  // Función para generar una secuencia aleatoria de índices (sin repetir)
   function generarSecuencia(longitud) {
     const indices = [];
-    const disponibles = Array.from({ length: totalBloques }, (_, i) => i);
+    const disponibles = Array.from({ length: 20 }, (_, i) => i);
     for (let i = 0; i < longitud; i++) {
       const idx = Math.floor(Math.random() * disponibles.length);
       indices.push(disponibles.splice(idx, 1)[0]);
@@ -104,374 +191,255 @@ function minijuegoCopaCompleta(callback, jugador, rival) {
     return indices;
   }
   
-  // Mostrar la secuencia actual y esperar que el usuario la repita
-  function jugarPartido(longitud, callbackPartido) {
-    const secuencia = generarSecuencia(longitud);
+  function jugarPartido(etapa, callbackPartido) {
+    const secuencia = generarSecuencia(etapa.longitud);
     let paso = 0;
+    let esperandoUsuario = false;
+    let aciertosUsuario = [];
+    let fallo = false;
+    
+    bloques.forEach(b => {
+      b.classList.remove("iluminado", "usado", "activo");
+    });
     
     info.textContent = "Memorizá la secuencia...";
-    btnIniciar.disabled = true;
+    btnComenzar.disabled = true;
     
-    // Iluminar secuencia
-    const intervalo = setInterval(() => {
+    const intervaloMostrar = setInterval(() => {
       if (paso >= secuencia.length) {
-        clearInterval(intervalo);
+        clearInterval(intervaloMostrar);
         info.textContent = "¡Repetí la secuencia!";
-        // Activar clics
-        bloques.forEach(bloque => {
-          bloque.addEventListener("click", function handler() {
-            const index = parseInt(this.dataset.index);
-            // Si el bloque clickeado es el correcto en el orden
-            const orden = secuencia.findIndex((val, idx) => val === index);
-            // Lógica simplificada: vamos a ver si el usuario hace clic en el orden correcto
-            // Simulamos que si hace clic en el orden correcto, se va marcando
-            if (!this.classList.contains("usado")) {
-              // Esta lógica necesita una variable de progreso
-            }
-          });
-        });
-        
-        // Implementación simplificada: simplemente contamos los clics correctos
-        // Vamos a usar un contador de aciertos
-        let aciertos = 0;
-        bloques.forEach(bloque => {
-          bloque.addEventListener("click", function() {
-            if (this.classList.contains("activo") && !this.classList.contains("usado")) {
-              this.classList.add("usado");
-              // Verificar si es el correcto (muy simplificado)
-              // Para que funcione, debemos comparar con el orden de la secuencia
-            }
-          });
-        });
-        
-        // Mejor: guardamos la secuencia y esperamos los clics en orden
-        // Usaremos un array de clics del usuario
-        let clicsUsuario = [];
-        bloques.forEach(bloque => {
-          bloque.addEventListener("click", function() {
-            if (!this.classList.contains("usado")) {
-              this.classList.add("usado");
-              clicsUsuario.push(parseInt(this.dataset.index));
-              if (clicsUsuario.length === secuencia.length) {
-                const exito = secuencia.every((val, idx) => val === clicsUsuario[idx]);
-                callbackPartido(exito);
-              }
-            }
-          });
-        });
-      } else {
-        // Iluminar el siguiente bloque de la secuencia
-        bloques[secuencia[paso]].classList.add("iluminado");
-        setTimeout(() => {
-          bloques[secuencia[paso]].classList.remove("iluminado");
-        }, 400);
-        paso++;
+        bloques.forEach(b => b.classList.add("activo"));
+        esperandoUsuario = true;
+        return;
       }
+      const idx = secuencia[paso];
+      bloques[idx].classList.add("iluminado");
+      setTimeout(() => {
+        bloques[idx].classList.remove("iluminado");
+      }, 400);
+      paso++;
     }, 500);
+    
+    const handlerClick = (e) => {
+      if (!esperandoUsuario) return;
+      const bloque = e.target;
+      const index = parseInt(bloque.dataset.index);
+      if (bloque.classList.contains("usado")) return;
+      bloque.classList.add("usado");
+      
+      // Verificación correcta: comparar con el índice esperado antes de agregar
+      const indiceEsperado = secuencia[aciertosUsuario.length];
+      if (index !== indiceEsperado) {
+        fallo = true;
+      }
+      aciertosUsuario.push(index);
+      
+      if (aciertosUsuario.length === secuencia.length) {
+        bloques.forEach(b => b.removeEventListener("click", handlerClick));
+        if (!fallo) {
+          callbackPartido(true);
+        } else {
+          callbackPartido(false);
+        }
+      }
+    };
+    
+    bloques.forEach(b => b.addEventListener("click", handlerClick));
   }
   
-  // Arrancar el minijuego
-  btnIniciar.addEventListener("click", () => {
-    // Empezar con el primer partido
-    iniciarSiguientePartido();
-  });
-  
-  function iniciarSiguientePartido() {
-    if (partidoActual >= partidos.length) {
-      // Terminó toda la copa, ganó
-      contenedor.innerHTML = "";
-      callback(true);
+  function siguientePartido() {
+    if (indiceEtapa >= etapas.length) {
+      callback({ resultado: "campeon" });
       return;
     }
     
-    const partido = partidos[partidoActual];
-    // Mostrar cartel "Pasaste de ronda!" o "Listo?" antes de cada secuencia
-    if (partidoActual > 0 && faseActual === "grupos") {
-      info.textContent = "¡Pasaste de ronda!";
-      setTimeout(() => {
-        info.textContent = "Listo?";
-        // Esperar al botón
-        btnIniciar.disabled = false;
-        btnIniciar.textContent = "Comenzar";
-        btnIniciar.onclick = () => {
-          btnIniciar.disabled = true;
-          jugarPartido(partido.longitud, (exito) => {
-            if (exito) {
-              if (partidoActual < 2) { // primeros 3 partidos
-                ganadosGrupos++;
-                if (ganadosGrupos >= 2) {
-                  // Clasifica a octavos
-                  partidoActual = 2; // saltar al partido 3? No, vamos por partes
-                  // Mejor: si ya ganó 2 de los primeros 3, pasa a fase eliminatoria (octavos)
-                  faseActual = "eliminatoria";
-                  partidoActual = 3; // octavos
-                } else {
-                  partidoActual++;
-                }
+    const etapa = etapas[indiceEtapa];
+    
+    if (indiceEtapa === 0) {
+      info.textContent = "Listo?";
+      btnComenzar.disabled = false;
+      btnComenzar.textContent = "Comenzar";
+      btnComenzar.onclick = () => {
+        btnComenzar.disabled = true;
+        jugarPartido(etapa, (exito) => {
+          if (exito) {
+            ganadosGrupos++;
+            if (etapa.fase === "grupos") {
+              if (ganadosGrupos >= 2 || indiceEtapa === 2) {
+                indiceEtapa = 3;
+                siguientePartido();
               } else {
-                // Fase eliminatoria: si gana, avanza
-                partidoActual++;
+                indiceEtapa++;
+                siguientePartido();
               }
             } else {
-              // Perdió
-              if (partidoActual < 3) {
+              indiceEtapa++;
+              siguientePartido();
+            }
+          } else {
+            if (etapa.fase === "grupos") {
+              erroresGrupos++;
+              if (erroresGrupos >= 2) {
+                callback({ resultado: "eliminado", fase: "Fase de Grupos" });
+                return;
+              } else {
+                if (indiceEtapa === 2) {
+                  callback({ resultado: "eliminado", fase: "Fase de Grupos" });
+                  return;
+                }
+                indiceEtapa++;
+                siguientePartido();
+              }
+            } else {
+              callback({ resultado: "eliminado", fase: etapa.nombre });
+              return;
+            }
+          }
+        });
+      };
+    } else {
+      info.textContent = "Pasaste de ronda!";
+      btnComenzar.disabled = true;
+      setTimeout(() => {
+        info.textContent = "Listo?";
+        btnComenzar.disabled = false;
+        btnComenzar.textContent = "Comenzar";
+        btnComenzar.onclick = () => {
+          btnComenzar.disabled = true;
+          jugarPartido(etapa, (exito) => {
+            if (exito) {
+              if (etapa.fase === "grupos") {
+                ganadosGrupos++;
+                if (ganadosGrupos >= 2 || indiceEtapa === 2) {
+                  indiceEtapa = 3;
+                  siguientePartido();
+                } else {
+                  indiceEtapa++;
+                  siguientePartido();
+                }
+              } else {
+                indiceEtapa++;
+                siguientePartido();
+              }
+            } else {
+              if (etapa.fase === "grupos") {
                 erroresGrupos++;
                 if (erroresGrupos >= 2) {
-                  // Eliminado en fase de grupos
-                  contenedor.innerHTML = "";
                   callback({ resultado: "eliminado", fase: "Fase de Grupos" });
                   return;
                 } else {
-                  partidoActual++;
+                  if (indiceEtapa === 2) {
+                    callback({ resultado: "eliminado", fase: "Fase de Grupos" });
+                    return;
+                  }
+                  indiceEtapa++;
+                  siguientePartido();
                 }
               } else {
-                // Eliminado en fase eliminatoria
-                const faseEliminacion = partidos[partidoActual].nombre;
-                contenedor.innerHTML = "";
-                callback({ resultado: "eliminado", fase: faseEliminacion });
+                callback({ resultado: "eliminado", fase: etapa.nombre });
                 return;
               }
             }
-            // Continuar con el siguiente partido
-            iniciarSiguientePartido();
           });
         };
       }, 3000);
+    }
+  }
+  
+  siguientePartido();
+}
+
+// ---------- Jugar Libertadores según tipo ----------
+function jugarLibertadores(callback, jugador, tipo) {
+  const rival = obtenerRivalInternacional(jugador);
+  if (tipo === "copa_completa") {
+    minijuegoCopaCompleta((resultado) => {
+      if (resultado.resultado === "campeon") {
+        callback(true, undefined); // ganó
+      } else {
+        callback(false, resultado.fase); // eliminado con fase
+      }
+    }, jugador, rival);
+  } else {
+    // Final directa
+    if (Math.random() < 0.5) {
+      minijuegoBarraQTE((exito) => {
+        if (exito) callback(true, undefined);
+        else callback(false, "Final"); // perdió en la final
+      }, jugador, rival);
     } else {
-      // Mostrar "Listo?" y botón Comenzar
-      info.textContent = "Listo?";
-      btnIniciar.disabled = false;
-      btnIniciar.textContent = "Comenzar";
-      btnIniciar.onclick = () => {
-        btnIniciar.disabled = true;
-        jugarPartido(partido.longitud, (exito) => {
-          // Similar a arriba, pero sin la lógica de grupos (eliminatoria directa)
-          if (exito) {
-            partidoActual++;
-          } else {
-            const faseEliminacion = partidos[partidoActual].nombre;
-            contenedor.innerHTML = "";
-            callback({ resultado: "eliminado", fase: faseEliminacion });
-            return;
-          }
-          iniciarSiguientePartido();
-        });
-      };
+      callback(false, "Final"); // no jugó final y perdió
     }
   }
 }
 
-// Minijuego Final (BarraQTE)
-function minijuegoBarraQTE(callback, jugador, rival) {
+// ---------- Función principal que se llama desde hud.js ----------
+function ejecutarInternacionales(callback) {
+  const jugador = Estado.obtener();
+  const año = jugador.año;
+
+  if (!clasificaLibertadores(jugador)) {
+    callback();
+    return;
+  }
+
+  const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
+
+  jugarLibertadores((resultado, fase) => {
+    if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
+    let resumen = "";
+    if (resultado) {
+      resumen = "campeon";
+      jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+      const rivalRecopa = obtenerRivalInternacional(jugador);
+      jugador.copasPendientes.push({ año: año + 1, tipo: "recopa", rivalId: rivalRecopa.id });
+    } else {
+      if (fase) {
+        resumen = `eliminado_${fase}`;
+      } else {
+        resumen = "subcampeon";
+      }
+    }
+    jugador.resultadosInternacionales.push({
+      año: año,
+      copa: "Libertadores",
+      resultado: resumen
+    });
+    Estado.guardar();
+    callback();
+  }, jugador, tipo);
+}
+
+// ---------- Mostrar Recopa (copa pendiente) ----------
+function mostrarRecopa(copa, callback) {
+  const jugador = Estado.obtener();
+  const rival = NOMBRES_CLUBES[copa.rivalId] || { nombre: "Rival" };
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
-  const tiempoMaximo = 20000; // 20 segundos
-  const tiempoInicio = Date.now();
-  let puntosBarra = 0;
-  let intervaloAparicion;
-  let intervaloGeneral;
-  let terminado = false;
 
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
-      <h3>¡Final de la Copa Libertadores!</h3>
-      <p>Presioná los botones correctos para llenar la barra. ¡Cuidado con los rojos y bordó!</p>
-      <div class="barra-qte" id="barra-qte">
-        <div class="barra-progreso" id="barra-progreso"></div>
-      </div>
-      <div class="zona-botones" id="zona-botones" style="position:relative; height:200px; background:#1a1a24; border-radius:8px;"></div>
-      <div id="tiempo-restante">20s</div>
+      <h3>Recopa Sudamericana</h3>
+      <p>Campeón de Libertadores vs Campeón de Sudamericana.</p>
+      <button class="boton-jugar-minijuego" id="btn-jugar-recopa">¡Jugar!</button>
     </div>
   `;
 
-  const zona = document.getElementById("zona-botones");
-  const barra = document.getElementById("barra-progreso");
-  const tiempoRestante = document.getElementById("tiempo-restante");
-
-  // Actualizar barra
-  function actualizarBarra() {
-    barra.style.width = `${(puntosBarra / 20) * 100}%`;
-    barra.style.background = puntosBarra >= 20 ? "#00ff00" : "#ff4444";
-  }
-
-  // Crear botones aleatorios (Rojo, Rosa, Bordo)
-  function crearBoton() {
-    const tipo = Math.random() < 0.7 ? "rojo" : (Math.random() < 0.5 ? "rosa" : "bordo");
-    const btn = document.createElement("button");
-    btn.className = `qte-boton ${tipo}`;
-    btn.textContent = tipo === "rojo" ? "ROJO" : tipo === "rosa" ? "ROSA" : "BORDO";
-    // Estilos
-    btn.style.position = "absolute";
-    btn.style.width = "60px";
-    btn.style.height = "60px";
-    btn.style.fontSize = "12px";
-    btn.style.padding = "0";
-    btn.style.background = tipo === "rojo" ? "#ff4444" : tipo === "rosa" ? "#ff69b4" : "#800000";
-    btn.style.color = "#fff";
-    // Posición aleatoria dentro de la zona (dejando 70px de margen)
-    btn.style.left = `${Math.random() * (zona.clientWidth - 70)}px`;
-    btn.style.top = `${Math.random() * (zona.clientHeight - 70)}px`;
-    // Duración 0.6s
-    setTimeout(() => {
-      if (btn.parentNode) btn.remove();
-    }, 600);
-    
-    btn.addEventListener("click", () => {
-      if (terminado) return;
-      if (tipo === "rojo") {
-        puntosBarra += 5;
-        if (puntosBarra >= 20) {
-          terminado = true;
-          clearInterval(intervaloAparicion);
-          clearInterval(intervaloGeneral);
-          contenedor.innerHTML = "";
-          callback(true);
-        }
-      } else if (tipo === "rosa") {
-        puntosBarra -= 10;
-        if (puntosBarra < 0) {
-          // Menos de 0 = derrota
-          terminado = true;
-          clearInterval(intervaloAparicion);
-          clearInterval(intervaloGeneral);
-          contenedor.innerHTML = "";
-          callback(false);
-        }
-      } else if (tipo === "bordo") {
-        terminado = true;
-        clearInterval(intervaloAparicion);
-        clearInterval(intervaloGeneral);
-        contenedor.innerHTML = "";
-        callback(false);
-      }
-      actualizarBarra();
-    });
-
-    zona.appendChild(btn);
-  }
-
-  // Iniciar aparición de botones (intervalo aleatorio, cada vez más corto)
-  function iniciarBotones() {
-    let delay = 1000; // empieza lento
-    function loop() {
-      if (terminado) return;
-      crearBoton();
-      delay = Math.max(200, delay * 0.9); // se acelera, mínimo 200ms
-      intervaloAparicion = setTimeout(loop, delay);
-    }
-    loop();
-  }
-
-  // Temporizador de 20 segundos
-  intervaloGeneral = setInterval(() => {
-    const tiempoRestanteMs = tiempoMaximo - (Date.now() - tiempoInicio);
-    const segundos = Math.max(0, Math.floor(tiempoRestanteMs / 1000));
-    tiempoRestante.textContent = `${segundos}s`;
-    if (tiempoRestanteMs <= 0) {
-      terminado = true;
-      clearInterval(intervaloAparicion);
-      clearInterval(intervaloGeneral);
-      contenedor.innerHTML = "";
-      callback(false);
-    }
-  }, 100);
-
-  actualizarBarra();
-  iniciarBotones();
-}
-
-// Función principal para mostrar la Libertadores (según tipo)
-function mostrarLibertadores(jugador, callback) {
-  const sim = simularLibertadores(jugador);
-  const rival = obtenerRivalInternacional(jugador);
-  
-  if (sim.tipo === "copa_completa") {
-    minijuegoCopaCompleta((resultado) => {
-      // resultado puede ser true, o {resultado:"eliminado", fase:"..."}
-      if (resultado === true) {
-        callback({ campeon: true, rival: rival });
-      } else {
-        callback({ campeon: false, fase: resultado.fase || "Eliminado" });
-      }
-    }, jugador, rival);
-  } else {
-    // Final directa: primero un rng si se juega la final o se pierde directo
-    const juegaFinal = Math.random() < 0.5;
-    if (!juegaFinal) {
-      callback({ campeon: false, fase: "Final" }); // perdió la final sin jugar
-    } else {
-      minijuegoBarraQTE((exito) => {
-        if (exito) {
-          callback({ campeon: true, rival: rival });
-        } else {
-          callback({ campeon: false, fase: "Final" });
-        }
-      }, jugador, rival);
-    }
-  }
-}
-
-// Simular Sudamericana (para rival de Recopa)
-function simularSudamericana(jugador) {
-  // Como no la implementamos todavía, simplemente elegimos un campeón aleatorio de Sudamérica
-  // Podría ser cualquier club que no sea el del jugador
-  const rival = obtenerRivalInternacional(jugador);
-  return { campeon: rival };
-}
-
-// Simular Recopa Sudamericana (campeón Libertadores vs campeón Sudamericana)
-function simularRecopa(jugador, campeonLibertadores) {
-  // Si el jugador ganó Libertadores, juega la Recopa
-  // El rival es el campeón de la Sudamericana (aleatorio)
-  const rival = simularSudamericana(jugador).campeon;
-  return { rival: rival, jugar: true };
-}
-
-// Mostrar Recopa (usando un minijuego, por ejemplo BarraQTE o Memoria)
-function mostrarRecopa(jugador, callback) {
-  const rival = obtenerRivalInternacional(jugador);
-  // Usamos la memoria o la barra, reutilizamos funciones
-  // Decidimos usar BarraQTE para la Recopa
-  minijuegoBarraQTE((exito) => {
-    callback({ campeon: exito, rival: rival });
-  }, jugador, rival);
-}
-
-// Función principal para integrar en el ciclo anual
-function procesarInternacional(jugador) {
-  // Primero vemos si clasificó a Libertadores
-  if (!clasificaLibertadores(jugador)) {
-    return null;
-  }
-  
-  // Simulamos la Libertadores
-  mostrarLibertadores(jugador, (resultadoLibertadores) => {
-    // Guardar resultado
-    if (!jugador.resultadoInternacional) jugador.resultadoInternacional = {};
-    jugador.resultadoInternacional.libertadores = resultadoLibertadores;
-    
-    // Sumar título si ganó
-    if (resultadoLibertadores.campeon) {
-      jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
-    }
-    
-    // Si ganó Libertadores, clasifica a Recopa
-    if (resultadoLibertadores.campeon) {
-      // Simular Recopa contra campeón Sudamericana
-      const recopa = simularRecopa(jugador, resultadoLibertadores.rival);
-      // Mostrar Recopa (minijuego)
-      mostrarRecopa(jugador, (resultadoRecopa) => {
-        jugador.resultadoInternacional.recopa = resultadoRecopa;
-        if (resultadoRecopa.campeon) {
-          jugador.stats.titulos++;
-        }
-        Estado.guardar();
-        // Continuar con el resumen (llamar a una función global)
+  document.getElementById("btn-jugar-recopa").addEventListener("click", () => {
+    minijuegoBarraQTE((exito) => {
+      if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
+      jugador.resultadosInternacionales.push({
+        año: copa.año,
+        copa: "Recopa",
+        resultado: exito ? "campeon" : "subcampeon"
       });
-    } else {
+      if (exito) jugador.stats.titulos++;
       Estado.guardar();
-      // Continuar
-    }
+      contenedor.innerHTML = "";
+      contenedor.hidden = true;
+      callback(exito);
+    }, jugador, rival);
   });
 }

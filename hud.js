@@ -280,10 +280,16 @@ function procesarEventos() {
           agendarProximasCopas(jugador, año, resLiga, resCopa);
           
           // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
-          ejecutarInternacionales(() => {
+          if (typeof ejecutarInternacionales === "function") {
+            ejecutarInternacionales(() => {
+              Estado.guardar();
+              mostrarResumenAnual();
+            });
+          } else {
+            // Si no está cargado, simplemente seguimos
             Estado.guardar();
             mostrarResumenAnual();
-          });
+          }
         });
       } else {
         const hist = jugador.campeonesHistorial.find(h => h.año === año);
@@ -294,10 +300,15 @@ function procesarEventos() {
         agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
         
         // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
-        ejecutarInternacionales(() => {
+        if (typeof ejecutarInternacionales === "function") {
+          ejecutarInternacionales(() => {
+            Estado.guardar();
+            mostrarResumenAnual();
+          });
+        } else {
           Estado.guardar();
           mostrarResumenAnual();
-        });
+        }
       }
     });
   }
@@ -599,21 +610,30 @@ function mostrarResumenAnual() {
 
     if (copasDelAño.length > 0) {
       const copa = copasDelAño[0];
-      mostrarCopaPendiente(copa, () => {
-        Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
-        Estado.guardar();
-
-        const restantes = Estado.obtener().copasPendientes.filter(c => c.año === añoNuevo);
-        if (restantes.length > 0) {
-          mostrarCopaPendiente(restantes[0], () => {
-            Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c.año !== añoNuevo);
-            Estado.guardar();
-            abrirModalCartas();
-          });
-        } else {
+      // Si es una copa internacional (recopa), llamamos a mostrarRecopa
+      if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
+        mostrarRecopa(copa, () => {
+          Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
+          Estado.guardar();
           abrirModalCartas();
-        }
-      });
+        });
+      } else {
+        mostrarCopaPendiente(copa, () => {
+          Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
+          Estado.guardar();
+
+          const restantes = Estado.obtener().copasPendientes.filter(c => c.año === añoNuevo);
+          if (restantes.length > 0) {
+            mostrarCopaPendiente(restantes[0], () => {
+              Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c.año !== añoNuevo);
+              Estado.guardar();
+              abrirModalCartas();
+            });
+          } else {
+            abrirModalCartas();
+          }
+        });
+      }
     } else {
       abrirModalCartas();
     }

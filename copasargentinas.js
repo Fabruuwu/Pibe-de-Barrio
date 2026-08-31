@@ -419,6 +419,12 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 // MOSTRAR COPA PENDIENTE (cuando avanzas de año y hay copas agendadas)
 // ------------------------------------------------------------------
 function mostrarCopaPendiente(copa, callback) {
+  // ✅ Si es una copa internacional (Recopa), delegamos a copassudamerica.js
+  if (copa.tipo === "recopa") {
+    mostrarRecopa(copa, callback);
+    return;
+  }
+
   const jugador = Estado.obtener();
 
   // Verificar que el rival no sea el mismo club
