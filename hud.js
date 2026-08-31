@@ -224,6 +224,7 @@ function abrirModalCartas() {
   document.getElementById("modal-cartas").hidden = false;
 }
 
+// En procesarEventos: después de la liga/copa, procesar copas pendientes antes del resumen
 function procesarEventos() {
   if (eventosPendientes > 0) {
     eventosPendientes--;
@@ -232,10 +233,8 @@ function procesarEventos() {
     const jugador = Estado.obtener();
     const año = jugador.año;
 
-    // Simular Liga
     const resultadoLiga = simularLiga(jugador);
     
-    // Simular Copa Argentina
     let resultadoCopa = null;
     const simCopa = simularCopaArgentina(jugador);
     if (simCopa.enFinal) {
@@ -244,21 +243,13 @@ function procesarEventos() {
       resultadoCopa = { enFinal: false, ronda: simCopa.ronda || "Eliminado" };
     }
 
-    // Mostrar Liga
     mostrarResultadoLiga(resultadoLiga, (resLiga) => {
       jugador.resultadoLiga = resLiga;
       if (resLiga.esCampeon) jugador.stats.titulos++;
 
-      // Guardar historial de liga
       if (!jugador.campeonesHistorial) jugador.campeonesHistorial = [];
-
-      // Las copas especiales (SuperCopa, Trofeo, SuperCopa Internacional) de este año
-      // ya se jugaron y resolvieron ANTES de llegar acá (al arrancar el año, en
-      // mostrarCopaPendiente), así que su resultado ya está en resultadoCopasEspeciales.
-      // Los usamos para completar la entrada del historial en el momento en que se crea,
-      // en vez de intentar buscarla después (esa entrada todavía no existía).
       const especialesDelAño = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
-      const nuevaEntrada = { año: año, liga: jugador.club, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
+      const nuevaEntrada = { año, liga: jugador.club, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
       especialesDelAño.forEach((c) => {
         if (c.resultado !== "campeon") return;
         if (c.tipo === "supercopa") nuevaEntrada.superCopa = jugador.club;
@@ -267,48 +258,33 @@ function procesarEventos() {
       });
       jugador.campeonesHistorial.push(nuevaEntrada);
 
-      // Mostrar Copa
       if (resultadoCopa.enFinal) {
         mostrarResultadoCopa(resultadoCopa, (resCopa) => {
           const hist = jugador.campeonesHistorial.find(h => h.año === año);
           hist.copa = resCopa.esCampeon ? jugador.club : null;
           if (resCopa.esCampeon) jugador.stats.titulos++;
-
-          // Guardar el resultado de la copa
           jugador.resultadoCopa = resCopa;
 
           agendarProximasCopas(jugador, año, resLiga, resCopa);
-          
-          // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
-          if (typeof ejecutarInternacionales === "function") {
-            ejecutarInternacionales(() => {
+          // Ejecutar internacionales y copas pendientes
+          ejecutarInternacionales(() => {
+            procesarCopasPendientes(() => {
               Estado.guardar();
               mostrarResumenAnual();
             });
-          } else {
-            // Si no está cargado, simplemente seguimos
-            Estado.guardar();
-            mostrarResumenAnual();
-          }
+          });
         });
       } else {
         const hist = jugador.campeonesHistorial.find(h => h.año === año);
         hist.copa = null;
-        // Guardar el resultado de la copa (no campeón)
         jugador.resultadoCopa = { esCampeon: false, ronda: resultadoCopa.ronda || "Eliminado" };
-
         agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
-        
-        // INTEGRACIÓN DE COPA LIBERTADORES Y OTRAS INTERNACIONALES
-        if (typeof ejecutarInternacionales === "function") {
-          ejecutarInternacionales(() => {
+        ejecutarInternacionales(() => {
+          procesarCopasPendientes(() => {
             Estado.guardar();
             mostrarResumenAnual();
           });
-        } else {
-          Estado.guardar();
-          mostrarResumenAnual();
-        }
+        });
       }
     });
   }
@@ -544,6 +520,17 @@ function mostrarResumenAnual() {
     }
   });
 
+  let textoClasificacionLibertadores = "";
+  const resLiga = jugador.resultadoLiga || {};
+  const resCopa = jugador.resultadoCopa || {};
+  const liga = jugador.liga;
+    if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
+      const clasifica = resLiga.esCampeon || resLiga.subcampeon || (resLiga.posicion >= 2 && resLiga.posicion <= 3) || resCopa.esCampeon;
+      if (clasifica) {
+      textoClasificacionLibertadores = "📢 ¡Clasificaste a la Copa Libertadores del próximo año!";
+    }
+  }
+
   const posicion = "2°";
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
     ? jugador.historialEventos.slice(-3).join("\n")
@@ -584,6 +571,7 @@ function mostrarResumenAnual() {
       <strong>Copa Argentina:</strong><br>${textoCopa || "No participó o sin datos."}
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
+      ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;
@@ -592,51 +580,17 @@ function mostrarResumenAnual() {
 
   document.getElementById("boton-siguiente-ano").addEventListener("click", () => {
     Estado.avanzarTemporada();
-
     if (Estado.obtener().retirado) {
       alert(`¡Carrera terminada! Te retiraste a los ${Estado.obtener().edad} años por edad.`);
       contenedor.innerHTML = "";
       contenedor.hidden = true;
       return;
     }
-
     contenedor.innerHTML = "";
     contenedor.hidden = true;
-
     pintarHUD(Estado.obtener());
-
-    const añoNuevo = Estado.obtener().año;
-    const copasDelAño = (Estado.obtener().copasPendientes || []).filter(c => c.año === añoNuevo);
-
-    if (copasDelAño.length > 0) {
-      const copa = copasDelAño[0];
-      // Si es una copa internacional (recopa), llamamos a mostrarRecopa
-      if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
-        mostrarRecopa(copa, () => {
-          Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
-          Estado.guardar();
-          abrirModalCartas();
-        });
-      } else {
-        mostrarCopaPendiente(copa, () => {
-          Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c !== copa);
-          Estado.guardar();
-
-          const restantes = Estado.obtener().copasPendientes.filter(c => c.año === añoNuevo);
-          if (restantes.length > 0) {
-            mostrarCopaPendiente(restantes[0], () => {
-              Estado.obtener().copasPendientes = Estado.obtener().copasPendientes.filter(c => c.año !== añoNuevo);
-              Estado.guardar();
-              abrirModalCartas();
-            });
-          } else {
-            abrirModalCartas();
-          }
-        });
-      }
-    } else {
-      abrirModalCartas();
-    }
+    // Simplemente ir a cartas, el flujo maneja copas y eventos
+    abrirModalCartas();
   });
 }
 

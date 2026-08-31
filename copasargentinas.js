@@ -26,7 +26,6 @@ function simularCopaArgentina(jugador) {
   const PROB_CATEGORIA = { grande: 40, mediano: 30, chico: 20, diminuto: 10 };
   const categorias = ["grande", "mediano", "chico", "diminuto"];
 
-  // Bonus según media del jugador (reutilizamos el mismo esquema de la liga)
   const BONUS_MEDIA = [
     { min: 0, max: 55, bonus: 0 },
     { min: 56, max: 65, bonus: 2 },
@@ -36,12 +35,10 @@ function simularCopaArgentina(jugador) {
     { min: 96, max: 99, bonus: 19 }
   ];
 
-  // Buscar la categoría del club del jugador
   const clubJugador = CLUBES_POR_DIVISION[jugador.division]?.find(c => c.id === jugador.club);
   const categoriaJugador = clubJugador ? clubJugador.categoria : null;
   const media = jugador.media;
 
-  // 1. Calcular probabilidades por categoría (con bonus si la categoría del jugador es la suya)
   let probCategorias = {};
   let totalProb = 0;
   categorias.forEach(cat => {
@@ -54,45 +51,35 @@ function simularCopaArgentina(jugador) {
     totalProb += prob;
   });
 
-  // 2. Elegir categoría ganadora
   let random = Math.random() * totalProb;
   let categoriaElegida = "grande";
   for (let cat of categorias) {
     random -= probCategorias[cat];
-    if (random <= 0) {
-      categoriaElegida = cat;
-      break;
-    }
+    if (random <= 0) { categoriaElegida = cat; break; }
   }
 
-  // 3. Dentro de la categoría elegida, elegir club ganador con bonus para el jugador
   const clubesCategoria = CLUBES_POR_DIVISION[jugador.division]?.filter(c => c.categoria === categoriaElegida) || [];
   if (clubesCategoria.length === 0) return { eliminado: true, ronda: "Cuartos" };
 
   let totalPesoClubes = 0;
   const pesos = clubesCategoria.map(club => {
-    let peso = 1; // peso base
+    let peso = 1;
     if (club.id === jugador.club) {
       const bonus = BONUS_MEDIA.find(rango => media >= rango.min && media <= rango.max)?.bonus || 0;
-      peso += bonus; // bonus directo al club del jugador
+      peso += bonus;
     }
     totalPesoClubes += peso;
     return { club, peso };
   });
 
-  // Sortear club ganador
   random = Math.random() * totalPesoClubes;
   let clubGanador = null;
   for (let item of pesos) {
     random -= item.peso;
-    if (random <= 0) {
-      clubGanador = item.club;
-      break;
-    }
+    if (random <= 0) { clubGanador = item.club; break; }
   }
   if (!clubGanador) clubGanador = pesos[pesos.length - 1].club;
 
-  // 4. Si el club ganador es el del jugador -> final
   if (clubGanador.id === jugador.club) {
     const rival = elegirRivalAleatorio(jugador);
     return { enFinal: true, rival: rival };
@@ -204,7 +191,7 @@ function minijuegoTiroLibre(callback, jugador, rival) {
   });
 }
 
-// 2. Anticipo Aéreo (círculo que se achica, afecta velocidad/resistencia)
+// ---------- MINIJUEGO AÉREO ARREGLADO ----------
 function minijuegoAereo(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -213,10 +200,10 @@ function minijuegoAereo(callback, jugador, rival) {
     ${cabecera}
     <div class="competition-card">
       <h3>¡Anticipo Aéreo!</h3>
-      <p>Hacé clic cuando el borde del círculo exterior toque el círculo interior (¡margen mínimo!).</p>
-      <div class="aerial-container" id="aerial-container" style="width:200px; height:200px; position:relative; cursor:crosshair;">
-        <div class="aerial-inner-circle" style="width:15%; height:15%;"></div>
-        <div class="aerial-outer-circle" id="aerial-outer" style="position:absolute; top:0; left:0;"></div>
+      <p>Hacé clic cuando el borde del círculo exterior toque el círculo interior (¡margen amplio!).</p>
+      <div class="aerial-container" id="aerial-container" style="width:220px; height:220px; position:relative; cursor:crosshair;">
+        <div class="aerial-inner-circle" style="width:20%; height:20%;"></div>
+        <div class="aerial-outer-circle" id="aerial-outer" style="position:absolute; top:0; left:0; border:4px dashed #ffd700;"></div>
       </div>
     </div>
   `;
@@ -224,11 +211,11 @@ function minijuegoAereo(callback, jugador, rival) {
   const contenedorAereo = document.getElementById("aerial-container");
   const outer = document.getElementById("aerial-outer");
   let size = 100;
-  let velocidad = 1.0;
+  let velocidad = 1.2;
   let interval;
 
   interval = setInterval(() => {
-    velocidad += 0.08;
+    velocidad += 0.05;
     size -= velocidad;
     if (size <= 0) {
       clearInterval(interval);
@@ -236,17 +223,15 @@ function minijuegoAereo(callback, jugador, rival) {
       callback(false);
       return;
     }
-    // Actualizamos el tamaño del círculo exterior
     outer.style.width = `${size}%`;
     outer.style.height = `${size}%`;
-    // También centramos el círculo exterior (para que quede concéntrico)
     outer.style.top = `${(100 - size) / 2}%`;
     outer.style.left = `${(100 - size) / 2}%`;
   }, 60);
 
-  // El clic se detecta en TODO el contenedor (área de 200x200)
-  contenedorAereo.addEventListener("click", (e) => {
-    if (size < 18 && size > 16) {
+  // Usamos mousedown para mejor respuesta
+  contenedorAereo.addEventListener("mousedown", (e) => {
+    if (size < 30 && size > 10) { // rango más amplio
       clearInterval(interval);
       contenedor.innerHTML = "";
       callback(true);
@@ -303,6 +288,42 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
       clearInterval(interval); contenedor.innerHTML = ""; callback(false);
     }
   });
+}
+
+// ---------- PROCESAR COPAS PENDIENTES (para el orden correcto) ----------
+function procesarCopasPendientes(callback) {
+  const jugador = Estado.obtener();
+  const año = jugador.año;
+  const copas = (jugador.copasPendientes || []).filter(c => c.año === año);
+
+  if (copas.length === 0) {
+    callback();
+    return;
+  }
+
+  let indice = 0;
+  function siguiente() {
+    if (indice >= copas.length) {
+      // Limpiar las copas del año
+      jugador.copasPendientes = (jugador.copasPendientes || []).filter(c => c.año !== año);
+      Estado.guardar();
+      callback();
+      return;
+    }
+    const copa = copas[indice];
+    indice++;
+    // Si es recopa, delegamos a copassudamerica
+    if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
+      mostrarRecopa(copa, () => {
+        siguiente();
+      });
+    } else {
+      mostrarCopaPendiente(copa, () => {
+        siguiente();
+      });
+    }
+  }
+  siguiente();
 }
 
 // ------------------------------------------------------------------
