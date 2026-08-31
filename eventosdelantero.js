@@ -20,11 +20,11 @@ const PROB_CATEGORIA = {
 // Bonus de probabilidad según media del jugador
 const BONUS_MEDIA = [
   { min: 0, max: 55, bonus: 0 },
-  { min: 56, max: 65, bonus: 1 },
-  { min: 66, max: 75, bonus: 3 },
-  { min: 76, max: 85, bonus: 5 },
-  { min: 86, max: 95, bonus: 7 },
-  { min: 96, max: 99, bonus: 10 }
+  { min: 56, max: 65, bonus: 2 },
+  { min: 66, max: 75, bonus: 6 },
+  { min: 76, max: 85, bonus: 10 },
+  { min: 86, max: 95, bonus: 14 },
+  { min: 96, max: 99, bonus: 19 }
 ];
 
 // ---------- SIMULACIÓN DE LIGA ----------
