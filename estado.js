@@ -102,6 +102,7 @@ const Estado = (() => {
       historialEventos: [],
       campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
       copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
+      resultadoCopasEspeciales: [], // Guarda { año, tipo, resultado } para las copas especiales
       stats: {
         ...statsBase,
         goles: 0,
@@ -173,6 +174,9 @@ const Estado = (() => {
       dinero: 0
     };
     jugador.historialEventos = [];
+    // Limpiamos el resultado de copas especiales al avanzar (se guardan por año)
+    // No lo limpiamos aquí porque queremos mostrarlo en el resumen del año en que se jugó
+    // En su lugar, lo gestionamos en mostrarResumenAnual (lo consumimos)
 
     if (verificarRetiroAutomatico()) jugador.retirado = true;
 

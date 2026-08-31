@@ -260,6 +260,9 @@ function procesarEventos() {
           hist.copa = resCopa.esCampeon ? jugador.club : null;
           if (resCopa.esCampeon) jugador.stats.titulos++;
 
+          // Guardar el resultado de la copa
+          jugador.resultadoCopa = resCopa;
+
           agendarProximasCopas(jugador, año, resLiga, resCopa);
           Estado.guardar();
           mostrarResumenAnual();
@@ -267,6 +270,9 @@ function procesarEventos() {
       } else {
         const hist = jugador.campeonesHistorial.find(h => h.año === año);
         hist.copa = null;
+        // Guardar el resultado de la copa (no campeón)
+        jugador.resultadoCopa = { esCampeon: false, ronda: resultadoCopa.ronda || "Eliminado" };
+
         agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
         Estado.guardar();
         mostrarResumenAnual();
@@ -456,6 +462,7 @@ function mostrarResumenAnual() {
   const tituloResumen = resumen.titulo;
   const textoResumen = resumen.texto;
 
+  // Resultado de la Liga
   const resultadoLiga = jugador.resultadoLiga || null;
   let textoLiga = "";
   if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
@@ -465,6 +472,30 @@ function mostrarResumenAnual() {
   } else if (resultadoLiga) {
     textoLiga = `Posición ${resultadoLiga.posicion}° en la Liga Argentina.`;
   }
+
+  // Resultado de la Copa Argentina
+  const resultadoCopa = jugador.resultadoCopa || null;
+  let textoCopa = "";
+  if (resultadoCopa && resultadoCopa.esCampeon) {
+    textoCopa = "🏆 ¡Campeón de la Copa Argentina!";
+  } else if (resultadoCopa && resultadoCopa.subcampeon) {
+    textoCopa = "🥈 Subcampeón de la Copa Argentina.";
+  } else if (resultadoCopa && resultadoCopa.ronda) {
+    textoCopa = `Eliminado en ${resultadoCopa.ronda} de la Copa Argentina.`;
+  }
+
+  // Resultados de las copas especiales (Supercopa, Trofeo, Supercopa Internacional)
+  let textosCopasEspeciales = "";
+  const copasEspeciales = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
+  copasEspeciales.forEach(copa => {
+    let nombre = "";
+    if (copa.tipo === "supercopa") nombre = "Supercopa Argentina";
+    else if (copa.tipo === "trofeo") nombre = "Trofeo de Campeones";
+    else if (copa.tipo === "supercopaInt") nombre = "Supercopa Internacional";
+
+    if (copa.resultado === "campeon") textosCopasEspeciales += `🏆 ¡Campeón de ${nombre}!\n`;
+    else textosCopasEspeciales += `🥈 Subcampeón de ${nombre}.\n`;
+  });
 
   const posicion = "2°";
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
@@ -502,6 +533,9 @@ function mostrarResumenAnual() {
       ${decisiones.replace(/\n/g, '<br>')}
       <br><br>
       <strong>Liga:</strong><br>${textoLiga || "Sin datos de liga."}
+      <br><br>
+      <strong>Copa Argentina:</strong><br>${textoCopa || "No participó o sin datos."}
+      ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;
@@ -623,7 +657,10 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
     else if (soyCampeonLiga) rivalId = historial.find(h => h.año === añoActual).copa || elegirRivalAleatorio(jugador).id;
     else rivalId = historial.find(h => h.año === añoActual).liga || elegirRivalAleatorio(jugador).id;
 
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+    rivalId = asegurarRivalDiferente(jugador, rivalId);
+    if (rivalId) {
+      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+    }
   }
 
   // Trofeo de Campeones
@@ -636,7 +673,10 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       else if (histAnterior.liga === jugador.club) rivalId = histAnterior2.liga;
       else rivalId = histAnterior.liga;
 
-      jugador.copasPendientes.push({ año: añoProximo, tipo: "trofeo", rivalId: rivalId });
+      rivalId = asegurarRivalDiferente(jugador, rivalId);
+      if (rivalId) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "trofeo", rivalId: rivalId });
+      }
     }
   }
 
@@ -650,13 +690,23 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       else if (histActual.copa === jugador.club) rivalId = histTrofeo.trofeo;
       else rivalId = histActual.copa;
 
-      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopaInt", rivalId: rivalId });
+      rivalId = asegurarRivalDiferente(jugador, rivalId);
+      if (rivalId) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopaInt", rivalId: rivalId });
+      }
     }
   }
 }
 
 function mostrarCopaPendiente(copa, callback) {
   const jugador = Estado.obtener();
+
+  // Verificar que el rival no sea el mismo club
+  if (copa.rivalId === jugador.club) {
+    const rivalAlt = elegirRivalAleatorio(jugador);
+    copa.rivalId = rivalAlt ? rivalAlt.id : null;
+  }
+
   const rival = NOMBRES_CLUBES[copa.rivalId] || { nombre: "Rival", escudo: "" };
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -694,6 +744,15 @@ function mostrarCopaPendiente(copa, callback) {
   document.getElementById("btn-jugar-pendiente").addEventListener("click", () => {
     contenedor.innerHTML = "";
     minijuego((exito) => {
+      // Guardamos el resultado en el historial de copas especiales
+      if (!jugador.resultadoCopasEspeciales) jugador.resultadoCopasEspeciales = [];
+      jugador.resultadoCopasEspeciales.push({
+        año: copa.año,
+        tipo: copa.tipo,
+        resultado: exito ? "campeon" : "subcampeon"
+      });
+      Estado.guardar();
+
       if (exito) {
         contenedor.innerHTML = `${cabecera}<div class="competition-card campeon"><h2>¡CAMPEÓN ${titulo.toUpperCase()}!</h2><img src="${imagen}" alt="Trofeo"><button class="boton-continuar">Continuar</button></div>`;
         contenedor.querySelector(".boton-continuar").addEventListener("click", () => {

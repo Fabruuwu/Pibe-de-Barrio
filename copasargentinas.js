@@ -1,4 +1,4 @@
-// copas.js
+// copasargentinas.js
 // Depende de: NOMBRES_CLUBES (definido en hud.js) y crearCabeceraMinijuego (eventosdelantero.js)
 
 // Helper para elegir rival aleatorio (usa la división del jugador)
@@ -6,6 +6,15 @@ function elegirRivalAleatorio(jugador) {
   const clubes = CLUBES_POR_DIVISION[jugador.division] || [];
   const rivales = clubes.filter(c => c.id !== jugador.club);
   return rivales[Math.floor(Math.random() * rivales.length)];
+}
+
+// Verifica que el rival no sea el mismo club
+function asegurarRivalDiferente(jugador, rivalId) {
+  if (rivalId === jugador.club) {
+    const rival = elegirRivalAleatorio(jugador);
+    return rival ? rival.id : null;
+  }
+  return rivalId;
 }
 
 // ------------------------------------------------------------------
@@ -31,6 +40,7 @@ function simularSuperCopa(jugador, ligaCampeon, copaCampeon) {
   if (soyLiga && soyCopa) rivalId = elegirRivalAleatorio(jugador).id;
   else if (soyLiga) rivalId = copaCampeon;
   else rivalId = ligaCampeon;
+  rivalId = asegurarRivalDiferente(jugador, rivalId);
   return { rivalId, rival: NOMBRES_CLUBES[rivalId] || { nombre: "Rival" } };
 }
 
@@ -43,6 +53,7 @@ function simularTrofeo(jugador, ligaAnterior, ligaAnterior2) {
   if (soy1 && soy2) rivalId = elegirRivalAleatorio(jugador).id;
   else if (soy1) rivalId = ligaAnterior2;
   else rivalId = ligaAnterior;
+  rivalId = asegurarRivalDiferente(jugador, rivalId);
   return { rivalId, rival: NOMBRES_CLUBES[rivalId] || { nombre: "Rival" } };
 }
 
@@ -55,6 +66,7 @@ function simularSuperCopaInt(jugador, trofeoCampeon, copaCampeon) {
   if (soyTrofeo && soyCopa) rivalId = elegirRivalAleatorio(jugador).id;
   else if (soyTrofeo) rivalId = copaCampeon;
   else rivalId = trofeoCampeon;
+  rivalId = asegurarRivalDiferente(jugador, rivalId);
   return { rivalId, rival: NOMBRES_CLUBES[rivalId] || { nombre: "Rival" } };
 }
 
@@ -260,7 +272,10 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
     else if (soyCampeonLiga) rivalId = historial.find(h => h.año === añoActual).copa || elegirRivalAleatorio(jugador).id;
     else rivalId = historial.find(h => h.año === añoActual).liga || elegirRivalAleatorio(jugador).id;
 
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+    rivalId = asegurarRivalDiferente(jugador, rivalId);
+    if (rivalId) {
+      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+    }
   }
 
   // Trofeo de Campeones (solo si hay dos ligas consecutivas en historial)
@@ -273,7 +288,10 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       else if (histAnterior.liga === jugador.club) rivalId = histAnterior2.liga;
       else rivalId = histAnterior.liga;
 
-      jugador.copasPendientes.push({ año: añoProximo, tipo: "trofeo", rivalId: rivalId });
+      rivalId = asegurarRivalDiferente(jugador, rivalId);
+      if (rivalId) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "trofeo", rivalId: rivalId });
+      }
     }
   }
 
@@ -287,7 +305,10 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       else if (histActual.copa === jugador.club) rivalId = histTrofeo.trofeo;
       else rivalId = histActual.copa;
 
-      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopaInt", rivalId: rivalId });
+      rivalId = asegurarRivalDiferente(jugador, rivalId);
+      if (rivalId) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopaInt", rivalId: rivalId });
+      }
     }
   }
 }
@@ -297,6 +318,13 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 // ------------------------------------------------------------------
 function mostrarCopaPendiente(copa, callback) {
   const jugador = Estado.obtener();
+
+  // Verificar que el rival no sea el mismo club
+  if (copa.rivalId === jugador.club) {
+    const rivalAlt = elegirRivalAleatorio(jugador);
+    copa.rivalId = rivalAlt ? rivalAlt.id : null;
+  }
+
   const rival = NOMBRES_CLUBES[copa.rivalId] || { nombre: "Rival", escudo: "" };
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -337,6 +365,15 @@ function mostrarCopaPendiente(copa, callback) {
   document.getElementById("btn-jugar-pendiente").addEventListener("click", () => {
     contenedor.innerHTML = "";
     minijuego((exito) => {
+      // Guardamos el resultado en el historial de copas especiales
+      if (!jugador.resultadoCopasEspeciales) jugador.resultadoCopasEspeciales = [];
+      jugador.resultadoCopasEspeciales.push({
+        año: copa.año,
+        tipo: copa.tipo,
+        resultado: exito ? "campeon" : "subcampeon"
+      });
+      Estado.guardar();
+
       if (exito) {
         contenedor.innerHTML = `${cabecera}<div class="competition-card campeon"><h2>¡CAMPEÓN ${titulo.toUpperCase()}!</h2><img src="${imagen}" alt="Trofeo"><button class="boton-continuar">Continuar</button></div>`;
         contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
