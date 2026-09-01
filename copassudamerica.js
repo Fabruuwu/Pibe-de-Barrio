@@ -11,6 +11,7 @@ function obtenerRivalInternacional(jugador) {
   return rivales[Math.floor(Math.random() * rivales.length)];
 }
 
+// ---------- Clasificación ----------
 function clasificaLibertadores(jugador) {
   const resLiga = jugador.resultadoLiga;
   const resCopa = jugador.resultadoCopa;
@@ -305,7 +306,8 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   let erroresGrupos = 0;
   let ganadosGrupos = 0;
   let rivalActual = rivalInicial;
-  let partidoTerminado = false; // flag para evitar múltiples callbacks
+  let partidoTerminado = false;
+  let bloqueadoGlobal = false; // para evitar clics en transición
 
   function generarSecuencia(longitud) {
     const indices = [];
@@ -323,6 +325,22 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     if (marcadorActual) marcadorActual.outerHTML = nuevaCabecera;
   }
 
+  function limpiarListeners() {
+    bloques.forEach(b => {
+      const old = b.onclick;
+      if (old) b.onclick = null;
+      // También eliminar eventos agregados con addEventListener
+      b.replaceWith(b.cloneNode(true)); // esto elimina todos los listeners
+    });
+    // Recrear los bloques en el grid (ya que los clonamos, hay que re-obtener referencias)
+    const nuevosBloques = grid.querySelectorAll('.memoria-punto');
+    nuevosBloques.forEach((b, i) => {
+      b.dataset.index = i;
+    });
+    bloques.length = 0;
+    nuevosBloques.forEach(b => bloques.push(b));
+  }
+
   function jugarPartido(etapa, callbackPartido) {
     const secuencia = generarSecuencia(etapa.longitud);
     let paso = 0;
@@ -330,6 +348,9 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     let aciertosUsuario = [];
     let fallo = false;
     let finalizado = false;
+
+    // Primero, limpiar listeners de bloques anteriores
+    limpiarListeners();
 
     bloques.forEach(b => b.classList.remove("iluminado", "usado", "activo"));
     info.textContent = "Memorizá la secuencia...";
@@ -350,17 +371,16 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     }, 500);
 
     const handlerClick = (e) => {
-      if (!esperandoUsuario || finalizado) return;
+      if (!esperandoUsuario || finalizado || bloqueadoGlobal) return;
       const bloque = e.target;
       const index = parseInt(bloque.dataset.index);
       if (bloque.classList.contains("usado")) return;
       bloque.classList.add("usado");
 
-      // Si ya se pasó de la cantidad esperada, es fallo directo
+      // Si ya se excedió la cantidad, es fallo inmediato
       if (aciertosUsuario.length >= secuencia.length) {
         finalizado = true;
-        fallo = true;
-        bloques.forEach(b => b.removeEventListener("click", handlerClick));
+        limpiarListeners();
         callbackPartido(false);
         return;
       }
@@ -371,12 +391,15 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
 
       if (aciertosUsuario.length === secuencia.length) {
         finalizado = true;
-        bloques.forEach(b => b.removeEventListener("click", handlerClick));
+        limpiarListeners();
         callbackPartido(!fallo);
       }
     };
 
-    bloques.forEach(b => b.addEventListener("click", handlerClick));
+    // Volver a asignar listeners (después de limpiar, los bloques son nuevos)
+    bloques.forEach(b => {
+      b.addEventListener('click', handlerClick);
+    });
   }
 
   function siguientePartido() {
