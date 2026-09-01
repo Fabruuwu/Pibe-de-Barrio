@@ -47,82 +47,100 @@ function minijuegoBarraQTE(callback, jugador, rival) {
     <div class="competition-card">
       <h3>¡Final de la Copa!</h3>
       <p>Presioná los botones correctos. Rojo (+5%), Rosa (-10%), Bordo (perdés). Necesitás 100%.</p>
-      <div class="barra-qte">
-        <div class="barra-progreso" id="barra-progreso"></div>
-        <span id="puntos-texto">0/100</span>
-      </div>
-      <div class="zona-botones" id="zona-botones" style="position:relative; height:200px; background:#1a1a24; border-radius:8px;"></div>
-      <p>Tiempo: <span id="timer">20</span>s</p>
+      <button class="boton-iniciar-qte" id="btn-listo-barraqte">Comenzar</button>
     </div>
   `;
 
-  const zona = document.getElementById("zona-botones");
-  const barra = document.getElementById("barra-progreso");
-  const puntosTexto = document.getElementById("puntos-texto");
-  const timer = document.getElementById("timer");
-  let puntos = 0;
-  let tiempo = 20;
-  let terminado = false;
+  document.getElementById("btn-listo-barraqte").addEventListener("click", () => {
+    contenedor.innerHTML = `
+      ${cabecera}
+      <div class="competition-card">
+        <h3>¡Final de la Copa!</h3>
+        <p>Presioná los botones correctos. Rojo (+5%), Rosa (-10%), Bordo (perdés). Necesitás 100%.</p>
+        <div class="barra-qte">
+          <div class="barra-progreso" id="barra-progreso"></div>
+          <span id="puntos-texto">0/100</span>
+        </div>
+        <div class="zona-botones" id="zona-botones" style="position:relative; height:200px; background:#1a1a24; border-radius:8px;"></div>
+        <p>Tiempo: <span id="timer">20</span>s</p>
+      </div>
+    `;
 
-  const timerInterval = setInterval(() => {
-    tiempo--;
-    timer.textContent = tiempo;
-    if (tiempo <= 0) {
-      clearInterval(timerInterval);
-      clearInterval(spawnInterval);
-      terminado = true;
-      contenedor.innerHTML = "";
-      callback(false);
+    const zona = document.getElementById("zona-botones");
+    const barra = document.getElementById("barra-progreso");
+    const puntosTexto = document.getElementById("puntos-texto");
+    const timer = document.getElementById("timer");
+    let puntos = 0;
+    let tiempo = 20;
+    let terminado = false;
+
+    const timerInterval = setInterval(() => {
+      tiempo--;
+      timer.textContent = tiempo;
+      if (tiempo <= 0) {
+        clearInterval(timerInterval);
+        clearInterval(spawnInterval);
+        terminado = true;
+        contenedor.innerHTML = "";
+        callback(false);
+      }
+    }, 1000);
+
+    let spawnInterval;
+    function spawnBoton() {
+      const tipo = Math.random() < 0.7 ? "rojo" : (Math.random() < 0.5 ? "rosa" : "bordo");
+      const btn = document.createElement("button");
+      btn.className = `qte-boton-internacional ${tipo}`;
+      btn.textContent = tipo === "rojo" ? "+5" : tipo === "rosa" ? "-10" : "X";
+      btn.style.position = "absolute";
+      btn.style.width = "50px";
+      btn.style.height = "50px";
+      btn.style.fontSize = "12px";
+      btn.style.padding = "0";
+      btn.style.background = tipo === "rojo" ? "#ff4444" : tipo === "rosa" ? "#ff69b4" : "#800000";
+      btn.style.color = "#fff";
+      btn.style.left = `${Math.random() * (zona.clientWidth - 60)}px`;
+      btn.style.top = `${Math.random() * (zona.clientHeight - 60)}px`;
+      zona.appendChild(btn);
+      setTimeout(() => btn.remove(), 600);
     }
-  }, 1000);
 
-  let spawnInterval;
-  function spawnBoton() {
-    const tipo = Math.random() < 0.7 ? "rojo" : (Math.random() < 0.5 ? "rosa" : "bordo");
-    const btn = document.createElement("button");
-    btn.className = `qte-boton-internacional ${tipo}`;
-    btn.textContent = tipo === "rojo" ? "+5" : tipo === "rosa" ? "-10" : "X";
-    btn.style.position = "absolute";
-    btn.style.width = "50px";
-    btn.style.height = "50px";
-    btn.style.fontSize = "12px";
-    btn.style.padding = "0";
-    btn.style.background = tipo === "rojo" ? "#ff4444" : tipo === "rosa" ? "#ff69b4" : "#800000";
-    btn.style.color = "#fff";
-    btn.style.left = `${Math.random() * (zona.clientWidth - 60)}px`;
-    btn.style.top = `${Math.random() * (zona.clientHeight - 60)}px`;
-    zona.appendChild(btn);
-    setTimeout(() => btn.remove(), 600);
-  }
+    spawnInterval = setInterval(spawnBoton, 800);
+    setTimeout(() => {
+      clearInterval(spawnInterval);
+      spawnInterval = setInterval(spawnBoton, 600);
+    }, 5000);
+    setTimeout(() => {
+      clearInterval(spawnInterval);
+      spawnInterval = setInterval(spawnBoton, 400);
+    }, 10000);
 
-  spawnInterval = setInterval(spawnBoton, 800);
-  setTimeout(() => {
-    clearInterval(spawnInterval);
-    spawnInterval = setInterval(spawnBoton, 600);
-  }, 5000);
-  setTimeout(() => {
-    clearInterval(spawnInterval);
-    spawnInterval = setInterval(spawnBoton, 400);
-  }, 10000);
-
-  zona.addEventListener("click", (e) => {
-    if (terminado) return;
-    const btn = e.target;
-    if (btn.classList.contains("qte-boton-internacional")) {
-      const tipo = btn.classList[1];
-      if (tipo === "rojo") {
-        puntos += 5;
-        if (puntos >= 100) {
-          clearInterval(timerInterval);
-          clearInterval(spawnInterval);
-          terminado = true;
-          contenedor.innerHTML = "";
-          callback(true);
-          return;
-        }
-      } else if (tipo === "rosa") {
-        puntos -= 10;
-        if (puntos < 0) {
+    zona.addEventListener("click", (e) => {
+      if (terminado) return;
+      const btn = e.target;
+      if (btn.classList.contains("qte-boton-internacional")) {
+        const tipo = btn.classList[1];
+        if (tipo === "rojo") {
+          puntos += 5;
+          if (puntos >= 100) {
+            clearInterval(timerInterval);
+            clearInterval(spawnInterval);
+            terminado = true;
+            contenedor.innerHTML = "";
+            callback(true);
+            return;
+          }
+        } else if (tipo === "rosa") {
+          puntos -= 10;
+          if (puntos < 0) {
+            clearInterval(timerInterval);
+            clearInterval(spawnInterval);
+            terminado = true;
+            contenedor.innerHTML = "";
+            callback(false);
+            return;
+          }
+        } else if (tipo === "bordo") {
           clearInterval(timerInterval);
           clearInterval(spawnInterval);
           terminado = true;
@@ -130,17 +148,10 @@ function minijuegoBarraQTE(callback, jugador, rival) {
           callback(false);
           return;
         }
-      } else if (tipo === "bordo") {
-        clearInterval(timerInterval);
-        clearInterval(spawnInterval);
-        terminado = true;
-        contenedor.innerHTML = "";
-        callback(false);
-        return;
+        barra.style.width = `${(puntos / 100) * 100}%`;
+        puntosTexto.textContent = `${puntos}/100`;
       }
-      barra.style.width = `${(puntos / 100) * 100}%`;
-      puntosTexto.textContent = `${puntos}/100`;
-    }
+    });
   });
 }
 

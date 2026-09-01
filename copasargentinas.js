@@ -148,42 +148,53 @@ function minijuegoTiroLibre(callback, jugador, rival) {
     ${cabecera}
     <div class="competition-card">
       <h3>¡Tiro Libre al Ángulo!</h3>
-      <p>Mantené presionado y soltá en la zona verde.</p>
-      <div class="power-bar-track">
-        <div class="power-zone" style="left: ${50 - greenSize}%; width: ${greenSize * 2}%"></div>
-        <div class="power-indicator" id="power-indicator"></div>
-      </div>
-      <button class="boton-iniciar-qte" id="btn-press-hold">MANTENER</button>
+      <p>Mantené presionado y soltá cuando la barra esté en la zona verde.</p>
+      <button class="boton-iniciar-qte" id="btn-listo-tirolibre">Comenzar</button>
     </div>
   `;
 
-  const indicador = document.getElementById("power-indicator");
-  const boton = document.getElementById("btn-press-hold");
-  let poder = 0, direccion = 1, interval;
+  document.getElementById("btn-listo-tirolibre").addEventListener("click", () => {
+    contenedor.innerHTML = `
+      ${cabecera}
+      <div class="competition-card">
+        <h3>¡Tiro Libre al Ángulo!</h3>
+        <p>Mantené presionado y soltá en la zona verde.</p>
+        <div class="power-bar-track">
+          <div class="power-zone" style="left: ${50 - greenSize}%; width: ${greenSize * 2}%"></div>
+          <div class="power-indicator" id="power-indicator"></div>
+        </div>
+        <button class="boton-iniciar-qte" id="btn-press-hold">MANTENER</button>
+      </div>
+    `;
 
-  interval = setInterval(() => {
-    poder += direccion * 4.5;
-    if (poder > 100) { poder = 100; direccion = -1; }
-    if (poder < 0) { poder = 0; direccion = 1; }
-    indicador.style.left = `${poder}%`;
-  }, 50);
+    const indicador = document.getElementById("power-indicator");
+    const boton = document.getElementById("btn-press-hold");
+    let poder = 0, direccion = 1, interval;
 
-  boton.addEventListener("mousedown", () => clearInterval(interval));
-  boton.addEventListener("mouseup", () => {
-    if (Math.abs(poder - 50) < greenSize) {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(true);
-    } else {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(false);
-    }
-  });
+    interval = setInterval(() => {
+      poder += direccion * 4.5;
+      if (poder > 100) { poder = 100; direccion = -1; }
+      if (poder < 0) { poder = 0; direccion = 1; }
+      indicador.style.left = `${poder}%`;
+    }, 50);
 
-  boton.addEventListener("touchstart", () => clearInterval(interval));
-  boton.addEventListener("touchend", () => {
-    if (Math.abs(poder - 50) < greenSize) {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(true);
-    } else {
-      clearInterval(interval); contenedor.innerHTML = ""; callback(false);
-    }
+    boton.addEventListener("mousedown", () => clearInterval(interval));
+    boton.addEventListener("mouseup", () => {
+      if (Math.abs(poder - 50) < greenSize) {
+        clearInterval(interval); contenedor.innerHTML = ""; callback(true);
+      } else {
+        clearInterval(interval); contenedor.innerHTML = ""; callback(false);
+      }
+    });
+
+    boton.addEventListener("touchstart", () => clearInterval(interval));
+    boton.addEventListener("touchend", () => {
+      if (Math.abs(poder - 50) < greenSize) {
+        clearInterval(interval); contenedor.innerHTML = ""; callback(true);
+      } else {
+        clearInterval(interval); contenedor.innerHTML = ""; callback(false);
+      }
+    });
   });
 }
 

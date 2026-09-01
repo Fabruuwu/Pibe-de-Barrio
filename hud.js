@@ -514,17 +514,24 @@ function mostrarResumenAnual() {
     } else if (copa.copa === "Recopa") {
       if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la Recopa Sudamericana!\n";
       else textosInternacionales += "🥈 Subcampeón de la Recopa Sudamericana.\n";
+    } else if (copa.copa === "Sudamericana") {
+      if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la Copa Sudamericana!\n";
+      else if (copa.resultado === "subcampeon") textosInternacionales += "🥈 Subcampeón de la Copa Sudamericana.\n";
+      else textosInternacionales += "❌ Eliminado de la Copa Sudamericana.\n";
     }
   });
 
   let textoClasificacionLibertadores = "";
+  let textoClasificacionSudamericana = "";
   const resLiga = jugador.resultadoLiga || {};
   const resCopa = jugador.resultadoCopa || {};
   const liga = jugador.liga;
-    if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
-      const clasifica = resLiga.esCampeon || resLiga.subcampeon || (resLiga.posicion >= 2 && resLiga.posicion <= 3) || resCopa.esCampeon;
-      if (clasifica) {
+  if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
+    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (resLiga.posicion >= 2 && resLiga.posicion <= 3) || resCopa.esCampeon;
+    if (clasificaLiberta) {
       textoClasificacionLibertadores = "📢 ¡Clasificaste a la Copa Libertadores del próximo año!";
+    } else if (liga === "liga-profesional-argentina" && resLiga.posicion >= 4 && resLiga.posicion <= 9) {
+      textoClasificacionSudamericana = "📢 ¡Jugarás la Copa Sudamericana el próximo año!";
     }
   }
 
@@ -569,6 +576,7 @@ function mostrarResumenAnual() {
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
+      ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;
