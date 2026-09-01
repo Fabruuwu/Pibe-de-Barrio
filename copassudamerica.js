@@ -11,7 +11,6 @@ function obtenerRivalInternacional(jugador) {
   return rivales[Math.floor(Math.random() * rivales.length)];
 }
 
-// ---------- Clasificación ----------
 function clasificaLibertadores(jugador) {
   const resLiga = jugador.resultadoLiga;
   const resCopa = jugador.resultadoCopa;
@@ -31,14 +30,13 @@ function clasificaSudamericana(jugador) {
   const pos = resLiga?.posicion;
   const liga = jugador.liga;
 
-  // Solo Argentina, posiciones 4-9
   if (liga !== "liga-profesional-argentina") return false;
-  if (clasificaLibertadores(jugador)) return false; // ya está en Libertadores
+  if (clasificaLibertadores(jugador)) return false;
   if (pos >= 4 && pos <= 9) return true;
   return false;
 }
 
-// ---------- Minijuego BarraQTE (para finales genéricas) ----------
+// ---------- Minijuego BarraQTE ----------
 function minijuegoBarraQTE(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -260,7 +258,7 @@ function minijuegoMemoriaParejas(callback, jugador, rival) {
   }
 }
 
-// ---------- Copa Libertadores - Camino Progresivo (arreglado) ----------
+// ---------- Copa Libertadores - Camino Progresivo (CORREGIDO) ----------
 function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rivalInicial);
@@ -307,6 +305,7 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   let erroresGrupos = 0;
   let ganadosGrupos = 0;
   let rivalActual = rivalInicial;
+  let partidoTerminado = false; // flag para evitar múltiples callbacks
 
   function generarSecuencia(longitud) {
     const indices = [];
@@ -330,6 +329,7 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     let esperandoUsuario = false;
     let aciertosUsuario = [];
     let fallo = false;
+    let finalizado = false;
 
     bloques.forEach(b => b.classList.remove("iluminado", "usado", "activo"));
     info.textContent = "Memorizá la secuencia...";
@@ -350,31 +350,46 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     }, 500);
 
     const handlerClick = (e) => {
-      if (!esperandoUsuario) return;
+      if (!esperandoUsuario || finalizado) return;
       const bloque = e.target;
       const index = parseInt(bloque.dataset.index);
       if (bloque.classList.contains("usado")) return;
       bloque.classList.add("usado");
+
+      // Si ya se pasó de la cantidad esperada, es fallo directo
+      if (aciertosUsuario.length >= secuencia.length) {
+        finalizado = true;
+        fallo = true;
+        bloques.forEach(b => b.removeEventListener("click", handlerClick));
+        callbackPartido(false);
+        return;
+      }
+
       const indiceEsperado = secuencia[aciertosUsuario.length];
       if (index !== indiceEsperado) fallo = true;
       aciertosUsuario.push(index);
 
       if (aciertosUsuario.length === secuencia.length) {
+        finalizado = true;
         bloques.forEach(b => b.removeEventListener("click", handlerClick));
         callbackPartido(!fallo);
       }
     };
+
     bloques.forEach(b => b.addEventListener("click", handlerClick));
   }
 
   function siguientePartido() {
+    if (partidoTerminado) return;
     if (indiceEtapa >= etapas.length) {
+      partidoTerminado = true;
       callback({ resultado: "campeon" });
       return;
     }
 
     if (indiceEtapa === 3) {
       if (ganadosGrupos < 2) {
+        partidoTerminado = true;
         callback({ resultado: "eliminado", fase: "Fase de Grupos" });
         return;
       }
@@ -411,6 +426,7 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
             if (exito && etapa.fase === "grupos") ganadosGrupos++;
             else if (!exito && etapa.fase === "grupos") erroresGrupos++;
             if (!exito && etapa.fase === "eliminatoria") {
+              partidoTerminado = true;
               callback({ resultado: "eliminado", fase: etapa.nombre });
               return;
             }
@@ -476,7 +492,6 @@ function jugarSudamericana(callback, jugador) {
       }
     }, jugador, rival);
   } else {
-    // Reutilizamos minijuegoTiroLibre (definido en copasargentinas.js)
     minijuegoTiroLibre((exito) => {
       if (exito) {
         mostrarCartelInternacional(true, undefined, "Trofeos/CopaSudamericana.png");
@@ -489,19 +504,14 @@ function jugarSudamericana(callback, jugador) {
   }
 }
 
-// ---------- Mostrar Sudamericana (llamado desde procesarCopasPendientes) ----------
+// ---------- Mostrar Sudamericana ----------
 function mostrarSudamericana(copa, callback) {
   const jugador = Estado.obtener();
   jugarSudamericana((resultado) => {
     if (resultado) {
       if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
-      jugador.resultadosInternacionales.push({
-        año: copa.año,
-        copa: "Sudamericana",
-        resultado: "campeon"
-      });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: "campeon" });
       jugador.stats.titulos++;
-      // Cerrar cartel y jugar Recopa
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
         contenedor.innerHTML = "";
@@ -510,28 +520,16 @@ function mostrarSudamericana(copa, callback) {
         jugarRecopa((exitoRecopa) => {
           if (exitoRecopa) {
             jugador.stats.titulos++;
-            jugador.resultadosInternacionales.push({
-              año: copa.año,
-              copa: "Recopa",
-              resultado: "campeon"
-            });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" });
           } else {
-            jugador.resultadosInternacionales.push({
-              año: copa.año,
-              copa: "Recopa",
-              resultado: "subcampeon"
-            });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
           }
           Estado.guardar();
           callback();
         }, jugador, rivalRecopa);
       });
     } else {
-      jugador.resultadosInternacionales.push({
-        año: copa.año,
-        copa: "Sudamericana",
-        resultado: "subcampeon"
-      });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: "subcampeon" });
       mostrarCartelInternacional(false, "Final", "");
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
@@ -544,7 +542,7 @@ function mostrarSudamericana(copa, callback) {
   }, jugador);
 }
 
-// ---------- Jugar Recopa (Aéreo + QTE) ----------
+// ---------- Jugar Recopa ----------
 function jugarRecopa(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -572,18 +570,14 @@ function jugarRecopa(callback, jugador, rival) {
   });
 }
 
-// ---------- Mostrar Libertadores (actualizado para jugar Recopa inmediata) ----------
+// ---------- Mostrar Libertadores ----------
 function mostrarLibertadores(copa, callback) {
   const jugador = Estado.obtener();
   const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
   jugarLibertadores((resultado, fase) => {
     if (resultado) {
       if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
-      jugador.resultadosInternacionales.push({
-        año: copa.año,
-        copa: "Libertadores",
-        resultado: "campeon"
-      });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: "campeon" });
       jugador.stats.titulos++;
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
       const rivalRecopa = obtenerRivalInternacional(jugador);
@@ -594,17 +588,9 @@ function mostrarLibertadores(copa, callback) {
         jugarRecopa((exitoRecopa) => {
           if (exitoRecopa) {
             jugador.stats.titulos++;
-            jugador.resultadosInternacionales.push({
-              año: copa.año,
-              copa: "Recopa",
-              resultado: "campeon"
-            });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" });
           } else {
-            jugador.resultadosInternacionales.push({
-              año: copa.año,
-              copa: "Recopa",
-              resultado: "subcampeon"
-            });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
           }
           Estado.guardar();
           callback();
@@ -614,11 +600,7 @@ function mostrarLibertadores(copa, callback) {
       let resumen = "";
       if (fase === "Final") resumen = "subcampeon";
       else resumen = `eliminado_${fase}`;
-      jugador.resultadosInternacionales.push({
-        año: copa.año,
-        copa: "Libertadores",
-        resultado: resumen
-      });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: resumen });
       mostrarCartelInternacional(false, fase, "");
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
@@ -631,7 +613,7 @@ function mostrarLibertadores(copa, callback) {
   }, jugador, tipo);
 }
 
-// ---------- Mostrar cartel (ya existente, sin listener) ----------
+// ---------- Mostrar cartel ----------
 function mostrarCartelInternacional(ganador, fase, imagen) {
   const contenedor = document.getElementById("competition-container");
   if (ganador) {
@@ -661,8 +643,7 @@ function mostrarCartelInternacional(ganador, fase, imagen) {
   }
 }
 
-// ---------- (opcional) eliminar ejecutarInternacionales o dejarla vacía ----------
-// Ya no se usa; se deja por compatibilidad pero no hace nada.
+// ---------- (opcional) eliminar ejecutarInternacionales ----------
 function ejecutarInternacionales(callback) {
-  callback(); // No hacemos nada, todo está en copasPendientes
+  callback(); // No hace nada, todo está en copasPendientes
 }
