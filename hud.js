@@ -454,7 +454,7 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.goles = Math.max(0, baseGoles + bonus.goles);
     jugador.statsAnuales.asistencias = Math.max(0, baseAsistencias + bonus.asistencias);
 
-    jugador.statsAnuales.nota = (Math.random() * 2 + 5.5).toFixed(1);
+    jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
@@ -597,6 +597,23 @@ function mostrarResumenAnual() {
     // Simplemente ir a cartas, el flujo maneja copas y eventos
     abrirModalCartas();
   });
+}
+
+function calcularNotaTemporada(statsAnuales) {
+  const partidos = statsAnuales.partidos || 0;
+  if (partidos === 0) return "0.0";
+
+  const golesPorPartido = statsAnuales.goles / partidos;
+  const asisPorPartido = statsAnuales.asistencias / partidos;
+
+  // Base 6.0 (temporada normal) + bonus por producción ofensiva por partido.
+  let nota = 6.0 + golesPorPartido * 3 + asisPorPartido * 2;
+
+  // Un poco de variación para que no sea siempre exacto, sin desviar demasiado.
+  nota += (Math.random() * 0.4 - 0.2);
+
+  nota = Math.max(3.0, Math.min(10.0, nota));
+  return nota.toFixed(1);
 }
 
 function obtenerNombreClub(idClub) {

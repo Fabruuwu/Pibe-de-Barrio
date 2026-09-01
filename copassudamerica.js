@@ -550,7 +550,13 @@ function mostrarSudamericana(copa, callback) {
             jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
           }
           Estado.guardar();
-          callback();
+          mostrarCartelInternacional(exitoRecopa, exitoRecopa ? undefined : "Final", "Trofeos/RecopaSudamericana.png");
+          contenedor.hidden = false;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback();
+          });
         }, jugador, rivalRecopa);
       });
     } else {
@@ -625,7 +631,13 @@ function mostrarLibertadores(copa, callback) {
             jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
           }
           Estado.guardar();
-          callback();
+          mostrarCartelInternacional(exitoRecopa, exitoRecopa ? undefined : "Final", "Trofeos/RecopaSudamericana.png");
+          contenedor.hidden = false;
+          contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+            contenedor.innerHTML = "";
+            contenedor.hidden = true;
+            callback();
+          });
         }, jugador, rivalRecopa);
       });
     } else {
