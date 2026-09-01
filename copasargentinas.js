@@ -136,7 +136,6 @@ function minijuegoTiroLibre(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
 
-  // Tamaño de la zona verde MUCHO más chico
   const pegada = jugador.stats.pegada || 0;
   let greenSize;
   if (pegada <= 60) greenSize = 1;
@@ -162,7 +161,6 @@ function minijuegoTiroLibre(callback, jugador, rival) {
   const boton = document.getElementById("btn-press-hold");
   let poder = 0, direccion = 1, interval;
 
-  // Velocidad mucho más rápida (4.5 por tick)
   interval = setInterval(() => {
     poder += direccion * 4.5;
     if (poder > 100) { poder = 100; direccion = -1; }
@@ -170,7 +168,6 @@ function minijuegoTiroLibre(callback, jugador, rival) {
     indicador.style.left = `${poder}%`;
   }, 50);
 
-  // Mouse
   boton.addEventListener("mousedown", () => clearInterval(interval));
   boton.addEventListener("mouseup", () => {
     if (Math.abs(poder - 50) < greenSize) {
@@ -180,7 +177,6 @@ function minijuegoTiroLibre(callback, jugador, rival) {
     }
   });
 
-  // Táctil
   boton.addEventListener("touchstart", () => clearInterval(interval));
   boton.addEventListener("touchend", () => {
     if (Math.abs(poder - 50) < greenSize) {
@@ -229,9 +225,8 @@ function minijuegoAereo(callback, jugador, rival) {
     outer.style.left = `${(100 - size) / 2}%`;
   }, 60);
 
-  // Usamos mousedown para mejor respuesta
   contenedorAereo.addEventListener("mousedown", (e) => {
-    if (size < 30 && size > 10) { // rango más amplio
+    if (size < 30 && size > 10) {
       clearInterval(interval);
       contenedor.innerHTML = "";
       callback(true);
@@ -273,7 +268,6 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
   const boton = document.getElementById("btn-penal-click");
   let poder = 0, direccion = 1, interval;
 
-  // Velocidad más rápida (5 por tick)
   interval = setInterval(() => {
     poder += direccion * 5;
     if (poder > 100) { poder = 100; direccion = -1; }
@@ -290,7 +284,7 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
   });
 }
 
-// ---------- PROCESAR COPAS PENDIENTES (para el orden correcto) ----------
+// ---------- PROCESAR COPAS PENDIENTES (con delegación a internacionales) ----------
 function procesarCopasPendientes(callback) {
   const jugador = Estado.obtener();
   const año = jugador.año;
@@ -304,7 +298,6 @@ function procesarCopasPendientes(callback) {
   let indice = 0;
   function siguiente() {
     if (indice >= copas.length) {
-      // Limpiar las copas del año
       jugador.copasPendientes = (jugador.copasPendientes || []).filter(c => c.año !== año);
       Estado.guardar();
       callback();
@@ -312,8 +305,16 @@ function procesarCopasPendientes(callback) {
     }
     const copa = copas[indice];
     indice++;
-    // Si es recopa, delegamos a copassudamerica
-    if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
+
+    if (copa.tipo === "libertadores" && typeof mostrarLibertadores === "function") {
+      mostrarLibertadores(copa, () => {
+        siguiente();
+      });
+    } else if (copa.tipo === "sudamericana" && typeof mostrarSudamericana === "function") {
+      mostrarSudamericana(copa, () => {
+        siguiente();
+      });
+    } else if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
       mostrarRecopa(copa, () => {
         siguiente();
       });
@@ -335,7 +336,6 @@ function mostrarResultadoCopa(resultadoCopa, callback) {
   const rival = resultadoCopa.rival;
   const cabecera = crearCabeceraMinijuego(jugador, rival);
 
-  // Elegir minijuego aleatorio: Anticipo Aéreo o Penal Reflejos
   const tipo = Math.random() < 0.5 ? "aereo" : "penal";
 
   contenedor.innerHTML = `
@@ -420,7 +420,7 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 
   // SuperCopa Internacional (Trofeo anterior vs Copa anterior)
   const histActual = historial.find(h => h.año === añoActual);
-  const histTrofeo = historial.find(h => h.año === añoActual - 1); // Trofeo se jugó el año pasado
+  const histTrofeo = historial.find(h => h.año === añoActual - 1);
   if (histActual && histTrofeo) {
     if (histActual.copa === jugador.club || histTrofeo.trofeo === jugador.club) {
       let rivalId;
@@ -434,21 +434,48 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       }
     }
   }
+
+  // ---- NUEVOS: Libertadores y Sudamericana (solo si corresponde) ----
+  const pos = resLiga.posicion;
+  const liga = jugador.liga;
+
+  if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
+    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (pos === 2 || pos === 3) || resCopa.esCampeon;
+    const clasificaSud = (liga === "liga-profesional-argentina") && (pos >= 4 && pos <= 9) && !clasificaLiberta;
+
+    if (clasificaLiberta) {
+      if (!jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "libertadores")) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "libertadores", rivalId: null });
+      }
+    } else if (clasificaSud) {
+      if (!jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "sudamericana")) {
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "sudamericana", rivalId: null });
+      }
+    }
+  }
 }
 
 // ------------------------------------------------------------------
 // MOSTRAR COPA PENDIENTE (cuando avanzas de año y hay copas agendadas)
 // ------------------------------------------------------------------
 function mostrarCopaPendiente(copa, callback) {
-  // ✅ Si es una copa internacional (Recopa), delegamos a copassudamerica.js
-  if (copa.tipo === "recopa") {
+  // ✅ Si es una copa internacional (Libertadores, Sudamericana, Recopa), delegamos
+  if (copa.tipo === "libertadores" && typeof mostrarLibertadores === "function") {
+    mostrarLibertadores(copa, callback);
+    return;
+  }
+  if (copa.tipo === "sudamericana" && typeof mostrarSudamericana === "function") {
+    mostrarSudamericana(copa, callback);
+    return;
+  }
+  if (copa.tipo === "recopa" && typeof mostrarRecopa === "function") {
     mostrarRecopa(copa, callback);
     return;
   }
 
+  // Si no es internacional, seguimos con el flujo normal de copas argentinas
   const jugador = Estado.obtener();
 
-  // Verificar que el rival no sea el mismo club
   if (copa.rivalId === jugador.club) {
     const rivalAlt = elegirRivalAleatorio(jugador);
     copa.rivalId = rivalAlt ? rivalAlt.id : null;
@@ -487,7 +514,6 @@ function mostrarCopaPendiente(copa, callback) {
   document.getElementById("btn-jugar-pendiente").addEventListener("click", () => {
     contenedor.innerHTML = "";
     minijuego((exito) => {
-      // Guardar en historial de copas especiales
       if (!jugador.resultadoCopasEspeciales) jugador.resultadoCopasEspeciales = [];
       jugador.resultadoCopasEspeciales.push({
         año: copa.año,
@@ -495,12 +521,10 @@ function mostrarCopaPendiente(copa, callback) {
         resultado: exito ? "campeon" : "subcampeon"
       });
 
-      // ✅ SUMAR TÍTULO SIEMPRE QUE SE GANE
       if (exito) {
         jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
       }
 
-      // Intentar actualizar el historial (opcional, por si existe)
       const hist = (jugador.campeonesHistorial || []).find(h => h.año === copa.año);
       if (hist) {
         if (copa.tipo === "supercopa") hist.superCopa = exito ? jugador.club : null;

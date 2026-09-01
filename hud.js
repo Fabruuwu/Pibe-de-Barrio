@@ -266,12 +266,9 @@ function procesarEventos() {
           jugador.resultadoCopa = resCopa;
 
           agendarProximasCopas(jugador, año, resLiga, resCopa);
-          // Ejecutar internacionales y copas pendientes
-          ejecutarInternacionales(() => {
-            procesarCopasPendientes(() => {
-              Estado.guardar();
-              mostrarResumenAnual();
-            });
+          procesarCopasPendientes(() => {
+            Estado.guardar();
+            mostrarResumenAnual();
           });
         });
       } else {

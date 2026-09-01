@@ -11,6 +11,7 @@ function obtenerRivalInternacional(jugador) {
   return rivales[Math.floor(Math.random() * rivales.length)];
 }
 
+// ---------- Clasificación ----------
 function clasificaLibertadores(jugador) {
   const resLiga = jugador.resultadoLiga;
   const resCopa = jugador.resultadoCopa;
@@ -18,7 +19,6 @@ function clasificaLibertadores(jugador) {
   const liga = jugador.liga;
 
   if (liga !== "liga-profesional-argentina" && liga !== "brasileirao-brasil") return false;
-
   if (resCopa?.esCampeon) return true;
   if (resLiga?.esCampeon) return true;
   if (resLiga?.subcampeon) return true;
@@ -26,7 +26,19 @@ function clasificaLibertadores(jugador) {
   return false;
 }
 
-// ---------- BarraQTE arreglada: barra va de 0 a 100, rojo +5 = 5% ----------
+function clasificaSudamericana(jugador) {
+  const resLiga = jugador.resultadoLiga;
+  const pos = resLiga?.posicion;
+  const liga = jugador.liga;
+
+  // Solo Argentina, posiciones 4-9
+  if (liga !== "liga-profesional-argentina") return false;
+  if (clasificaLibertadores(jugador)) return false; // ya está en Libertadores
+  if (pos >= 4 && pos <= 9) return true;
+  return false;
+}
+
+// ---------- Minijuego BarraQTE (para finales genéricas) ----------
 function minijuegoBarraQTE(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
@@ -133,194 +145,308 @@ function minijuegoBarraQTE(callback, jugador, rival) {
   });
 }
 
-// ---------- Copa Libertadores - Camino Progresivo (arreglado) ----------
-function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
+// ---------- Minijuego Memoria de Parejas (Sudamericana) ----------
+function minijuegoMemoriaParejas(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
-  const cabecera = crearCabeceraMinijuego(jugador, rivalInicial);
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+
+  const emojis = ["⚽","🏆","🔥","💪","🎯","⚡","🥅","🛡️","👟"];
+  const cartas = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+
+  const gambeta = jugador.stats.gambeta || 0;
+  let tiempoVer = 0.5;
+  if (gambeta <= 65) tiempoVer = 0.6;
+  else if (gambeta <= 75) tiempoVer = 0.7;
+  else if (gambeta <= 85) tiempoVer = 0.8;
+  else if (gambeta <= 95) tiempoVer = 1.0;
+  else tiempoVer = 1.5;
+
+  let vidas = 2;
+  if (jugador.media >= 85) vidas++;
 
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
-      <h3 id="titulo-copa">Copa Libertadores - Fase de Grupos</h3>
-      <p>Memorizá las secuencias de bloques iluminados. ¡Cuidado que aumentan!</p>
-      <div class="libertadores-grid" id="libertadores-grid"></div>
-      <div class="secuencia-info" id="secuencia-info"></div>
-      <button class="boton-iniciar-qte" id="btn-comenzar-libertadores">Comenzar</button>
+      <h3>La Jugada Preparada</h3>
+      <p>Memorizá las parejas de emojis. ¡Tenés ${vidas} vidas!</p>
+      <div class="memoria-parejas" id="memoria-parejas" style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px; max-width:500px; margin:20px auto;"></div>
+      <div style="margin-top:10px;">Vidas: <span id="vidas">${'❤️'.repeat(vidas)}</span></div>
+      <button class="boton-iniciar-qte" id="btn-iniciar-parejas">Comenzar</button>
     </div>
   `;
 
-  const grid = document.getElementById("libertadores-grid");
-  const info = document.getElementById("secuencia-info");
-  const btnComenzar = document.getElementById("btn-comenzar-libertadores");
-  const tituloCopa = document.getElementById("titulo-copa");
+  const grid = document.getElementById("memoria-parejas");
+  const vidasSpan = document.getElementById("vidas");
+  const btnIniciar = document.getElementById("btn-iniciar-parejas");
+  let reveladas = [];
+  let paresEncontrados = 0;
+  let bloqueado = false;
+  let vidasRestantes = vidas;
 
-  grid.style.gridTemplateColumns = "repeat(5, 1fr)";
-  grid.style.maxWidth = "500px";
-  grid.style.margin = "20px auto";
-  const bloques = [];
-  for (let i = 0; i < 20; i++) {
-    const div = document.createElement("div");
-    div.className = "memoria-punto";
-    div.dataset.index = i;
-    grid.appendChild(div);
-    bloques.push(div);
+  function renderizarCartas(mostrar) {
+    grid.innerHTML = "";
+    cartas.forEach((emoji, idx) => {
+      const card = document.createElement("div");
+      card.className = "carta-pareja";
+      card.dataset.emoji = emoji;
+      card.dataset.idx = idx;
+      card.textContent = mostrar ? emoji : "?";
+      card.style.background = mostrar ? "#2a2a3a" : "#1a1a24";
+      card.style.border = "1px solid #333";
+      card.style.borderRadius = "6px";
+      card.style.padding = "10px";
+      card.style.textAlign = "center";
+      card.style.cursor = "pointer";
+      card.style.fontSize = "24px";
+      grid.appendChild(card);
+    });
   }
 
-  const etapas = [
-    { nombre: "Fase de Grupos - Partido 1", longitud: 1, fase: "grupos" },
-    { nombre: "Fase de Grupos - Partido 2", longitud: 2, fase: "grupos" },
-    { nombre: "Fase de Grupos - Partido 3", longitud: 3, fase: "grupos" },
-    { nombre: "Octavos de Final", longitud: 4, fase: "eliminatoria" },
-    { nombre: "Cuartos de Final", longitud: 5, fase: "eliminatoria" },
-    { nombre: "Semifinal", longitud: 6, fase: "eliminatoria" },
-    { nombre: "Final", longitud: 7, fase: "eliminatoria" }
-  ];
+  btnIniciar.addEventListener("click", () => {
+    btnIniciar.style.display = "none";
+    renderizarCartas(true);
+    setTimeout(() => {
+      renderizarCartas(false);
+      grid.querySelectorAll('.carta-pareja').forEach(card => {
+        card.addEventListener('click', manejarClick);
+      });
+    }, tiempoVer * 1000);
+  });
 
-  let indiceEtapa = 0;
-  let erroresGrupos = 0;
-  let ganadosGrupos = 0;
-  let rivalActual = rivalInicial;
+  function manejarClick(e) {
+    if (bloqueado) return;
+    const card = e.target;
+    if (card.classList.contains("revelada")) return;
 
-  function generarSecuencia(longitud) {
-    const indices = [];
-    const disponibles = Array.from({ length: 20 }, (_, i) => i);
-    for (let i = 0; i < longitud; i++) {
-      const idx = Math.floor(Math.random() * disponibles.length);
-      indices.push(disponibles.splice(idx, 1)[0]);
-    }
-    return indices;
-  }
+    card.textContent = card.dataset.emoji;
+    card.classList.add("revelada");
+    card.style.background = "#3a3a4a";
 
-  function actualizarCabecera() {
-    const nuevaCabecera = crearCabeceraMinijuego(jugador, rivalActual);
-    const marcadorActual = contenedor.querySelector('.minijuego-marcador');
-    if (marcadorActual) marcadorActual.outerHTML = nuevaCabecera;
-  }
+    reveladas.push(card);
 
-  function jugarPartido(etapa, callbackPartido) {
-    const secuencia = generarSecuencia(etapa.longitud);
-    let paso = 0;
-    let esperandoUsuario = false;
-    let aciertosUsuario = [];
-    let fallo = false;
-
-    bloques.forEach(b => b.classList.remove("iluminado", "usado", "activo"));
-    info.textContent = "Memorizá la secuencia...";
-    btnComenzar.disabled = true;
-
-    const intervaloMostrar = setInterval(() => {
-      if (paso >= secuencia.length) {
-        clearInterval(intervaloMostrar);
-        info.textContent = "¡Repetí la secuencia!";
-        bloques.forEach(b => b.classList.add("activo"));
-        esperandoUsuario = true;
-        return;
-      }
-      const idx = secuencia[paso];
-      bloques[idx].classList.add("iluminado");
-      setTimeout(() => bloques[idx].classList.remove("iluminado"), 400);
-      paso++;
-    }, 500);
-
-    const handlerClick = (e) => {
-      if (!esperandoUsuario) return;
-      const bloque = e.target;
-      const index = parseInt(bloque.dataset.index);
-      if (bloque.classList.contains("usado")) return;
-      bloque.classList.add("usado");
-      const indiceEsperado = secuencia[aciertosUsuario.length];
-      if (index !== indiceEsperado) fallo = true;
-      aciertosUsuario.push(index);
-
-      if (aciertosUsuario.length === secuencia.length) {
-        bloques.forEach(b => b.removeEventListener("click", handlerClick));
-        callbackPartido(!fallo);
-      }
-    };
-    bloques.forEach(b => b.addEventListener("click", handlerClick));
-  }
-
-  // Función corregida que evalúa fase de grupos al llegar a octavos
-  function siguientePartido() {
-    if (indiceEtapa >= etapas.length) {
-      callback({ resultado: "campeon" });
-      return;
-    }
-
-    if (indiceEtapa === 3) {
-      if (ganadosGrupos < 2) {
-        callback({ resultado: "eliminado", fase: "Fase de Grupos" });
-        return;
+    if (reveladas.length === 2) {
+      bloqueado = true;
+      const [card1, card2] = reveladas;
+      if (card1.dataset.emoji === card2.dataset.emoji) {
+        paresEncontrados++;
+        card1.classList.add("permanente");
+        card2.classList.add("permanente");
+        reveladas = [];
+        bloqueado = false;
+        if (paresEncontrados === 9) {
+          contenedor.innerHTML = "";
+          callback(true);
+        }
+      } else {
+        vidasRestantes--;
+        vidasSpan.textContent = '❤️'.repeat(vidasRestantes);
+        if (vidasRestantes <= 0) {
+          contenedor.innerHTML = "";
+          callback(false);
+          return;
+        }
+        setTimeout(() => {
+          card1.textContent = "?";
+          card2.textContent = "?";
+          card1.classList.remove("revelada");
+          card2.classList.remove("revelada");
+          card1.style.background = "#1a1a24";
+          card2.style.background = "#1a1a24";
+          reveladas = [];
+          bloqueado = false;
+        }, 800);
       }
     }
-
-    const etapa = etapas[indiceEtapa];
-    tituloCopa.textContent = `Copa Libertadores - ${etapa.nombre}`;
-    rivalActual = obtenerRivalInternacional(jugador);
-    actualizarCabecera();
-
-    if (indiceEtapa === 0) {
-      info.textContent = "Listo?";
-      btnComenzar.disabled = false;
-      btnComenzar.textContent = "Comenzar";
-      btnComenzar.onclick = () => {
-        btnComenzar.disabled = true;
-        jugarPartido(etapa, (exito) => {
-          if (exito) ganadosGrupos++;
-          else erroresGrupos++;
-          indiceEtapa++;
-          siguientePartido();
-        });
-      };
-    } else {
-      info.textContent = "Pasaste de ronda!";
-      btnComenzar.disabled = true;
-      setTimeout(() => {
-        info.textContent = "Listo?";
-        btnComenzar.disabled = false;
-        btnComenzar.textContent = "Comenzar";
-        btnComenzar.onclick = () => {
-          btnComenzar.disabled = true;
-          jugarPartido(etapa, (exito) => {
-            if (exito && etapa.fase === "grupos") ganadosGrupos++;
-            else if (!exito && etapa.fase === "grupos") erroresGrupos++;
-            // En eliminatoria, si fallas, eliminado directo
-            if (!exito && etapa.fase === "eliminatoria") {
-              callback({ resultado: "eliminado", fase: etapa.nombre });
-              return;
-            }
-            indiceEtapa++;
-            siguientePartido();
-          });
-        };
-      }, 3000);
-    }
   }
-
-  siguientePartido();
 }
 
-// ---------- Jugar Libertadores ----------
-function jugarLibertadores(callback, jugador, tipo) {
+// ---------- Jugar Sudamericana ----------
+function jugarSudamericana(callback, jugador) {
   const rival = obtenerRivalInternacional(jugador);
-  if (tipo === "copa_completa") {
-    minijuegoCopaCompleta((resultado) => {
-      if (resultado.resultado === "campeon") callback(true, undefined);
-      else callback(false, resultado.fase);
+  let prob = 15;
+  const media = jugador.media;
+  if (media <= 60) prob += 5;
+  else if (media <= 75) prob += 8;
+  else if (media <= 85) prob += 12;
+  else if (media <= 95) prob += 15;
+  else prob += 20;
+
+  const juegaFinal = Math.random() * 100 < prob;
+
+  if (!juegaFinal) {
+    mostrarCartelInternacional(false, "Final", "");
+    callback(false);
+    return;
+  }
+
+  const tipo = Math.random() < 0.5 ? "memoria" : "tirolibre";
+  if (tipo === "memoria") {
+    minijuegoMemoriaParejas((exito) => {
+      if (exito) {
+        mostrarCartelInternacional(true, undefined, "Trofeos/CopaSudamericana.png");
+        callback(true);
+      } else {
+        mostrarCartelInternacional(false, "Final", "");
+        callback(false);
+      }
     }, jugador, rival);
   } else {
-    if (Math.random() < 0.5) {
-      minijuegoBarraQTE((exito) => {
-        if (exito) callback(true, undefined);
-        else callback(false, "Final");
-      }, jugador, rival);
-    } else {
-      callback(false, "Final");
-    }
+    // Reutilizamos minijuegoTiroLibre (definido en copasargentinas.js)
+    minijuegoTiroLibre((exito) => {
+      if (exito) {
+        mostrarCartelInternacional(true, undefined, "Trofeos/CopaSudamericana.png");
+        callback(true);
+      } else {
+        mostrarCartelInternacional(false, "Final", "");
+        callback(false);
+      }
+    }, jugador, rival);
   }
 }
 
-// ---------- Mostrar cartel de resultado internacional ----------
+// ---------- Mostrar Sudamericana (llamado desde procesarCopasPendientes) ----------
+function mostrarSudamericana(copa, callback) {
+  const jugador = Estado.obtener();
+  jugarSudamericana((resultado) => {
+    if (resultado) {
+      if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
+      jugador.resultadosInternacionales.push({
+        año: copa.año,
+        copa: "Sudamericana",
+        resultado: "campeon"
+      });
+      jugador.stats.titulos++;
+      // Cerrar cartel y jugar Recopa
+      const contenedor = document.getElementById("competition-container");
+      contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+        contenedor.innerHTML = "";
+        contenedor.hidden = true;
+        const rivalRecopa = obtenerRivalInternacional(jugador);
+        jugarRecopa((exitoRecopa) => {
+          if (exitoRecopa) {
+            jugador.stats.titulos++;
+            jugador.resultadosInternacionales.push({
+              año: copa.año,
+              copa: "Recopa",
+              resultado: "campeon"
+            });
+          } else {
+            jugador.resultadosInternacionales.push({
+              año: copa.año,
+              copa: "Recopa",
+              resultado: "subcampeon"
+            });
+          }
+          Estado.guardar();
+          callback();
+        }, jugador, rivalRecopa);
+      });
+    } else {
+      jugador.resultadosInternacionales.push({
+        año: copa.año,
+        copa: "Sudamericana",
+        resultado: "subcampeon"
+      });
+      mostrarCartelInternacional(false, "Final", "");
+      const contenedor = document.getElementById("competition-container");
+      contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+        contenedor.innerHTML = "";
+        contenedor.hidden = true;
+        Estado.guardar();
+        callback();
+      });
+    }
+  }, jugador);
+}
+
+// ---------- Jugar Recopa (Aéreo + QTE) ----------
+function jugarRecopa(callback, jugador, rival) {
+  const contenedor = document.getElementById("competition-container");
+  const cabecera = crearCabeceraMinijuego(jugador, rival);
+  contenedor.innerHTML = `
+    ${cabecera}
+    <div class="competition-card">
+      <h3>Recopa Sudamericana</h3>
+      <p>Primero el Anticipo Aéreo, luego el Slalom.</p>
+      <button class="boton-jugar-minijuego" id="btn-iniciar-recopa">¡Jugar!</button>
+    </div>
+  `;
+
+  document.getElementById("btn-iniciar-recopa").addEventListener("click", () => {
+    minijuegoAereo((exito1) => {
+      if (!exito1) {
+        contenedor.innerHTML = "";
+        callback(false);
+        return;
+      }
+      minijuegoQTE((exito2) => {
+        contenedor.innerHTML = "";
+        callback(exito2);
+      }, jugador, rival);
+    }, jugador, rival);
+  });
+}
+
+// ---------- Mostrar Libertadores (actualizado para jugar Recopa inmediata) ----------
+function mostrarLibertadores(copa, callback) {
+  const jugador = Estado.obtener();
+  const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
+  jugarLibertadores((resultado, fase) => {
+    if (resultado) {
+      if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
+      jugador.resultadosInternacionales.push({
+        año: copa.año,
+        copa: "Libertadores",
+        resultado: "campeon"
+      });
+      jugador.stats.titulos++;
+      mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
+      const rivalRecopa = obtenerRivalInternacional(jugador);
+      const contenedor = document.getElementById("competition-container");
+      contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+        contenedor.innerHTML = "";
+        contenedor.hidden = true;
+        jugarRecopa((exitoRecopa) => {
+          if (exitoRecopa) {
+            jugador.stats.titulos++;
+            jugador.resultadosInternacionales.push({
+              año: copa.año,
+              copa: "Recopa",
+              resultado: "campeon"
+            });
+          } else {
+            jugador.resultadosInternacionales.push({
+              año: copa.año,
+              copa: "Recopa",
+              resultado: "subcampeon"
+            });
+          }
+          Estado.guardar();
+          callback();
+        }, jugador, rivalRecopa);
+      });
+    } else {
+      let resumen = "";
+      if (fase === "Final") resumen = "subcampeon";
+      else resumen = `eliminado_${fase}`;
+      jugador.resultadosInternacionales.push({
+        año: copa.año,
+        copa: "Libertadores",
+        resultado: resumen
+      });
+      mostrarCartelInternacional(false, fase, "");
+      const contenedor = document.getElementById("competition-container");
+      contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+        contenedor.innerHTML = "";
+        contenedor.hidden = true;
+        Estado.guardar();
+        callback();
+      });
+    }
+  }, jugador, tipo);
+}
+
+// ---------- Mostrar cartel (ya existente, sin listener) ----------
 function mostrarCartelInternacional(ganador, fase, imagen) {
   const contenedor = document.getElementById("competition-container");
   if (ganador) {
@@ -350,81 +476,8 @@ function mostrarCartelInternacional(ganador, fase, imagen) {
   }
 }
 
-// ---------- Función principal ----------
+// ---------- (opcional) eliminar ejecutarInternacionales o dejarla vacía ----------
+// Ya no se usa; se deja por compatibilidad pero no hace nada.
 function ejecutarInternacionales(callback) {
-  const jugador = Estado.obtener();
-  const año = jugador.año;
-
-  if (!clasificaLibertadores(jugador)) {
-    callback();
-    return;
-  }
-
-  const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
-
-  jugarLibertadores((resultado, fase) => {
-    if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
-    let resumen = "";
-    if (resultado) {
-      resumen = "campeon";
-      jugador.stats.titulos++;
-      const rivalRecopa = obtenerRivalInternacional(jugador);
-      jugador.copasPendientes.push({ año: año + 1, tipo: "recopa", rivalId: rivalRecopa.id });
-      mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
-    } else {
-      if (!fase) {
-        const fases = ["Fase de Grupos", "Octavos", "Cuartos", "Semifinal", "Final"];
-        fase = fases[Math.floor(Math.random() * fases.length)];
-      }
-      if (fase === "Final") resumen = "subcampeon";
-      else resumen = `eliminado_${fase}`;
-      mostrarCartelInternacional(false, fase, "");
-    }
-    jugador.resultadosInternacionales.push({
-      año: año,
-      copa: "Libertadores",
-      resultado: resumen
-    });
-    Estado.guardar();
-    // Esperar a que el usuario presione "Continuar" en el cartel
-    const contenedor = document.getElementById("competition-container");
-    contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
-      contenedor.innerHTML = "";
-      contenedor.hidden = true;
-      callback();
-    });
-  }, jugador, tipo);
-}
-
-// ---------- Mostrar Recopa (igual que antes) ----------
-function mostrarRecopa(copa, callback) {
-  const jugador = Estado.obtener();
-  const rival = NOMBRES_CLUBES[copa.rivalId] || { nombre: "Rival" };
-  const contenedor = document.getElementById("competition-container");
-  const cabecera = crearCabeceraMinijuego(jugador, rival);
-
-  contenedor.innerHTML = `
-    ${cabecera}
-    <div class="competition-card">
-      <h3>Recopa Sudamericana</h3>
-      <p>Campeón de Libertadores vs Campeón de Sudamericana.</p>
-      <button class="boton-jugar-minijuego" id="btn-jugar-recopa">¡Jugar!</button>
-    </div>
-  `;
-
-  document.getElementById("btn-jugar-recopa").addEventListener("click", () => {
-    minijuegoBarraQTE((exito) => {
-      if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
-      jugador.resultadosInternacionales.push({
-        año: copa.año,
-        copa: "Recopa",
-        resultado: exito ? "campeon" : "subcampeon"
-      });
-      if (exito) jugador.stats.titulos++;
-      Estado.guardar();
-      contenedor.innerHTML = "";
-      contenedor.hidden = true;
-      callback(exito);
-    }, jugador, rival);
-  });
+  callback(); // No hacemos nada, todo está en copasPendientes
 }
