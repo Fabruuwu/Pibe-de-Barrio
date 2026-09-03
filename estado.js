@@ -40,14 +40,26 @@ const Estado = (() => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function generarStatsBase() {
-    return {
+  function generarStatsBase(posicion) {
+    const base = {
       pegada: numeroAleatorio(55, 68),
       velocidad: numeroAleatorio(51, 62),
       gambeta: numeroAleatorio(53, 65),
       liderazgo: numeroAleatorio(40, 55),
       resistencia: numeroAleatorio(55, 62),
     };
+
+    const atributosPorPosicion = {
+      enganche: ["pase", "vision"],
+      central: ["marca", "quite", "juegoAereo"],
+      arquero: ["reflejos", "ataje", "juegoAereo"],
+    };
+
+    (atributosPorPosicion[posicion] || []).forEach((atributo) => {
+      base[atributo] = numeroAleatorio(53, 67);
+    });
+
+    return base;
   }
 
   // Nueva función de media: solo promedio de stats exclusivas de la posición
@@ -77,7 +89,7 @@ const Estado = (() => {
 
   function expandirJugador(base) {
     const edad = generarEdad();
-    const statsBase = generarStatsBase();
+    const statsBase = generarStatsBase(base.posicion);
     const media = calcularMedia(statsBase, base.posicion);
     const valor = calcularValor(media, edad);
 
@@ -108,7 +120,10 @@ const Estado = (() => {
         goles: 0,
         asistencias: 0,
         partidos: 0,
-        titulos: 0
+        titulos: 0,
+        vallasInvictas: 0,
+        recuperaciones: 0,
+        atajadas: 0
       }
     };
   }

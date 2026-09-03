@@ -46,32 +46,34 @@ function generarCartas() {
 
 function generarCarta() {
   const rareza = elegirRareza();
+  const mejorasIndividuales = obtenerMejorasIndividuales();
+  const mejorasDobles = obtenerMejorasDobles(mejorasIndividuales);
   let stats = [];
   let puntos = 0;
   let nombre = "";
   let desc = "";
 
   if (rareza === "comun" || rareza === "rara") {
-    const mejora = elegirAleatorio(MEJORAS_1_STAT);
+    const mejora = elegirAleatorio(mejorasIndividuales);
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
     puntos = rareza === "comun" ? numeroAleatorio(2, 3) : numeroAleatorio(4, 5);
   } else if (rareza === "dorada") {
     if (Math.random() < 0.8) {
-      const mejora = elegirAleatorio(MEJORAS_1_STAT);
+      const mejora = elegirAleatorio(mejorasIndividuales);
       stats = [mejora.stat];
       nombre = mejora.nombre;
       desc = mejora.desc;
     } else {
-      const mejora = elegirAleatorio(MEJORAS_2_STATS);
+      const mejora = elegirAleatorio(mejorasDobles);
       stats = mejora.stats;
       nombre = mejora.nombre;
       desc = mejora.desc;
     }
     puntos = numeroAleatorio(6, 8);
   } else {
-    const mejora = elegirAleatorio(MEJORAS_2_STATS);
+    const mejora = elegirAleatorio(mejorasDobles);
     stats = mejora.stats;
     nombre = mejora.nombre;
     desc = mejora.desc;
@@ -129,4 +131,45 @@ function elegirAleatorio(array) {
 
 function numeroAleatorio(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function obtenerMejorasIndividuales() {
+  const jugador = typeof Estado !== "undefined" ? Estado.obtener() : null;
+  const config = jugador && window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
+  const claves = new Set([...(config?.atributos || []).map(a => a.clave), "liderazgo", "resistencia"]);
+  const propias = MEJORAS_1_STAT.filter(mejora => claves.has(mejora.stat));
+  const existentes = new Set(propias.map(mejora => mejora.stat));
+
+  const nombres = {
+    pase: ["Pase filtrado", "Te quedaste después de práctica afinando pases entre líneas."],
+    vision: ["Lectura de juego", "Analizaste movimientos y encontrás espacios antes que nadie."],
+    marca: ["Marca pegajosa", "Trabajaste duelos defensivos hasta que no pasó nadie."],
+    quite: ["Barrida limpia", "Afinaste el momento justo para recuperar sin hacer falta."],
+    juegoAereo: ["Dueño del aire", "Ganaste cada pelota aérea en una práctica de centros."],
+    reflejos: ["Reflejos felinos", "Una sesión de remates cortos dejó tus manos más rápidas."],
+    ataje: ["Manos seguras", "Repetiste atajadas difíciles hasta controlar cada rebote."],
+  };
+
+  claves.forEach(clave => {
+    if (!existentes.has(clave) && nombres[clave]) {
+      propias.push({ stat: clave, nombre: nombres[clave][0], desc: nombres[clave][1] });
+    }
+  });
+
+  return propias.length ? propias : MEJORAS_1_STAT;
+}
+
+function obtenerMejorasDobles(mejorasIndividuales) {
+  const claves = [...new Set(mejorasIndividuales.map(mejora => mejora.stat))];
+  const combinaciones = [];
+  for (let i = 0; i < claves.length; i++) {
+    for (let j = i + 1; j < claves.length; j++) {
+      combinaciones.push({
+        stats: [claves[i], claves[j]],
+        nombre: "Entrenamiento de élite",
+        desc: "Una práctica exigente elevó dos aspectos claves de tu juego.",
+      });
+    }
+  }
+  return combinaciones.length ? combinaciones : MEJORAS_2_STATS;
 }

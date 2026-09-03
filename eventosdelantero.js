@@ -109,6 +109,22 @@ function mostrarMinijuego(callback) {
   else minijuegoQTE(callback, jugador, rival);
 }
 
+function mostrarResolucionMinijuego(contenedor, cabecera, exito, texto, callback) {
+  contenedor.innerHTML = `
+    ${cabecera}
+    <div class="competition-card ${exito ? "campeon" : "subcampeon"} resultado-minijuego">
+      <span class="resultado-minijuego__icono">${exito ? "⚽" : "💥"}</span>
+      <h3>${exito ? "¡Jugada perfecta!" : "Se escapó por poco"}</h3>
+      <p>${texto}</p>
+      <button class="boton-continuar">Continuar</button>
+    </div>
+  `;
+  contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
+    contenedor.innerHTML = "";
+    callback(exito);
+  });
+}
+
 // Minijuego 1: Penal
 function minijuegoPenal(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
@@ -136,9 +152,12 @@ function minijuegoPenal(callback, jugador, rival) {
   botones.forEach(btn => {
     btn.addEventListener("click", () => {
       const elegido = btn.dataset.lado;
-      const exito = elegido === correcta;
-      contenedor.innerHTML = "";
-      callback(exito);
+      const pegada = jugador.stats.pegada || 50;
+      const exito = elegido === correcta || Math.random() < Math.max(0.08, (pegada - 42) / 160);
+      const texto = exito
+        ? "La clavaste con personalidad. La hinchada explota detrás del arco."
+        : "El arquero te adivinó la intención. Todavía queda mucho partido por jugar.";
+      mostrarResolucionMinijuego(contenedor, cabecera, exito, texto, callback);
     });
   });
 }
@@ -190,8 +209,10 @@ function minijuegoMemoria(callback, jugador, rival) {
             ordenUsuario.push(parseInt(this.dataset.index));
             if (ordenUsuario.length === secuencia.length) {
               const exito = secuencia.every((val, idx) => val === ordenUsuario[idx]);
-              contenedor.innerHTML = "";
-              callback(exito);
+              const texto = exito
+                ? "Leíste la jugada completa y dejaste a todos mirando."
+                : "La presión te hizo perder el último pase de la secuencia.";
+              mostrarResolucionMinijuego(contenedor, cabecera, exito, texto, callback);
             }
           }
         });
@@ -268,16 +289,20 @@ function minijuegoQTE(callback, jugador, rival) {
       boton.style.top = `${Math.random() * maxY}px`;
       area.appendChild(boton);
 
-      // Tiempo de reacción: 0.5s (500ms)
+      // La velocidad del jugador amplía levemente el margen de reacción.
+      const tiempoReaccion = Math.round(350 + Math.min(400, (jugador.stats.velocidad || 50) * 4));
       const timeout = setTimeout(() => {
-        boton.remove();
-        callback(false);
-      }, 500);
+        mostrarResolucionMinijuego(contenedor, cabecera, false, "El defensor llegó antes y la jugada se cortó.", callback);
+      }, tiempoReaccion);
 
       boton.addEventListener("click", () => {
         clearTimeout(timeout);
         exitos++;
-        lanzarSiguiente();
+        if (exitos >= total) {
+          mostrarResolucionMinijuego(contenedor, cabecera, true, "Dejaste a los tres defensores en el camino. Una locura.", callback);
+        } else {
+          lanzarSiguiente();
+        }
       });
     }, delay);
   }
