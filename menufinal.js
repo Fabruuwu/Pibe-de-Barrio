@@ -90,6 +90,27 @@ function calcularResumenCarrera(jugador) {
     sumarPuntos(clubId, "botaDeOro", "👢 Bota de Oro", año);
   });
 
+  // Copa América (y futuras copas de selecciones): multiplican por el
+  // tamaño de la SELECCIÓN, no del club, así que se agregan aparte.
+  const PUNTOS_SELECCIONES = { "Copa América": 500 };
+  (jugador.resultadosSelecciones || []).forEach((reg) => {
+    if (reg.resultado !== "campeon") return;
+    const puntosBase = PUNTOS_SELECCIONES[reg.competencia] || 0;
+    if (!puntosBase) return;
+    const multiplicador = obtenerMultiplicadorSeleccion(reg.pais || jugador.pais);
+    const subtotal = puntosBase * multiplicador;
+    detalle.push({
+      clave: `seleccion_${reg.competencia}_${reg.año}`,
+      etiqueta: `🏆 ${reg.competencia}`,
+      club: null,
+      veces: 1,
+      puntosBase,
+      multiplicador,
+      subtotal,
+      esSeleccion: true,
+    });
+  });
+
   const puntosTotal = detalle.reduce((acc, d) => acc + d.subtotal, 0);
   const titulosTotales = detalle.reduce((acc, d) => acc + d.veces, 0);
 
@@ -309,9 +330,17 @@ function renderPuntosResumen(resumen) {
 
   contenedor.innerHTML = resumen.detalle
     .map((d) => {
+      const veces = d.veces > 1 ? ` x${d.veces}` : "";
+      if (d.esSeleccion) {
+        return `
+          <div class="resumen-final__puntos-fila">
+            <span>${d.etiqueta}${veces} · Selección (x${d.multiplicador})</span>
+            <span>${d.subtotal} pts</span>
+          </div>
+        `;
+      }
       const tamano = obtenerTamanoClub(d.club);
       const nombreClub = obtenerNombreClub(d.club);
-      const veces = d.veces > 1 ? ` x${d.veces}` : "";
       return `
         <div class="resumen-final__puntos-fila">
           <span>${d.etiqueta}${veces} · ${nombreClub} (${tamano}, x${d.multiplicador})</span>

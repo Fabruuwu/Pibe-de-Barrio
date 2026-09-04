@@ -75,19 +75,38 @@ function mostrarMundialClubes(copa, callback) {
   let indice = 0;
   let ganadosGrupos = 0;
   let perdidosGrupos = 0;
+  let partidosDeGrupoJugados = 0;
+  const TOTAL_PARTIDOS_GRUPO = 3;
+  const VICTORIAS_PARA_CLASIFICAR = 2;
+  const DERROTAS_PARA_ELIMINAR = 2;
 
   function jugarEtapa() {
     const etapa = etapas[indice];
     const rival = obtenerRivalMundial(jugador);
     window.CONTEXTO_PARTIDO = { torneo: "Mundial de Clubes", fase: etapa };
     const terminar = (exito) => {
-      const enGrupos = indice < 3;
+      const enGrupos = indice < TOTAL_PARTIDOS_GRUPO;
       if (enGrupos) {
+        partidosDeGrupoJugados++;
         if (exito) ganadosGrupos++;
         else perdidosGrupos++;
-        if (perdidosGrupos >= 2) return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
-        if (indice === 2 && ganadosGrupos < 2) return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
-      } else if (!exito) return mostrarResultadoMundial(false, etapa, copa.año, callback);
+
+        // Eliminación: ya sufrió las 2 derrotas que lo dejan afuera.
+        if (perdidosGrupos >= DERROTAS_PARA_ELIMINAR) {
+          return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
+        }
+        // Se jugaron los 3 partidos: clasifica si sumó las 2 victorias necesarias.
+        if (partidosDeGrupoJugados >= TOTAL_PARTIDOS_GRUPO) {
+          if (ganadosGrupos < VICTORIAS_PARA_CLASIFICAR) {
+            return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
+          }
+          indice = TOTAL_PARTIDOS_GRUPO;
+          return jugarEtapa();
+        }
+        indice++;
+        return jugarEtapa();
+      }
+      if (!exito) return mostrarResultadoMundial(false, etapa, copa.año, callback);
       indice++;
       if (indice === etapas.length) return mostrarResultadoMundial(true, "Final", copa.año, callback);
       jugarEtapa();

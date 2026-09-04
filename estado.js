@@ -136,6 +136,9 @@ const Estado = (() => {
       balonesDeOro: [],
       botasPendientes: [],
       botasDeOro: [],
+      convocatoriasSelecciones: [],
+      resultadosSelecciones: [],
+      copasSeleccionPendientes: [],
       campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
       copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
       resultadoCopasEspeciales: [], // Guarda { año, tipo, resultado } para las copas especiales
@@ -161,6 +164,9 @@ const Estado = (() => {
     if (!Array.isArray(jugadorNormalizado.balonesDeOro)) jugadorNormalizado.balonesDeOro = [];
     if (!Array.isArray(jugadorNormalizado.botasPendientes)) jugadorNormalizado.botasPendientes = [];
     if (!Array.isArray(jugadorNormalizado.botasDeOro)) jugadorNormalizado.botasDeOro = [];
+    if (!Array.isArray(jugadorNormalizado.convocatoriasSelecciones)) jugadorNormalizado.convocatoriasSelecciones = [];
+    if (!Array.isArray(jugadorNormalizado.resultadosSelecciones)) jugadorNormalizado.resultadosSelecciones = [];
+    if (!Array.isArray(jugadorNormalizado.copasSeleccionPendientes)) jugadorNormalizado.copasSeleccionPendientes = [];
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugadorNormalizado.posicion];
     (config?.atributos || []).forEach(({ clave }) => {
       if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = numeroAleatorio(53, 67);
