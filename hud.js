@@ -68,6 +68,9 @@ function pintarCabecera(jugador) {
   document.getElementById("hud-dorsal").textContent = `#${jugador.dorsal}`;
   document.getElementById("hud-media").textContent = jugador.media;
 
+  const badgePromesa = document.getElementById("hud-promesa-badge");
+  if (badgePromesa) badgePromesa.hidden = !jugador.esPromesa;
+
   const bandera = document.getElementById("hud-bandera");
   const pais = PAISES_POR_ID[jugador.pais];
   bandera.alt = pais ? pais.nombre : "";
@@ -467,7 +470,7 @@ function mostrarResumenAnual() {
     const internacionalesGanadas = (jugador.resultadosInternacionales || [])
       .filter(copa => copa.año === año && ["Libertadores", "Sudamericana", "Recopa", "Mundial de Clubes"].includes(copa.copa) && copa.resultado === "campeon").length;
     const notaBase = Number(jugador.statsAnuales.nota || 0);
-    const bonusCopas = nacionales * .2 + internacionalesGanadas * .4;
+    const bonusCopas = nacionales * .3 + internacionalesGanadas * .6;
     jugador.statsAnuales.notaBase = notaBase;
     jugador.statsAnuales.bonusCopas = bonusCopas;
     jugador.statsAnuales.nota = Math.min(10, notaBase + bonusCopas).toFixed(1);
@@ -639,9 +642,13 @@ function mostrarResumenAnual() {
   document.getElementById("boton-siguiente-ano").addEventListener("click", () => {
     Estado.avanzarTemporada();
     if (Estado.obtener().retirado) {
-      alert(`¡Carrera terminada! Te retiraste a los ${Estado.obtener().edad} años por edad.`);
       contenedor.innerHTML = "";
       contenedor.hidden = true;
+      if (typeof finalizarCarrera === "function") {
+        finalizarCarrera();
+      } else {
+        alert(`¡Carrera terminada! Te retiraste a los ${Estado.obtener().edad} años por edad.`);
+      }
       return;
     }
     contenedor.innerHTML = "";

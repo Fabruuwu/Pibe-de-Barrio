@@ -295,6 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cariño: 0,
       seleccion: "sin-chances",
       valor: 0,
+      esPromesa: determinarEsPromesa(),
     };
   }
 
@@ -308,7 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("pantalla-juego").hidden = false;
     pintarHUD(Estado.obtener());
 
-    abrirModalCartas(); 
-
+    const jugadorFinal = Estado.obtener();
+    if (jugadorFinal.esPromesa) {
+      mostrarCartelPromesa(() => abrirModalCartas());
+    } else {
+      abrirModalCartas();
+    }
   }
 });

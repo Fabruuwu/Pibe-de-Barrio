@@ -152,8 +152,17 @@ function minijuegoConstelacion(callback, jugador, rival, nivel) {
     posiciones.forEach(p => { const n = document.createElement("button"); n.className = "mundial-nodo"; n.textContent = p.i + 1; n.style.left = `${p.x}%`; n.style.top = `${p.y}%`; n.dataset.i = p.i; zona.appendChild(n); });
     if (nivel === 2) for (let i = 0; i < 3; i++) { const z = document.createElement("span"); z.className = "mundial-zona-roja"; z.style.left = `${15 + Math.random() * 65}%`; z.style.top = `${15 + Math.random() * 65}%`; zona.appendChild(z); }
     const terminar = exito => { if (!activo) return; activo = false; callback(exito); };
-    zona.onpointerdown = e => { arrastrando = true; e.preventDefault(); };
-    zona.onpointerup = () => { arrastrando = false; };
+    zona.style.touchAction = "none";
+    zona.onpointerdown = e => {
+      arrastrando = true;
+      try { zona.setPointerCapture(e.pointerId); } catch (_) {}
+      e.preventDefault();
+    };
+    zona.onpointerup = e => {
+      arrastrando = false;
+      try { zona.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    zona.onpointercancel = () => { arrastrando = false; };
     zona.onpointermove = e => {
       if (!arrastrando || !activo) return;
       const objetivo = document.elementFromPoint(e.clientX, e.clientY);
@@ -175,6 +184,7 @@ function minijuegoMarcaPegajosa(callback, jugador, rival, nivel) {
     const zona = contenedor.querySelector(".mundial-tracking"), rivalNodo = zona.querySelector(".mundial-delantero"), barra = zona.querySelector(".barra-progreso"); zona.hidden = false;
     let carga = 0, dentro = false, activo = true, x = 40, y = 40;
     rivalNodo.style.width = rivalNodo.style.height = nivel === 2 ? "30px" : "52px";
+    zona.style.touchAction = "none";
     zona.onpointermove = e => { const r = rivalNodo.getBoundingClientRect(); dentro = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
     const intervalo = setInterval(() => { if (!activo) return; carga += dentro ? .1 : -(nivel ? .16 : .08); carga = Math.max(0, carga); barra.style.width = `${Math.min(100, carga / objetivo * 100)}%`; if (carga >= objetivo) { activo = false; clearInterval(intervalo); callback(true); } }, 100);
     const mover = () => { if (!activo) return; x = Math.max(0, Math.min(88, x + (Math.random() - .5) * (nivel === 0 ? 8 : 22))); y = Math.max(0, Math.min(75, y + (Math.random() - .5) * (nivel === 0 ? 8 : 22))); rivalNodo.style.left = `${x}%`; rivalNodo.style.top = `${y}%`; setTimeout(mover, nivel === 0 ? 450 : 250); }; mover();

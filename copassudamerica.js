@@ -173,18 +173,18 @@ function minijuegoMemoriaParejas(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
 
-  const emojis = ["⚽","🏆","🔥","💪","🎯","⚡","🥅","🛡️","👟"];
+  const emojis = ["⚽","🏆","🔥","💪","🎯","⚡","🥅","🛡️","👟","🌟"];
   const cartas = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
 
   const gambeta = jugador.stats.gambeta || 0;
-  let tiempoVer = 0.5;
-  if (gambeta <= 65) tiempoVer = 0.6;
-  else if (gambeta <= 75) tiempoVer = 0.7;
-  else if (gambeta <= 85) tiempoVer = 0.8;
-  else if (gambeta <= 95) tiempoVer = 1.0;
-  else tiempoVer = 1.5;
+  let tiempoVer = 1.0;
+  if (gambeta <= 65) tiempoVer = 1.2;
+  else if (gambeta <= 75) tiempoVer = 1.4;
+  else if (gambeta <= 85) tiempoVer = 1.6;
+  else if (gambeta <= 95) tiempoVer = 2.0;
+  else tiempoVer = 2.5;
 
-  let vidas = 2;
+  let vidas = 5;
   if (jugador.media >= 85) vidas++;
 
   contenedor.innerHTML = `
@@ -192,7 +192,7 @@ function minijuegoMemoriaParejas(callback, jugador, rival) {
     <div class="competition-card">
       <h3>La Jugada Preparada</h3>
       <p>Memorizá las parejas de emojis. ¡Tenés ${vidas} vidas!</p>
-      <div class="memoria-parejas" id="memoria-parejas" style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px; max-width:500px; margin:20px auto;"></div>
+      <div class="memoria-parejas" id="memoria-parejas" style="display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(5,1fr); gap:8px; max-width:420px; margin:20px auto;"></div>
       <div style="margin-top:10px;">Vidas: <span id="vidas">${'❤️'.repeat(vidas)}</span></div>
       <button class="boton-iniciar-qte" id="btn-iniciar-parejas">Comenzar</button>
     </div>
@@ -256,7 +256,7 @@ function minijuegoMemoriaParejas(callback, jugador, rival) {
         card2.classList.add("permanente");
         reveladas = [];
         bloqueado = false;
-        if (paresEncontrados === 9) {
+        if (paresEncontrados === 10) {
           contenedor.innerHTML = "";
           callback(true);
         }

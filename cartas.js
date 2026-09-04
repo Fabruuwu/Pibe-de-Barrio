@@ -58,7 +58,7 @@ function generarCarta() {
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = rareza === "comun" ? numeroAleatorio(2, 3) : numeroAleatorio(4, 5);
+    puntos = rareza === "comun" ? numeroAleatorio(3, 5) : numeroAleatorio(6, 8);
   } else if (rareza === "dorada") {
     if (Math.random() < 0.8) {
       const mejora = elegirAleatorio(mejorasIndividuales);
@@ -71,22 +71,26 @@ function generarCarta() {
       nombre = mejora.nombre;
       desc = mejora.desc;
     }
-    puntos = numeroAleatorio(6, 8);
+    puntos = numeroAleatorio(9, 12);
   } else {
     const mejora = elegirAleatorio(mejorasDobles);
     stats = mejora.stats;
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = numeroAleatorio(9, 11);
+    puntos = numeroAleatorio(13, 16);
   }
 
   return { rareza: rareza, stats: stats, puntos: puntos, nombre: nombre, desc: desc };
 }
 
 function aplicarCarta(jugador, carta) {
+  const cap = obtenerCapStat(jugador);
+  const multiplicador = jugador.esPromesa ? JOVEN_PROMESA.MULTIPLICADOR_CARTAS : 1;
+
   const statsActuales = { ...jugador.stats };
   carta.stats.forEach(stat => {
-    statsActuales[stat] = Math.min(99, (statsActuales[stat] || 0) + carta.puntos);
+    const ganancia = Math.round(carta.puntos * multiplicador);
+    statsActuales[stat] = Math.min(cap, (statsActuales[stat] || 0) + ganancia);
   });
 
   const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
@@ -101,7 +105,12 @@ function aplicarCarta(jugador, carta) {
   const nuevoValor = calcularValorActualizado(nuevaMedia, jugador.edad);
 
   Estado.actualizarStats(statsActuales);
-  Estado.actualizar({ media: nuevaMedia, valor: nuevoValor });
+  Estado.actualizar({
+    media: nuevaMedia,
+    valor: nuevoValor,
+    mediaMaxima: Math.max(jugador.mediaMaxima || 0, nuevaMedia),
+    valorMaximo: Math.max(jugador.valorMaximo || 0, nuevoValor),
+  });
 
   return { media: nuevaMedia, valor: nuevoValor };
 }

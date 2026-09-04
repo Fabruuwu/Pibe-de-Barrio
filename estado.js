@@ -41,14 +41,22 @@ const Estado = (() => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  function generarStatsBase(posicion) {
-    const base = {
-      pegada: numeroAleatorio(55, 68),
-      velocidad: numeroAleatorio(51, 62),
-      gambeta: numeroAleatorio(53, 65),
-      liderazgo: numeroAleatorio(40, 55),
-      resistencia: numeroAleatorio(55, 62),
-    };
+  function generarStatsBase(posicion, esPromesa) {
+    const base = esPromesa
+      ? {
+          pegada: numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX),
+          velocidad: numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX),
+          gambeta: numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX),
+          liderazgo: numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX),
+          resistencia: numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX),
+        }
+      : {
+          pegada: numeroAleatorio(55, 68),
+          velocidad: numeroAleatorio(51, 62),
+          gambeta: numeroAleatorio(53, 65),
+          liderazgo: numeroAleatorio(40, 55),
+          resistencia: numeroAleatorio(55, 62),
+        };
 
     const atributosPorPosicion = {
       enganche: ["pase", "cerebro"],
@@ -57,7 +65,9 @@ const Estado = (() => {
     };
 
     (atributosPorPosicion[posicion] || []).forEach((atributo) => {
-      base[atributo] = numeroAleatorio(53, 67);
+      base[atributo] = esPromesa
+        ? numeroAleatorio(JOVEN_PROMESA.STAT_BASE_MIN, JOVEN_PROMESA.STAT_BASE_MAX)
+        : numeroAleatorio(53, 67);
     });
 
     return base;
@@ -89,16 +99,20 @@ const Estado = (() => {
   // ------- FIN NUEVAS MECÁNICAS -------
 
   function expandirJugador(base) {
+    const esPromesa = !!base.esPromesa;
     const edad = generarEdad();
-    const statsBase = generarStatsBase(base.posicion);
+    const statsBase = generarStatsBase(base.posicion, esPromesa);
     const media = calcularMedia(statsBase, base.posicion);
     const valor = calcularValor(media, edad);
 
     return {
       ...base,
+      esPromesa: esPromesa,
       edad: edad,
       media: media,
       valor: valor,
+      mediaMaxima: media,
+      valorMaximo: valor,
       dinero: 0,
       retirado: false,
       temporada: 1,
@@ -138,6 +152,7 @@ const Estado = (() => {
 
   function normalizarJugador(base) {
     const jugadorNormalizado = { ...base, stats: { ...(base.stats || {}) } };
+    if (jugadorNormalizado.esPromesa === undefined) jugadorNormalizado.esPromesa = false;
     if (!Array.isArray(jugadorNormalizado.resultadosInternacionales)) jugadorNormalizado.resultadosInternacionales = [];
     if (!Array.isArray(jugadorNormalizado.clasificacionesMundialClubes)) jugadorNormalizado.clasificacionesMundialClubes = [];
     if (!Array.isArray(jugadorNormalizado.premiosPendientes)) jugadorNormalizado.premiosPendientes = [];
@@ -151,6 +166,8 @@ const Estado = (() => {
     });
     jugadorNormalizado.media = calcularMedia(jugadorNormalizado.stats, jugadorNormalizado.posicion);
     jugadorNormalizado.valor = calcularValor(jugadorNormalizado.media, jugadorNormalizado.edad);
+    jugadorNormalizado.mediaMaxima = Math.max(jugadorNormalizado.mediaMaxima || 0, jugadorNormalizado.media);
+    jugadorNormalizado.valorMaximo = Math.max(jugadorNormalizado.valorMaximo || 0, jugadorNormalizado.valor || 0);
     return jugadorNormalizado;
   }
 
@@ -198,15 +215,18 @@ const Estado = (() => {
     // Aplicar a resistencia
     jugador.stats.resistencia = Math.max(0, (jugador.stats.resistencia || 0) - resPen);
 
-    // Aplicar a stats exclusivas según posición (limitando a 99)
+    // Aplicar a stats exclusivas según posición (limitando al CAP del jugador)
+    const cap = obtenerCapStat(jugador);
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugador.posicion];
     if (config && config.atributos) {
       config.atributos.forEach(a => {
-        jugador.stats[a.clave] = Math.max(0, Math.min(99, (jugador.stats[a.clave] || 0) - statPen));
+        jugador.stats[a.clave] = Math.max(0, Math.min(cap, (jugador.stats[a.clave] || 0) - statPen));
       });
     }
 
     jugador.media = calcularMedia(jugador.stats, jugador.posicion);
+    jugador.mediaMaxima = Math.max(jugador.mediaMaxima || 0, jugador.media);
+    jugador.valorMaximo = Math.max(jugador.valorMaximo || 0, jugador.valor || 0);
 
     jugador.cariño = Math.min(100, (jugador.cariño || 0) + 1);
 

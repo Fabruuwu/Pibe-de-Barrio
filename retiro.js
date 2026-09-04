@@ -39,9 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function retirarJugador() {
-    // TODO fase 3: armar el resumen de carrera (título, historial,
-    // puntos) y mostrar la pantalla de resumen en vez de este alert.
-    console.log("Carrera retirada:", Estado.obtener());
-    alert("¡Carrera finalizada! (el resumen todavía no está armado, llega en la fase 3)");
+    if (typeof finalizarCarrera === "function") {
+      finalizarCarrera();
+    } else {
+      console.warn("finalizarCarrera() no está disponible; ¿se cargó menufinal.js?");
+      alert("¡Carrera finalizada!");
+    }
   }
 });

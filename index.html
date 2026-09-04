@@ -136,6 +136,7 @@
       <div class="hud-cabecera__fila hud-cabecera__fila--top">
         <img id="hud-bandera" class="hud-bandera" alt="">
         <span id="hud-nombre" class="hud-nombre">—</span>
+        <span id="hud-promesa-badge" class="hud-promesa-badge" hidden title="Joven Promesa">🌟</span>
         <span id="hud-dorsal" class="hud-dorsal">#0</span>
       </div>
       <div class="hud-cabecera__fila">
@@ -217,7 +218,76 @@
   </div>
 </div>
 
+<!-- MODAL JOVEN PROMESA -->
+<div class="modal" id="modal-promesa" hidden>
+  <div class="modal__tarjeta modal__tarjeta--promesa">
+    <span class="promesa__estrella">🌟</span>
+    <h2 class="promesa__titulo" id="promesa-titulo">Joven Promesa</h2>
+    <p class="promesa__texto" id="promesa-texto"></p>
+    <button type="button" class="modal__boton modal__boton--promesa" id="promesa-continuar">Empezar mi leyenda</button>
+  </div>
+</div>
+
+<!-- CARTEL DE FIN DE CARRERA -->
+<div class="modal" id="modal-final" hidden>
+  <div class="modal__tarjeta modal__tarjeta--final">
+    <img id="final-escudo" class="final-escudo" alt="" hidden>
+    <h2 class="final-titulo" id="final-titulo">—</h2>
+    <button type="button" class="boton-iniciar" id="final-ver-carrera">
+      <span class="boton-iniciar__icono">📖</span> Ver mi Carrera
+    </button>
+  </div>
+</div>
+
+<!-- PANTALLA DE RESUMEN DE CARRERA -->
+<main class="pantalla-resumen-final" id="pantalla-resumen-final" hidden>
+  <div class="resumen-final__contenido">
+
+    <div class="tarjeta resumen-final__hud">
+      <img id="resumen-escudo-club" class="resumen-final__escudo" alt="" hidden>
+      <div class="resumen-final__hud-texto">
+        <div class="resumen-final__nombre">
+          <span id="resumen-final-nombre">—</span>
+          <span id="resumen-final-dorsal" class="hud-dorsal">#0</span>
+        </div>
+        <div class="resumen-final__titulo-carrera" id="resumen-final-titulo">—</div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="resumen-final__seccion">Clubes</h3>
+      <div id="resumen-final-clubes" class="resumen-final__lista"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="resumen-final__seccion">Selección</h3>
+      <div id="resumen-final-seleccion" class="resumen-final__lista"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="resumen-final__seccion">Totales de carrera</h3>
+      <div class="hud-burbujas hud-burbujas--globales" id="resumen-final-totales"></div>
+      <div class="resumen-final__valor-max" id="resumen-final-valor-max"></div>
+    </div>
+
+    <div class="resumen-final__rival" id="resumen-final-rival">RIVAL</div>
+
+    <div class="tarjeta resumen-final__puntos">
+      <h3 class="resumen-final__seccion">Puntos de carrera</h3>
+      <div class="resumen-final__puntos-numero" id="resumen-final-puntos-numero">0</div>
+      <div class="resumen-final__puntos-detalle" id="resumen-final-puntos-detalle"></div>
+    </div>
+
+    <button type="button" class="boton-iniciar" id="resumen-final-otra-carrera">
+      <span class="boton-iniciar__icono">🔄</span> Hacer otra carrera
+    </button>
+
+  </div>
+</main>
+
 <script src="data.js"></script>
+<script src="JovenPromesa.js"></script>
+<script src="clasificacionClubes.js"></script>
 <script src="delantero.js"></script>
 <script src="enganche.js"></script>
 <script src="central.js"></script>
@@ -236,5 +306,6 @@
 <script src="menu.js"></script>
 <script src="hud.js"></script>
 <script src="retiro.js"></script>
+<script src="menufinal.js"></script>
 </body>
 </html>
