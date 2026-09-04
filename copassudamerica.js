@@ -296,7 +296,7 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
       <div class="libertadores-grid" id="libertadores-grid"></div>
       <div class="secuencia-info" id="secuencia-info"></div>
       <button class="boton-iniciar-qte" id="btn-comenzar-libertadores">Comenzar</button>
-      <button class="boton-iniciar-qte" id="btn-repetir-secuencia" hidden>Repetir secuencia (1)</button>
+      <button class="boton-iniciar-qte" id="btn-repetir-secuencia" hidden>Repetir secuencia (2)</button>
     </div>
   `;
 
@@ -335,7 +335,11 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   let partidoTerminado = false;
   let bloqueadoGlobal = false; // para evitar clics en transición
   const edicionLibertadores = window.COPA_LIBERTADORES_ACTUAL || jugador.año;
+  const MAX_REPETICIONES_SECUENCIA = 2; // antes 1: ahora tenés una chance extra por edición.
   if (!jugador.repeticionesLibertadores) jugador.repeticionesLibertadores = {};
+  if (typeof jugador.repeticionesLibertadores[edicionLibertadores] !== "number") {
+    jugador.repeticionesLibertadores[edicionLibertadores] = 0;
+  }
 
   function generarSecuencia(longitud) {
     const indices = [];
@@ -395,7 +399,13 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
           info.textContent = "¡Repetí la secuencia!";
           bloques.forEach(b => b.classList.add("activo"));
           esperandoUsuario = true;
-          if (!jugador.repeticionesLibertadores[edicionLibertadores]) btnRepetir.hidden = false;
+          const repeticionesUsadas = jugador.repeticionesLibertadores[edicionLibertadores];
+          if (repeticionesUsadas < MAX_REPETICIONES_SECUENCIA) {
+            btnRepetir.textContent = `Repetir secuencia (${MAX_REPETICIONES_SECUENCIA - repeticionesUsadas})`;
+            btnRepetir.hidden = false;
+          } else {
+            btnRepetir.hidden = true;
+          }
           return;
         }
         const idx = secuencia[paso];
@@ -405,10 +415,13 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
       }, 500);
     }
     btnRepetir.onclick = () => {
-      if (jugador.repeticionesLibertadores[edicionLibertadores] || finalizado) return;
-      jugador.repeticionesLibertadores[edicionLibertadores] = true;
+      if (jugador.repeticionesLibertadores[edicionLibertadores] >= MAX_REPETICIONES_SECUENCIA || finalizado) return;
+      jugador.repeticionesLibertadores[edicionLibertadores]++;
       Estado.guardar();
-      info.textContent = "Última repetición de esta Copa Libertadores...";
+      const restantes = MAX_REPETICIONES_SECUENCIA - jugador.repeticionesLibertadores[edicionLibertadores];
+      info.textContent = restantes > 0
+        ? "Repitiendo la secuencia..."
+        : "Última repetición de esta Copa Libertadores...";
       mostrarSecuencia();
     };
     mostrarSecuencia();

@@ -19,23 +19,79 @@
 // cualquier país no listado cae en "chica" por defecto.
 // ============================================
 const CLASIFICACION_SELECCIONES = {
+  // Grande
   argentina: "grande",
   brasil: "grande",
+  alemania: "grande",
+  espana: "grande",
+  francia: "grande",
+  inglaterra: "grande",
+  italia: "grande",
+  portugal: "grande",
+  "paises-bajos": "grande",
+  belgica: "grande",
 
+  // Mediana
   uruguay: "mediana",
   colombia: "mediana",
-  chile: "mediana",
   mexico: "mediana",
   "estados-unidos": "mediana",
+  canada: "mediana",
+  croacia: "mediana",
+  suiza: "mediana",
+  dinamarca: "mediana",
+  polonia: "mediana",
+  austria: "mediana",
+  suecia: "mediana",
+  turquia: "mediana",
+  serbia: "mediana",
+  marruecos: "mediana",
+  senegal: "mediana",
+  japon: "mediana",
+  "corea-del-sur": "mediana",
+  iran: "mediana",
 
+  // Chica
+  chile: "chica",
+  ecuador: "chica",
   paraguay: "chica",
   peru: "chica",
-  ecuador: "chica",
   venezuela: "chica",
-  bolivia: "chica",
-  costa_rica: "chica",
+  "costa-rica": "chica",
+  panama: "chica",
+  jamaica: "chica",
+  honduras: "chica",
+  "trinidad-y-tobago": "chica",
+  egipto: "chica",
+  tunez: "chica",
+  nigeria: "chica",
+  ghana: "chica",
+  argelia: "chica",
+  camerun: "chica",
+  sudafrica: "chica",
+  "costa-de-marfil": "chica",
+  noruega: "chica",
+  escocia: "chica",
+  grecia: "chica",
+  rumania: "chica",
+  gales: "chica",
+  hungria: "chica",
+  islandia: "chica",
+  "bosnia-y-herzegovina": "chica",
+  australia: "chica",
+  "arabia-saudita": "chica",
 
-  // El resto de selecciones de CONMEBOL/CONCACAF no listadas -> "diminuta"
+  // Diminuta
+  bolivia: "diminuta",
+  catar: "diminuta",
+  uzbekistan: "diminuta",
+  irak: "diminuta",
+  jordania: "diminuta",
+  indonesia: "diminuta",
+  "nueva-zelanda": "diminuta",
+
+  // Cualquier país nuevo que se agregue a data.js y no esté acá
+  // cae en "diminuta" por el fallback de obtenerTamanoSeleccion().
 };
 
 function obtenerTamanoSeleccion(idPais) {

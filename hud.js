@@ -478,6 +478,8 @@ function mostrarResumenAnual() {
   }
 
   if (typeof prepararInvitacionBalonDeOro === "function") prepararInvitacionBalonDeOro(jugador, año);
+  if (typeof prepararBotaDeOro === "function") prepararBotaDeOro(jugador, año);
+  if (typeof prepararCopaAmerica === "function") prepararCopaAmerica(jugador, año);
   // Segunda pasada: la clasificación se revisa tras jugar todas las copas del año.
   if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
 
@@ -568,6 +570,26 @@ function mostrarResumenAnual() {
     : "🏅 Tuviste una gran temporada, sin embargo no fuiste invitado a la gala del Balón de Oro.";
   if (balonGanado) textoBalonDeOro += `${textoBalonDeOro ? "<br>" : ""}🏆 ¡Felicidades! Ganaste el Balón de Oro ${balonGanado.temporada}.`;
 
+  // Bota de Oro: etapa A (candidato o no, según los goles de esta temporada)
+  // y, si ya se resolvió el sobre del año anterior, el resultado final.
+  let textoBotaDeOro = "";
+  const mensajeBotaEtapaA = (typeof obtenerMensajeBotaDeOroResumen === "function")
+    ? obtenerMensajeBotaDeOroResumen(jugador, año)
+    : null;
+  if (mensajeBotaEtapaA) textoBotaDeOro = `👢 ${mensajeBotaEtapaA}`;
+  const botaGanadaEsteAño = (jugador.botasDeOro || []).find(b => b.galaAño === año);
+  if (botaGanadaEsteAño) {
+    textoBotaDeOro += `${textoBotaDeOro ? "<br>" : ""}👢 ¡Felicidades! Ganaste la Bota de Oro ${botaGanadaEsteAño.temporada}.`;
+  }
+
+  // Selecciones (Copa América y las que se vayan sumando).
+  let textoSelecciones = "";
+  (jugador.resultadosSelecciones || [])
+    .filter(r => r.año === año)
+    .forEach(r => {
+      textoSelecciones += `${textoSelecciones ? "<br>" : ""}🌎 ${r.mensajeResumen}`;
+    });
+
   let textoClasificacionLibertadores = "";
   let textoClasificacionSudamericana = "";
   const resLiga = jugador.resultadoLiga || {};
@@ -631,6 +653,8 @@ function mostrarResumenAnual() {
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
       ${textoMundialClubes ? `<br><br><strong>${textoMundialClubes}</strong>` : ''}
       ${textoBalonDeOro ? `<br><br><strong>${textoBalonDeOro}</strong>` : ''}
+      ${textoBotaDeOro ? `<br><br><strong>${textoBotaDeOro}</strong>` : ''}
+      ${textoSelecciones ? `<br><br><strong>${textoSelecciones}</strong>` : ''}
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
       ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
     </div>
@@ -654,9 +678,20 @@ function mostrarResumenAnual() {
     contenedor.innerHTML = "";
     contenedor.hidden = true;
     pintarHUD(Estado.obtener());
-    // La gala pendiente se resuelve antes de iniciar la nueva temporada.
-    if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(abrirModalCartas)) return;
-    abrirModalCartas();
+    // Las galas/sobres pendientes se resuelven, en orden, antes de arrancar
+    // la nueva temporada. Cada una devuelve true si mostró su pantalla
+    // (en ese caso, ella misma llama a la siguiente al terminar).
+    if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(continuarInicioDeAño)) return;
+    continuarInicioDeAño();
+
+    function continuarInicioDeAño() {
+      if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAño2)) return;
+      continuarInicioDeAño2();
+    }
+    function continuarInicioDeAño2() {
+      if (typeof mostrarCopaAmerica === "function" && mostrarCopaAmerica(abrirModalCartas)) return;
+      abrirModalCartas();
+    }
   });
 }
 
