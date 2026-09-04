@@ -142,7 +142,7 @@ function minijuegoHuecoImposible(callback, jugador, rival, nivel) {
     const inicio = Date.now();
     const animar = () => {
       if (!activo) return;
-      if (nivel > 0 && (x <= 0 || x >= 86)) direccion *= -1;
+      if (x <= 0 || x >= 86) direccion *= -1;
       if (nivel === 1 && Math.random() < .03) velocidad = 1 + Math.random() * 2.5;
       if (final && Math.random() < .05) hueco.style.width = `${6 + Math.random() * 8}%`;
       x += velocidad * direccion; x = Math.max(0, Math.min(90, x)); hueco.style.left = `${x}%`;
