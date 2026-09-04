@@ -1632,6 +1632,19 @@ html, body {
 .mundial-asedio.congelado { filter: grayscale(1); pointer-events: none; }
 @keyframes pulso-asedio { to { transform: scale(.55); opacity: .35; } }
 
+/* Gala del Balón de Oro */
+.gala-sobre { text-align: center; background: linear-gradient(145deg, #292113, #15131c); border-color: #a98438; }
+.gala-sobre__sello { display: block; font-size: 50px; margin: 10px; }
+.gala-sobre__boton { padding: 14px 22px; border: 1px solid #e5bf55; border-radius: 7px; background: #3d2b0a; color: #ffe8a3; font: 700 16px var(--fuente-cuerpo); cursor: pointer; }
+.gala-votos { display: grid; grid-template-columns: repeat(5, minmax(90px, 1fr)); align-items: end; gap: 8px; min-height: 245px; margin: 20px 0; }
+.gala-candidato { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 8px; text-align: center; font-size: 13px; }
+.gala-candidato strong { min-height: 38px; display: flex; align-items: end; }
+.gala-barra { height: 130px; width: 100%; max-width: 42px; display: flex; align-items: end; background: #12121a; border: 1px solid #574519; }
+.gala-barra i { width: 100%; min-height: 4px; background: linear-gradient(#ffe69a, #a87910); transition: height .08s linear; }
+.gala-ganador { border-color: #e7bf4d; background: linear-gradient(145deg, #3c2b07, #18130b); }
+.gala-ganador img { max-height: 160px; max-width: 100%; object-fit: contain; }
+@media (max-width: 520px) { .gala-votos { gap: 4px; } .gala-candidato { font-size: 10px; } .gala-candidato strong { overflow-wrap: anywhere; } }
+
 /* Plata legible: antes el texto oscuro se perdía sobre el gris del cartel. */
 .competition-card.subcampeon {
   background: linear-gradient(145deg, #394150, #1d2330) !important;

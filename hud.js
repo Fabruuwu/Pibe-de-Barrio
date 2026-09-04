@@ -461,6 +461,8 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
+  if (typeof prepararInvitacionBalonDeOro === "function") prepararInvitacionBalonDeOro(jugador, año);
+
   let resumen;
   if (Math.random() < 0.6) {
     resumen = obtenerTituloPorGoles(jugador.statsAnuales.goles, jugador.nombre, obtenerNombreClub(jugador.club));
@@ -538,6 +540,13 @@ function mostrarResumenAnual() {
       textoMundialClubes = `🌍 Has quedado fuera del Mundial de Clubes por tabla de puntos (${clasificacionMundial.puntos} puntos).`;
     }
   }
+  const invitacionBalon = (jugador.premiosPendientes || []).find(p => p.temporada === año);
+  const balonGanado = (jugador.balonesDeOro || []).find(p => p.galaAño === año);
+  let textoBalonDeOro = "";
+  if (invitacionBalon) textoBalonDeOro = invitacionBalon.invitado
+    ? "🏅 ¡Felicidades! Fuiste invitado a la gala del Balón de Oro."
+    : "🏅 Tuviste una gran temporada, sin embargo no fuiste invitado a la gala del Balón de Oro.";
+  if (balonGanado) textoBalonDeOro += `${textoBalonDeOro ? "<br>" : ""}🏆 ¡Felicidades! Ganaste el Balón de Oro ${balonGanado.temporada}.`;
 
   let textoClasificacionLibertadores = "";
   let textoClasificacionSudamericana = "";
@@ -601,6 +610,7 @@ function mostrarResumenAnual() {
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
       ${textoMundialClubes ? `<br><br><strong>${textoMundialClubes}</strong>` : ''}
+      ${textoBalonDeOro ? `<br><br><strong>${textoBalonDeOro}</strong>` : ''}
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
       ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
     </div>
@@ -620,7 +630,8 @@ function mostrarResumenAnual() {
     contenedor.innerHTML = "";
     contenedor.hidden = true;
     pintarHUD(Estado.obtener());
-    // Simplemente ir a cartas, el flujo maneja copas y eventos
+    // La gala pendiente se resuelve antes de iniciar la nueva temporada.
+    if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(abrirModalCartas)) return;
     abrirModalCartas();
   });
 }

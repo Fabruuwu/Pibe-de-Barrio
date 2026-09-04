@@ -56,15 +56,23 @@ function obtenerRivalMundial(jugador) {
 
 function mostrarMundialClubes(copa, callback) {
   const jugador = Estado.obtener();
-  const etapas = ["Cuartos de final", "Semifinal", "Final"];
+  const etapas = ["Fase de grupos · Partido 1", "Fase de grupos · Partido 2", "Fase de grupos · Partido 3", "Octavos de final", "Cuartos de final", "Semifinal", "Final"];
   let indice = 0;
+  let ganadosGrupos = 0;
+  let perdidosGrupos = 0;
 
   function jugarEtapa() {
     const etapa = etapas[indice];
     const rival = obtenerRivalMundial(jugador);
     window.CONTEXTO_PARTIDO = { torneo: "Mundial de Clubes", fase: etapa };
     const terminar = (exito) => {
-      if (!exito) return mostrarResultadoMundial(false, etapa, copa.año, callback);
+      const enGrupos = indice < 3;
+      if (enGrupos) {
+        if (exito) ganadosGrupos++;
+        else perdidosGrupos++;
+        if (perdidosGrupos >= 2) return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
+        if (indice === 2 && ganadosGrupos < 2) return mostrarResultadoMundial(false, "Fase de grupos", copa.año, callback);
+      } else if (!exito) return mostrarResultadoMundial(false, etapa, copa.año, callback);
       indice++;
       if (indice === etapas.length) return mostrarResultadoMundial(true, "Final", copa.año, callback);
       jugarEtapa();
@@ -75,7 +83,8 @@ function mostrarMundialClubes(copa, callback) {
       central: minijuegoMarcaPegajosa,
       arquero: minijuegoAsedioTotal
     };
-    (juegos[jugador.posicion] || minijuegoHuecoImposible)(terminar, jugador, rival, indice);
+    const dificultad = indice <= 4 ? 0 : indice === 5 ? 1 : 2;
+    (juegos[jugador.posicion] || minijuegoHuecoImposible)(terminar, jugador, rival, dificultad);
   }
   jugarEtapa();
 }
