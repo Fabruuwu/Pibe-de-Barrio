@@ -41,6 +41,14 @@ function clasificaSudamericana(jugador) {
   return false;
 }
 
+function asegurarPlazaCampeonContinental(jugador, tipo, anioCopa) {
+  if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
+  const anioSiguiente = anioCopa + 1;
+  if (!jugador.copasPendientes.some(copa => copa.año === anioSiguiente && copa.tipo === tipo)) {
+    jugador.copasPendientes.push({ año: anioSiguiente, tipo, rivalId: null, clasificacion: "campeon-defensor" });
+  }
+}
+
 // ---------- Minijuego BarraQTE ----------
 function minijuegoBarraQTE(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
@@ -75,7 +83,8 @@ function minijuegoBarraQTE(callback, jugador, rival) {
     const puntosTexto = document.getElementById("puntos-texto");
     const timer = document.getElementById("timer");
     let puntos = 0;
-    let tiempo = 20;
+    // Velocidad y resistencia dan unos segundos extra para sostener la presión.
+    let tiempo = Math.round(12 + ((jugador.stats.velocidad || 50) + (jugador.stats.resistencia || 50)) / 16);
     let terminado = false;
 
     const timerInterval = setInterval(() => {
@@ -591,6 +600,7 @@ function mostrarSudamericana(copa, callback) {
     if (resultado) {
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: "campeon" });
       jugador.stats.titulos++;
+      asegurarPlazaCampeonContinental(jugador, "sudamericana", copa.año);
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaSudamericana.png");
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
@@ -700,6 +710,7 @@ function mostrarLibertadores(copa, callback) {
     if (resultado) {
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: "campeon" });
       jugador.stats.titulos++;
+      asegurarPlazaCampeonContinental(jugador, "libertadores", copa.año);
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
       const rivalRecopa = obtenerRivalInternacional(jugador);
       const contenedor = document.getElementById("competition-container");

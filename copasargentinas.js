@@ -138,11 +138,11 @@ function minijuegoTiroLibre(callback, jugador, rival) {
 
   const pegada = jugador.stats.pegada || 0;
   let greenSize;
-  if (pegada <= 60) greenSize = 1;
-  else if (pegada <= 75) greenSize = 2;
-  else if (pegada <= 85) greenSize = 3;
-  else if (pegada <= 95) greenSize = 5;
-  else greenSize = 8;
+  if (pegada <= 60) greenSize = 3;
+  else if (pegada <= 75) greenSize = 5;
+  else if (pegada <= 85) greenSize = 7;
+  else if (pegada <= 95) greenSize = 10;
+  else greenSize = 13;
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -202,6 +202,9 @@ function minijuegoTiroLibre(callback, jugador, rival) {
 function minijuegoAereo(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
+  const habilidadAerea = jugador.stats.juegoAereo || jugador.stats.resistencia || 50;
+  const tamanoObjetivo = Math.min(42, 16 + habilidadAerea / 3);
+  const margenAereo = Math.min(24, 8 + habilidadAerea / 6);
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -209,7 +212,7 @@ function minijuegoAereo(callback, jugador, rival) {
       <h3>¡Anticipo Aéreo!</h3>
       <p>Hacé clic cuando el borde del círculo exterior toque el círculo interior (¡margen amplio!).</p>
       <div class="aerial-container" id="aerial-container" style="width:220px; height:220px; position:relative; cursor:crosshair;">
-        <div class="aerial-inner-circle" style="width:20%; height:20%;"></div>
+        <div class="aerial-inner-circle" style="width:${tamanoObjetivo}%; height:${tamanoObjetivo}%;"></div>
         <div class="aerial-outer-circle" id="aerial-outer" style="position:absolute; top:0; left:0; border:4px dashed #ffd700;"></div>
       </div>
     </div>
@@ -218,7 +221,7 @@ function minijuegoAereo(callback, jugador, rival) {
   const contenedorAereo = document.getElementById("aerial-container");
   const outer = document.getElementById("aerial-outer");
   let size = 100;
-  let velocidad = 1.2;
+  let velocidad = Math.max(.65, 1.65 - habilidadAerea / 120);
   let interval;
 
   interval = setInterval(() => {
@@ -237,7 +240,7 @@ function minijuegoAereo(callback, jugador, rival) {
   }, 60);
 
   contenedorAereo.addEventListener("mousedown", (e) => {
-    if (size < 30 && size > 10) {
+    if (size < tamanoObjetivo + margenAereo / 2 && size > tamanoObjetivo - margenAereo / 2) {
       clearInterval(interval);
       contenedor.innerHTML = "";
       callback(true);
@@ -256,11 +259,11 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
 
   const pegada = jugador.stats.pegada || 0;
   let greenSize;
-  if (pegada <= 60) greenSize = 1;
-  else if (pegada <= 75) greenSize = 2;
-  else if (pegada <= 85) greenSize = 3;
-  else if (pegada <= 95) greenSize = 5;
-  else greenSize = 8;
+  if (pegada <= 60) greenSize = 3;
+  else if (pegada <= 75) greenSize = 5;
+  else if (pegada <= 85) greenSize = 7;
+  else if (pegada <= 95) greenSize = 10;
+  else greenSize = 13;
 
   contenedor.innerHTML = `
     ${cabecera}

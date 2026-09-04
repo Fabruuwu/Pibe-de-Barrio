@@ -15,7 +15,8 @@ function minijuegoLecturaDeJuego(callback, jugador, rival) {
     ["Fase de grupos · Partido 3", 3, false], ["Octavos de final", 4, true],
     ["Cuartos de final", 5, true], ["Semifinal", 6, true], ["Final", 7, true]
   ];
-  const pausa = Math.max(280, 800 - ((jugador.stats.cerebro || 50) + (jugador.stats.liderazgo || 50)) * 4);
+  // Cerebro y liderazgo dan más tiempo de lectura, no menos.
+  const pausa = Math.min(850, 280 + ((jugador.stats.cerebro || 50) + (jugador.stats.liderazgo || 50)) * 3);
   let etapa = 0, ganadosGrupos = 0, errores = 0;
   contenedor.innerHTML = `${cabecera}<div class="competition-card minijuego-tactico"><span class="badge-copa">LIBERTADORES</span>
     <h3 id="titulo-lectura">Lectura de juego</h3><p id="instruccion-lectura">Encontrá los pases que rompen líneas.</p>

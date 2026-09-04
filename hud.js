@@ -461,6 +461,19 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
   }
 
+  if (jugador.statsAnuales.bonusCopas === undefined) {
+    const nacionales = (jugador.resultadoCopa?.esCampeon ? 1 : 0) + (jugador.resultadoCopasEspeciales || [])
+      .filter(copa => copa.año === año && copa.resultado === "campeon").length;
+    const internacionalesGanadas = (jugador.resultadosInternacionales || [])
+      .filter(copa => copa.año === año && ["Libertadores", "Sudamericana", "Recopa", "Mundial de Clubes"].includes(copa.copa) && copa.resultado === "campeon").length;
+    const notaBase = Number(jugador.statsAnuales.nota || 0);
+    const bonusCopas = nacionales * .2 + internacionalesGanadas * .4;
+    jugador.statsAnuales.notaBase = notaBase;
+    jugador.statsAnuales.bonusCopas = bonusCopas;
+    jugador.statsAnuales.nota = Math.min(10, notaBase + bonusCopas).toFixed(1);
+    Estado.guardar();
+  }
+
   if (typeof prepararInvitacionBalonDeOro === "function") prepararInvitacionBalonDeOro(jugador, año);
   // Segunda pasada: la clasificación se revisa tras jugar todas las copas del año.
   if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);

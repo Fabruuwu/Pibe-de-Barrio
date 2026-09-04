@@ -199,6 +199,7 @@ function minijuegoMemoria(callback, jugador, rival) {
   }
   
   let paso = 0;
+  const intervaloMemoria = Math.min(600, 260 + (jugador.stats.gambeta || 50) * 3);
   // Los tableros chicos exigen una lectura más rápida.
   const intervalo = setInterval(() => {
     if (paso >= secuencia.length) {
@@ -228,7 +229,7 @@ function minijuegoMemoria(callback, jugador, rival) {
       }, 350); // también más rápido
       paso++;
     }
-  }, 320);
+  }, intervaloMemoria);
 }
 
 // Minijuego 3: QTE (con instrucciones y retraso)
