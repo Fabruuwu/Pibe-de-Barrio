@@ -45,7 +45,7 @@ function minijuegoBarraQTE(callback, jugador, rival) {
   contenedor.innerHTML = `
     ${cabecera}
     <div class="competition-card">
-      <h3>¡Final de la Copa!</h3>
+      <h3>Copa Libertadores · Final</h3>
       <p>Presioná los botones correctos. Rojo (+5%), Rosa (-10%), Bordo (perdés). Necesitás 100%.</p>
       <button class="boton-iniciar-qte" id="btn-listo-barraqte">Comenzar</button>
     </div>
@@ -55,7 +55,7 @@ function minijuegoBarraQTE(callback, jugador, rival) {
     contenedor.innerHTML = `
       ${cabecera}
       <div class="competition-card">
-        <h3>¡Final de la Copa!</h3>
+        <h3>Copa Libertadores · Final</h3>
         <p>Presioná los botones correctos. Rojo (+5%), Rosa (-10%), Bordo (perdés). Necesitás 100%.</p>
         <div class="barra-qte">
           <div class="barra-progreso" id="barra-progreso"></div>
@@ -561,6 +561,7 @@ function jugarSudamericana(callback, jugador) {
 // ---------- Mostrar Sudamericana ----------
 function mostrarSudamericana(copa, callback) {
   const jugador = Estado.obtener();
+  window.CONTEXTO_PARTIDO = { torneo: "Copa Sudamericana", fase: "Edición " + copa.año };
   if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
 
   jugarSudamericana((resultado, motivo) => {
@@ -595,7 +596,10 @@ function mostrarSudamericana(copa, callback) {
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: resumen });
 
       if (motivo === "noFinal") {
-        mostrarCartelInternacional(false, "Fase Previa", "");
+        // No interrumpimos el flujo: el resumen anual ya informa la eliminación.
+        Estado.guardar();
+        callback();
+        return;
       } else {
         mostrarCartelInternacional(false, "Final", "");
       }
@@ -661,6 +665,7 @@ function jugarRecopa(callback, jugador, rival) {
 // ---------- Mostrar Libertadores ----------
 function mostrarLibertadores(copa, callback) {
   const jugador = Estado.obtener();
+  window.CONTEXTO_PARTIDO = { torneo: "Copa Libertadores", fase: "Edición " + copa.año };
   // Las carreras creadas antes de las copas internacionales no tienen esta lista.
   // Inicializarla antes de cualquier resultado (victoria o eliminación) evita cortar la partida.
   if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
@@ -693,11 +698,12 @@ function mostrarLibertadores(copa, callback) {
         }, jugador, rivalRecopa);
       });
     } else {
+      const faseNormalizada = fase === "Eliminado" ? "Fase de Grupos" : (fase || "Fase de Grupos");
       let resumen = "";
-      if (fase === "Final") resumen = "subcampeon";
-      else resumen = `eliminado_${fase}`;
+      if (faseNormalizada === "Final") resumen = "subcampeon";
+      else resumen = `eliminado_${faseNormalizada}`;
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: resumen });
-      mostrarCartelInternacional(false, fase, "");
+      mostrarCartelInternacional(false, faseNormalizada, "");
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
         contenedor.innerHTML = "";
@@ -712,11 +718,13 @@ function mostrarLibertadores(copa, callback) {
 // ---------- Mostrar cartel ----------
 function mostrarCartelInternacional(ganador, fase, imagen) {
   const contenedor = document.getElementById("competition-container");
+  const torneo = window.CONTEXTO_PARTIDO?.torneo || "Competencia internacional";
   if (ganador) {
     contenedor.innerHTML = `
       <div class="competition-card campeon">
-        <h2>¡CAMPEÓN!</h2>
+        <h2>¡CAMPEÓN DE ${torneo.toUpperCase()}!</h2>
         <img src="${imagen}" alt="Copa">
+        <p>Una campaña para la historia. La vuelta olímpica es toda tuya.</p>
         <button class="boton-continuar">Continuar</button>
       </div>
     `;
@@ -724,14 +732,16 @@ function mostrarCartelInternacional(ganador, fase, imagen) {
     if (fase === "Final") {
       contenedor.innerHTML = `
         <div class="competition-card subcampeon">
-          <h2>Subcampeón 🥈</h2>
+          <h2>Subcampeón de ${torneo} 🥈</h2>
+          <p>La final se escapó por detalles, pero llegaste hasta el último partido.</p>
           <button class="boton-continuar">Continuar</button>
         </div>
       `;
     } else {
       contenedor.innerHTML = `
         <div class="competition-card">
-          <h3>Eliminado en ${fase}</h3>
+          <h3>${torneo}: ${fase}</h3>
+          <p>La campaña terminó acá. Habrá revancha la próxima temporada.</p>
           <button class="boton-continuar">Continuar</button>
         </div>
       `;

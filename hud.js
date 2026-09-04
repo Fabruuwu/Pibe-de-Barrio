@@ -444,15 +444,18 @@ function mostrarResumenAnual() {
   const temporada = jugador.temporada;
 
   if (jugador.statsAnuales.partidos === 0) {
-    const rangos = obtenerRangosGolesAsist(jugador.media);
-    let basePartidos = Math.floor(Math.random() * 20) + 10;
-    let baseGoles = Math.floor(Math.random() * (rangos.golesMax - rangos.golesMin + 1)) + rangos.golesMin;
-    let baseAsistencias = Math.floor(Math.random() * (rangos.asisMax - rangos.asisMin + 1)) + rangos.asisMin;
+    const produccion = generarStatsAnualesPorPosicion(jugador);
 
     const bonus = obtenerBonusResistencia(jugador.stats.resistencia || 0);
-    jugador.statsAnuales.partidos = Math.max(0, basePartidos + bonus.partidos);
-    jugador.statsAnuales.goles = Math.max(0, baseGoles + bonus.goles);
-    jugador.statsAnuales.asistencias = Math.max(0, baseAsistencias + bonus.asistencias);
+    jugador.statsAnuales.partidos = Math.max(0, produccion.partidos + bonus.partidos);
+    jugador.statsAnuales.goles = Math.max(0, produccion.goles + bonus.goles);
+    jugador.statsAnuales.asistencias = Math.max(0, produccion.asistencias + bonus.asistencias);
+    if (jugador.posicion === "enganche" && jugador.statsAnuales.asistencias <= jugador.statsAnuales.goles) {
+      jugador.statsAnuales.asistencias = jugador.statsAnuales.goles + numeroAleatorio(2, 7);
+    }
+    jugador.statsAnuales.vallasInvictas = produccion.vallasInvictas;
+    jugador.statsAnuales.recuperaciones = produccion.recuperaciones;
+    jugador.statsAnuales.atajadas = produccion.atajadas;
 
     jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
     jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
@@ -542,6 +545,13 @@ function mostrarResumenAnual() {
 
   const club = NOMBRES_CLUBES[jugador.club];
   const escudoSrc = club && club.escudo ? club.escudo : "";
+  const statsRol = jugador.posicion === "arquero"
+    ? [{ valor: jugador.statsAnuales.vallasInvictas, etiqueta: "Vallas invictas" }, { valor: jugador.statsAnuales.atajadas, etiqueta: "Atajadas" }]
+    : jugador.posicion === "central"
+      ? [{ valor: jugador.statsAnuales.vallasInvictas, etiqueta: "Vallas invictas" }, { valor: jugador.statsAnuales.recuperaciones, etiqueta: "Recuperaciones" }]
+      : jugador.posicion === "enganche"
+        ? [{ valor: jugador.statsAnuales.asistencias, etiqueta: "Asistencias" }, { valor: jugador.statsAnuales.goles, etiqueta: "Goles" }]
+        : [{ valor: jugador.statsAnuales.goles, etiqueta: "Goles" }, { valor: jugador.statsAnuales.asistencias, etiqueta: "Asistencias" }];
 
   contenedor.innerHTML = `
     <div class="resumen-header">
@@ -561,8 +571,8 @@ function mostrarResumenAnual() {
     </div>
     <div class="resumen-stats">
       <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.partidos}</span><span class="resumen-stat-label">Partidos</span></div>
-      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.goles}</span><span class="resumen-stat-label">Goles</span></div>
-      <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.asistencias}</span><span class="resumen-stat-label">Asistencias</span></div>
+       <div class="resumen-stat"><span class="resumen-stat-valor">${statsRol[0].valor}</span><span class="resumen-stat-label">${statsRol[0].etiqueta}</span></div>
+       <div class="resumen-stat"><span class="resumen-stat-valor">${statsRol[1].valor}</span><span class="resumen-stat-label">${statsRol[1].etiqueta}</span></div>
       <div class="resumen-stat"><span class="resumen-stat-valor">${jugador.statsAnuales.nota}</span><span class="resumen-stat-label">Nota</span></div>
       <div class="resumen-stat"><span class="resumen-stat-valor">${formatearDinero(jugador.statsAnuales.dinero)}</span><span class="resumen-stat-label">Dinero</span></div>
     </div>
@@ -619,4 +629,30 @@ function calcularNotaTemporada(statsAnuales) {
 function obtenerNombreClub(idClub) {
   const club = NOMBRES_CLUBES[idClub];
   return club ? club.nombre : "Club";
+}
+
+function generarStatsAnualesPorPosicion(jugador) {
+  const media = jugador.media || 50;
+  const aleatorio = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const partidos = Math.min(55, aleatorio(24, 38) + Math.floor((jugador.stats.resistencia || 50) / 12));
+  const produccion = { partidos, goles: 0, asistencias: 0, vallasInvictas: 0, recuperaciones: 0, atajadas: 0 };
+  if (jugador.posicion === "delantero") {
+    const minimo = media >= 96 ? 42 : media >= 91 ? 30 : media >= 86 ? 19 : media >= 76 ? 10 : 3;
+    const maximo = media >= 96 ? 78 : media >= 91 ? 60 : media >= 86 ? 43 : media >= 76 ? 29 : 16;
+    produccion.goles = aleatorio(minimo, maximo);
+    produccion.asistencias = aleatorio(Math.max(2, Math.floor(minimo / 3)), Math.max(6, Math.floor(maximo * .58)));
+  } else if (jugador.posicion === "enganche") {
+    const nivel = Math.max(0, media - 55);
+    produccion.asistencias = aleatorio(8 + Math.floor(nivel * .62), 16 + Math.floor(nivel * .94));
+    produccion.goles = aleatorio(Math.max(2, Math.floor(produccion.asistencias * .18)), Math.max(4, Math.floor(produccion.asistencias * .48)));
+  } else if (jugador.posicion === "central") {
+    produccion.goles = aleatorio(1, media >= 90 ? 14 : media >= 80 ? 9 : 6);
+    produccion.asistencias = aleatorio(1, media >= 90 ? 11 : media >= 80 ? 7 : 4);
+    produccion.recuperaciones = aleatorio(44 + Math.floor(media * .48), 82 + Math.floor(media * .9));
+    produccion.vallasInvictas = aleatorio(7 + Math.floor(media / 10), 12 + Math.floor(media / 5));
+  } else if (jugador.posicion === "arquero") {
+    produccion.atajadas = aleatorio(46 + Math.floor(media * .6), 90 + Math.floor(media * 1.05));
+    produccion.vallasInvictas = aleatorio(7 + Math.floor(media / 10), 12 + Math.floor(media / 5));
+  }
+  return produccion;
 }

@@ -313,6 +313,7 @@ function minijuegoQTE(callback, jugador, rival) {
 
 // ---------- RESULTADO EN PANTALLA (con cabecera) ----------
 function mostrarResultadoLiga(resultado, callback) {
+  window.CONTEXTO_PARTIDO = { torneo: "Liga Profesional", fase: resultado.esCampeon ? "Definición del título" : "Fin de temporada" };
   const contenedor = document.getElementById("competition-container");
   const jugador = Estado.obtener();
   const rival = obtenerClubRival(jugador);

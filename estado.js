@@ -106,6 +106,9 @@ const Estado = (() => {
         partidos: 0,
         goles: 0,
         asistencias: 0,
+        vallasInvictas: 0,
+        recuperaciones: 0,
+        atajadas: 0,
         nota: 0,
         dinero: 0
       },
@@ -113,6 +116,7 @@ const Estado = (() => {
         { club: base.club, desde: base.año, hasta: null, cariñoFinal: 0, partidos: 0, titulos: [] }
       ],
       historialEventos: [],
+      resultadosInternacionales: [],
       campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
       copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
       resultadoCopasEspeciales: [], // Guarda { año, tipo, resultado } para las copas especiales
@@ -131,6 +135,7 @@ const Estado = (() => {
 
   function normalizarJugador(base) {
     const jugadorNormalizado = { ...base, stats: { ...(base.stats || {}) } };
+    if (!Array.isArray(jugadorNormalizado.resultadosInternacionales)) jugadorNormalizado.resultadosInternacionales = [];
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugadorNormalizado.posicion];
     (config?.atributos || []).forEach(({ clave }) => {
       if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = numeroAleatorio(53, 67);
@@ -163,6 +168,9 @@ const Estado = (() => {
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;
+    jugador.stats.vallasInvictas = (jugador.stats.vallasInvictas || 0) + (jugador.statsAnuales.vallasInvictas || 0);
+    jugador.stats.recuperaciones = (jugador.stats.recuperaciones || 0) + (jugador.statsAnuales.recuperaciones || 0);
+    jugador.stats.atajadas = (jugador.stats.atajadas || 0) + (jugador.statsAnuales.atajadas || 0);
     jugador.dinero = (jugador.dinero || 0) + (jugador.statsAnuales.dinero || 0);
 
     jugador.edad += 1;
@@ -200,6 +208,9 @@ const Estado = (() => {
       partidos: 0,
       goles: 0,
       asistencias: 0,
+      vallasInvictas: 0,
+      recuperaciones: 0,
+      atajadas: 0,
       nota: 0,
       dinero: 0
     };

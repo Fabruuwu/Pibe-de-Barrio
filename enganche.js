@@ -1,8 +1,8 @@
 const CONFIG_ENGANCHE = {
   posicion: "enganche",
   statsSuperiores: [
-    { clave: "goles", etiqueta: "Goles" },
     { clave: "asistencias", etiqueta: "Asistencias" },
+    { clave: "goles", etiqueta: "Goles" },
   ],
   atributos: [
     { clave: "pase", etiqueta: "Pase" },

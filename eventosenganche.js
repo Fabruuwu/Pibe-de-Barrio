@@ -81,7 +81,9 @@ function minijuegoBombazo(callback, jugador, rival, titulo = "El bombazo") {
 function jugarSudamericanaEnganche(callback, jugador, rival) { minijuegoPaseFiltrado(ok => ok ? minijuegoBombazo(callback, jugador, rival) : callback(false), jugador, rival); }
 function jugarRecopaEnganche(callback, jugador, rival) { minijuegoLecturaCorta(ok => ok ? minijuegoBombazo(callback, jugador, rival, "El tiro libre decisivo") : callback(false), jugador, rival); }
 function minijuegoLecturaCorta(callback, jugador, rival) {
-  const contenedor = document.getElementById("competition-container"), cabecera = crearCabeceraMinijuego(jugador, rival), secuencia = Array.from({ length: 5 }, () => Math.floor(Math.random() * 9)); let entrada = [];
+  const contenedor = document.getElementById("competition-container"), cabecera = crearCabeceraMinijuego(jugador, rival);
+  const disponibles = Array.from({ length: 9 }, (_, i) => i);
+  const secuencia = Array.from({ length: 5 }, () => disponibles.splice(Math.floor(Math.random() * disponibles.length), 1)[0]); let entrada = [];
   contenedor.innerHTML = `${cabecera}<div class="competition-card"><h3>La pausa</h3><p>Memorizá cinco toques para dormir el partido.</p><div class="grid-corto" id="grid-pausa"></div><button class="boton-jugar-minijuego" id="ver-pausa">Ver secuencia</button></div>`;
   const grid = contenedor.querySelector("#grid-pausa"); for(let i=0;i<9;i++) grid.insertAdjacentHTML("beforeend", `<button class="memoria-punto" data-i="${i}"></button>`);
   const botones = [...grid.children], ver = contenedor.querySelector("#ver-pausa");
