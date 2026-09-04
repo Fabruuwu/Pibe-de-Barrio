@@ -1427,6 +1427,13 @@ html, body {
 .libertadores-grid .memoria-punto {
   height: 40px;
 }
+.libertadores-grid .memoria-punto:nth-child(5n + 1) { --color-memoria: #ff4d7d; }
+.libertadores-grid .memoria-punto:nth-child(5n + 2) { --color-memoria: #22d3ee; }
+.libertadores-grid .memoria-punto:nth-child(5n + 3) { --color-memoria: #facc15; }
+.libertadores-grid .memoria-punto:nth-child(5n + 4) { --color-memoria: #a78bfa; }
+.libertadores-grid .memoria-punto:nth-child(5n) { --color-memoria: #4ade80; }
+.libertadores-grid .memoria-punto { border-color: color-mix(in srgb, var(--color-memoria) 55%, #ffffff); background: linear-gradient(145deg, color-mix(in srgb, var(--color-memoria) 24%, #151522), #151522); }
+.libertadores-grid .memoria-punto.iluminado { background: var(--color-memoria); border-color: #fff; box-shadow: 0 0 22px var(--color-memoria); }
 
 .barra-qte {
   width: 100%;

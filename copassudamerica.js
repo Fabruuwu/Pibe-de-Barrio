@@ -287,12 +287,14 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
       <div class="libertadores-grid" id="libertadores-grid"></div>
       <div class="secuencia-info" id="secuencia-info"></div>
       <button class="boton-iniciar-qte" id="btn-comenzar-libertadores">Comenzar</button>
+      <button class="boton-iniciar-qte" id="btn-repetir-secuencia" hidden>Repetir secuencia (1)</button>
     </div>
   `;
 
   const grid = document.getElementById("libertadores-grid");
   const info = document.getElementById("secuencia-info");
   const btnComenzar = document.getElementById("btn-comenzar-libertadores");
+  const btnRepetir = document.getElementById("btn-repetir-secuencia");
   const tituloCopa = document.getElementById("titulo-copa");
 
   grid.style.gridTemplateColumns = "repeat(5, 1fr)";
@@ -323,6 +325,8 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
   let rivalActual = rivalInicial;
   let partidoTerminado = false;
   let bloqueadoGlobal = false; // para evitar clics en transición
+  const edicionLibertadores = window.COPA_LIBERTADORES_ACTUAL || jugador.año;
+  if (!jugador.repeticionesLibertadores) jugador.repeticionesLibertadores = {};
 
   function generarSecuencia(longitud) {
     const indices = [];
@@ -371,19 +375,34 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
     info.textContent = "Memorizá la secuencia...";
     btnComenzar.disabled = true;
 
-    const intervaloMostrar = setInterval(() => {
-      if (paso >= secuencia.length) {
-        clearInterval(intervaloMostrar);
-        info.textContent = "¡Repetí la secuencia!";
-        bloques.forEach(b => b.classList.add("activo"));
-        esperandoUsuario = true;
-        return;
-      }
-      const idx = secuencia[paso];
-      bloques[idx].classList.add("iluminado");
-      setTimeout(() => bloques[idx].classList.remove("iluminado"), 400);
-      paso++;
-    }, 500);
+    function mostrarSecuencia() {
+      paso = 0;
+      esperandoUsuario = false;
+      bloques.forEach(b => b.classList.remove("iluminado", "activo"));
+      btnRepetir.hidden = true;
+      const intervaloMostrar = setInterval(() => {
+        if (paso >= secuencia.length) {
+          clearInterval(intervaloMostrar);
+          info.textContent = "¡Repetí la secuencia!";
+          bloques.forEach(b => b.classList.add("activo"));
+          esperandoUsuario = true;
+          if (!jugador.repeticionesLibertadores[edicionLibertadores]) btnRepetir.hidden = false;
+          return;
+        }
+        const idx = secuencia[paso];
+        bloques[idx].classList.add("iluminado");
+        setTimeout(() => bloques[idx].classList.remove("iluminado"), 400);
+        paso++;
+      }, 500);
+    }
+    btnRepetir.onclick = () => {
+      if (jugador.repeticionesLibertadores[edicionLibertadores] || finalizado) return;
+      jugador.repeticionesLibertadores[edicionLibertadores] = true;
+      Estado.guardar();
+      info.textContent = "Última repetición de esta Copa Libertadores...";
+      mostrarSecuencia();
+    };
+    mostrarSecuencia();
 
     const handlerClick = (e) => {
       if (!esperandoUsuario || finalizado || bloqueadoGlobal) return;
@@ -621,6 +640,8 @@ function mostrarSudamericana(copa, callback) {
 
 // ---------- Jugar Recopa ----------
 function jugarRecopa(callback, jugador, rival) {
+  // Evita heredar el contexto de Libertadores cuando la Recopa se juega a continuación.
+  window.CONTEXTO_PARTIDO = { torneo: "Recopa Sudamericana", fase: "Final" };
   const minijuegosPorPosicion = {
     enganche: typeof jugarRecopaEnganche === "function" ? jugarRecopaEnganche : null,
     central: typeof jugarRecopaCentral === "function" ? jugarRecopaCentral : null,
@@ -670,6 +691,7 @@ function jugarRecopa(callback, jugador, rival) {
 function mostrarLibertadores(copa, callback) {
   const jugador = Estado.obtener();
   window.CONTEXTO_PARTIDO = { torneo: "Copa Libertadores", fase: "Edición " + copa.año };
+  window.COPA_LIBERTADORES_ACTUAL = copa.año;
   // Las carreras creadas antes de las copas internacionales no tienen esta lista.
   // Inicializarla antes de cualquier resultado (victoria o eliminación) evita cortar la partida.
   if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];

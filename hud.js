@@ -462,6 +462,8 @@ function mostrarResumenAnual() {
   }
 
   if (typeof prepararInvitacionBalonDeOro === "function") prepararInvitacionBalonDeOro(jugador, año);
+  // Segunda pasada: la clasificación se revisa tras jugar todas las copas del año.
+  if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
 
   let resumen;
   if (Math.random() < 0.6) {
@@ -532,8 +534,10 @@ function mostrarResumenAnual() {
   const clasificacionMundial = (jugador.clasificacionesMundialClubes || []).find(c => c.año === año);
   let textoMundialClubes = "";
   if (clasificacionMundial) {
-    if (clasificacionMundial.tipo === "titulo") {
-      textoMundialClubes = `🌍 ¡Clasificaste al Mundial de Clubes ${clasificacionMundial.edicion} como campeón continental!`;
+    if (clasificacionMundial.entradaTitulo && clasificacionMundial.clasificoPorPuntos) {
+      textoMundialClubes = `🌍 Has clasificado por puntos al Mundial de Clubes, ¡pero ya tenías una entrada por haber ganado la ${clasificacionMundial.tituloClasificatorio || "Copa Libertadores"}! (${clasificacionMundial.puntos} puntos)`;
+    } else if (clasificacionMundial.entradaTitulo) {
+      textoMundialClubes = `🌍 Quedaste fuera del Mundial de Clubes por tabla de puntos, pero ya tenías entrada asegurada por ganar la ${clasificacionMundial.tituloClasificatorio || "Copa Libertadores"}! (${clasificacionMundial.puntos} puntos)`;
     } else if (clasificacionMundial.clasifico) {
       textoMundialClubes = `🌍 ¡Has clasificado al Mundial de Clubes por tabla de puntos! (${clasificacionMundial.puntos} puntos)`;
     } else {

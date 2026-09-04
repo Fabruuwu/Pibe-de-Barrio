@@ -21,28 +21,43 @@ function probabilidadMundialPorClub(club, media) {
   return Math.min(99, base + bonusMundialPorMedia(media || 0));
 }
 
-function tieneTituloClasificatorio(jugador, edicion) {
-  return (jugador.resultadosInternacionales || []).some((copa) =>
+function obtenerTituloClasificatorio(jugador, edicion) {
+  return (jugador.resultadosInternacionales || []).find((copa) =>
     copa.año < edicion && copa.año >= edicion - 4 &&
     (copa.copa === "Libertadores" || copa.copa === "Recopa") && copa.resultado === "campeon"
-  );
+  ) || null;
 }
 
 function agendarMundialClubes(jugador, anioActual) {
   if (!esAnioClasificacionMundial(anioActual)) return;
   const edicion = anioActual + 1;
   if (!Array.isArray(jugador.clasificacionesMundialClubes)) jugador.clasificacionesMundialClubes = [];
-  if (jugador.clasificacionesMundialClubes.some(c => c.edicion === edicion)) return;
-
   const club = NOMBRES_CLUBES[jugador.club] || {};
-  const porTitulo = tieneTituloClasificatorio(jugador, edicion);
+  const titulo = obtenerTituloClasificatorio(jugador, edicion);
+  const porTitulo = Boolean(titulo);
   const probabilidad = probabilidadMundialPorClub(club, jugador.media);
-  const clasifico = porTitulo || Math.random() * 100 < probabilidad;
-  const puntos = clasifico && !porTitulo ? rangoAleatorio(1000, 2500) : rangoAleatorio(100, 900);
-  jugador.clasificacionesMundialClubes.push({
-    año: anioActual, edicion, clasifico, tipo: porTitulo ? "titulo" : "tabla", puntos, probabilidad
-  });
-  if (clasifico && !jugador.copasPendientes.some(c => c.año === edicion && c.tipo === "mundial-clubes")) {
+  let registro = jugador.clasificacionesMundialClubes.find(c => c.edicion === edicion);
+  // La tabla se tira siempre y se conserva para poder informar ambos resultados.
+  if (!registro || registro.clasificoPorPuntos === undefined) {
+    const clasificoPorPuntos = Math.random() * 100 < probabilidad;
+    if (!registro) {
+    registro = {
+      año: anioActual, edicion, clasificoPorPuntos,
+      puntos: clasificoPorPuntos ? rangoAleatorio(1000, 2500) : rangoAleatorio(100, 900),
+      probabilidad
+    };
+    jugador.clasificacionesMundialClubes.push(registro);
+    } else {
+      registro.clasificoPorPuntos = clasificoPorPuntos;
+      registro.puntos = clasificoPorPuntos ? rangoAleatorio(1000, 2500) : rangoAleatorio(100, 900);
+      registro.probabilidad = probabilidad;
+    }
+  }
+  registro.entradaTitulo = porTitulo;
+  registro.tituloClasificatorio = titulo?.copa || null;
+  registro.clasifico = porTitulo || registro.clasificoPorPuntos;
+  registro.tipo = porTitulo ? "titulo" : "tabla";
+  if (registro.clasifico && !jugador.copasPendientes.some(c => c.año === edicion && c.tipo === "mundial-clubes")) {
     jugador.copasPendientes.push({ año: edicion, tipo: "mundial-clubes", rivalId: null });
   }
 }

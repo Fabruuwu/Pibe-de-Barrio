@@ -83,8 +83,8 @@ function jugarRecopaEnganche(callback, jugador, rival) { minijuegoLecturaCorta(o
 function minijuegoLecturaCorta(callback, jugador, rival) {
   const contenedor = document.getElementById("competition-container"), cabecera = crearCabeceraMinijuego(jugador, rival);
   const disponibles = Array.from({ length: 9 }, (_, i) => i);
-  const secuencia = Array.from({ length: 5 }, () => disponibles.splice(Math.floor(Math.random() * disponibles.length), 1)[0]); let entrada = [];
-  contenedor.innerHTML = `${cabecera}<div class="competition-card"><h3>La pausa</h3><p>Memorizá cinco toques para dormir el partido.</p><div class="grid-corto" id="grid-pausa"></div><button class="boton-jugar-minijuego" id="ver-pausa">Ver secuencia</button></div>`;
+  const secuencia = Array.from({ length: 6 }, () => disponibles.splice(Math.floor(Math.random() * disponibles.length), 1)[0]); let entrada = [];
+  contenedor.innerHTML = `${cabecera}<div class="competition-card"><h3>La pausa</h3><p>Memorizá seis toques para dormir el partido.</p><div class="grid-corto" id="grid-pausa"></div><button class="boton-jugar-minijuego" id="ver-pausa">Ver secuencia</button></div>`;
   const grid = contenedor.querySelector("#grid-pausa"); for(let i=0;i<9;i++) grid.insertAdjacentHTML("beforeend", `<button class="memoria-punto" data-i="${i}"></button>`);
   const botones = [...grid.children], ver = contenedor.querySelector("#ver-pausa");
   ver.onclick = () => {
@@ -92,16 +92,16 @@ function minijuegoLecturaCorta(callback, jugador, rival) {
     let p = 0;
     const intervalo = setInterval(() => {
       botones.forEach(x => x.classList.remove("iluminado"));
-      if (p === 5) { clearInterval(intervalo); botones.forEach(x => x.disabled = false); return; }
+      if (p === 6) { clearInterval(intervalo); botones.forEach(x => x.disabled = false); return; }
       botones[secuencia[p++]].classList.add("iluminado");
-    }, 420);
+    }, 300);
   };
   botones.forEach(b => {
     b.disabled = true;
     b.onclick = () => {
       entrada.push(+b.dataset.i);
       b.disabled = true;
-      if (entrada.length === 5) {
+      if (entrada.length === 6) {
         const ok = entrada.every((x, i) => x === secuencia[i]);
         resultadoEnganche(contenedor, cabecera, ok, ok ? "La pelota es tuya" : "El caos ganó", ok ? "Manejaste los tiempos como un crack." : "Perdiste la posesión en el momento clave.", callback);
       }

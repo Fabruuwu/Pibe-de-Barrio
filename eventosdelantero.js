@@ -190,16 +190,16 @@ function minijuegoMemoria(callback, jugador, rival) {
     puntos.push(div);
   }
   
-  // Generar secuencia de 4 índices únicos (0-9)
+  // Tablero corto: más secuencia y menos tiempo de lectura.
   const secuencia = [];
   const disponibles = [0,1,2,3,4,5,6,7,8,9];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const idx = Math.floor(Math.random() * disponibles.length);
     secuencia.push(disponibles.splice(idx, 1)[0]);
   }
   
   let paso = 0;
-  // Velocidad 10% más rápida: 450ms en vez de 500ms
+  // Los tableros chicos exigen una lectura más rápida.
   const intervalo = setInterval(() => {
     if (paso >= secuencia.length) {
       clearInterval(intervalo);
@@ -228,7 +228,7 @@ function minijuegoMemoria(callback, jugador, rival) {
       }, 350); // también más rápido
       paso++;
     }
-  }, 450);
+  }, 320);
 }
 
 // Minijuego 3: QTE (con instrucciones y retraso)
