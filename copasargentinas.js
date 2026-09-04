@@ -329,6 +329,10 @@ function procesarCopasPendientes(callback) {
       mostrarRecopa(copa, () => {
         siguiente();
       });
+    } else if (copa.tipo === "mundial-clubes" && typeof mostrarMundialClubes === "function") {
+      mostrarMundialClubes(copa, () => {
+        siguiente();
+      });
     } else {
       mostrarCopaPendiente(copa, () => {
         siguiente();
@@ -426,6 +430,9 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
       }
     }
   }
+
+  // Mundial de Clubes: la plaza se define el año anterior a cada edición.
+  if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, añoActual);
 }
 
 // ------------------------------------------------------------------

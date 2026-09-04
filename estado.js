@@ -117,6 +117,7 @@ const Estado = (() => {
       ],
       historialEventos: [],
       resultadosInternacionales: [],
+      clasificacionesMundialClubes: [],
       campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
       copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
       resultadoCopasEspeciales: [], // Guarda { año, tipo, resultado } para las copas especiales
@@ -136,6 +137,7 @@ const Estado = (() => {
   function normalizarJugador(base) {
     const jugadorNormalizado = { ...base, stats: { ...(base.stats || {}) } };
     if (!Array.isArray(jugadorNormalizado.resultadosInternacionales)) jugadorNormalizado.resultadosInternacionales = [];
+    if (!Array.isArray(jugadorNormalizado.clasificacionesMundialClubes)) jugadorNormalizado.clasificacionesMundialClubes = [];
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugadorNormalizado.posicion];
     (config?.atributos || []).forEach(({ clave }) => {
       if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = numeroAleatorio(53, 67);

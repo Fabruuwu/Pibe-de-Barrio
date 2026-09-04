@@ -2,13 +2,17 @@
 // Depende de: NOMBRES_CLUBES, CLUBES_POR_DIVISION, crearCabeceraMinijuego
 
 function obtenerRivalInternacional(jugador) {
-  const divisiones = ["primera-division-argentina", "serie-a-brasil"];
-  let rivales = [];
-  divisiones.forEach(div => {
-    const clubes = CLUBES_POR_DIVISION[div] || [];
-    clubes.forEach(c => { if (c.id !== jugador.club) rivales.push(c); });
-  });
-  return rivales[Math.floor(Math.random() * rivales.length)];
+  const argentinos = (CLUBES_POR_DIVISION["primera-division-argentina"] || []).filter(c => c.id !== jugador.club);
+  const brasileros = (CLUBES_POR_DIVISION["serie-a-brasil"] || []).filter(c => c.id !== jugador.club);
+  const jugadorEsBrasileño = jugador.division === "serie-a-brasil";
+
+  // La Libertadores mezcla ambos países de forma visible: si jugás en Argentina,
+  // la mitad de las llaves será ante un brasileño (y viceversa).
+  const preferidos = jugadorEsBrasileño ? argentinos : brasileros;
+  const alternativos = jugadorEsBrasileño ? brasileros : argentinos;
+  const pool = preferidos.length && Math.random() < 0.5 ? preferidos : (alternativos.length ? alternativos : preferidos);
+  // Mantiene a Brasil dentro de las llaves incluso si la carrera se inicia en Argentina.
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
 }
 
 // ---------- Clasificación ----------

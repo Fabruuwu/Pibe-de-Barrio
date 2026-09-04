@@ -1616,6 +1616,22 @@ html, body {
   border-radius: 12px;
 }
 
+/* Mundial de Clubes */
+.mundial-card { overflow: hidden; }
+.mundial-arco, .mundial-nodos, .mundial-tracking, .mundial-asedio { position: relative; min-height: 230px; margin-top: 16px; border: 1px solid var(--panel-borde); border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #10251a, #11111b); touch-action: none; }
+.mundial-arco::before { content: "DEFENSAS DE ÉLITE"; position: absolute; inset: 12px auto auto 12px; color: var(--gris-tenue); font-size: 11px; letter-spacing: .12em; }
+.mundial-mira { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: white; transform: translateX(-50%); box-shadow: 0 0 10px white; }
+.mundial-hueco { position: absolute; top: 37%; height: 28%; background: #35df7a; border-radius: 4px; box-shadow: 0 0 18px #35df7a; }
+.mundial-nodo { position: absolute; width: 38px; height: 38px; border-radius: 50%; border: 2px solid #a78bfa; background: #201b38; color: white; font-weight: bold; transform: translate(-50%, -50%); }
+.mundial-nodo.completado { background: #35df7a; border-color: #35df7a; }
+.mundial-zona-roja { position: absolute; width: 48px; height: 48px; border-radius: 50%; background: rgba(230, 60, 60, .72); transform: translate(-50%, -50%); }
+.mundial-delantero { position: absolute; display: block; border-radius: 50%; background: #e84141; box-shadow: 0 0 18px #e84141; }
+.mundial-tracking .barra-qte { position: absolute; height: 16px; left: 12%; right: 12%; bottom: 18px; background: #161622; border-radius: 999px; overflow: hidden; }
+.mundial-pelota { position: absolute; border: 4px solid #e94949; border-radius: 50%; background: #222; font-size: 26px; width: 62px; height: 62px; animation: pulso-asedio .85s linear forwards; }
+.mundial-pelota.amague { border-color: #ffd34d; }
+.mundial-asedio.congelado { filter: grayscale(1); pointer-events: none; }
+@keyframes pulso-asedio { to { transform: scale(.55); opacity: .35; } }
+
 /* Plata legible: antes el texto oscuro se perdía sobre el gris del cartel. */
 .competition-card.subcampeon {
   background: linear-gradient(145deg, #394150, #1d2330) !important;
@@ -1738,6 +1754,46 @@ body::before {
   .teclas-qte { grid-template-columns: repeat(2, 1fr); }
   .duelo-aereo { width:160px; height:160px; }
 }
+
+/* ============================================
+   PULIDO FINAL · INTERFAZ PRINCIPAL
+   ============================================ */
+.cabecera__marca { position: relative; }
+.cabecera__marca::after { content:""; width:74px; height:1px; margin-left:10px; background:linear-gradient(90deg, var(--verde-brillo), transparent); opacity:.65; }
+.cabecera__titulo { text-shadow: 0 3px 22px rgba(139, 92, 246, .22); }
+.tarjeta { position:relative; overflow:hidden; }
+.tarjeta::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg, rgba(255,255,255,.06), transparent 28%); }
+.tarjeta > * { position:relative; }
+
+.campo input, .campo select { min-height:48px; background:linear-gradient(135deg, #161622, #101018); }
+.campo input:hover, .campo select:hover { border-color:rgba(167,139,250,.58); }
+.preview-escudo { box-shadow:0 6px 14px rgba(0,0,0,.26); }
+
+.pos-card { min-height:94px; background:linear-gradient(150deg, #202036, #11111a); overflow:hidden; }
+.pos-card::before { content:""; position:absolute; inset:auto -30% -75% auto; width:100px; height:100px; border-radius:50%; background:rgba(139,92,246,.14); transition:transform .24s ease; }
+.pos-card:hover::before, .pos-card[aria-checked="true"]::before { transform:scale(1.65); }
+.pos-card__nombre { position:relative; }
+.pos-card[aria-checked="true"] { background:linear-gradient(145deg, #332665, #17142a); }
+
+.boton-iniciar { border-radius:11px; box-shadow:0 8px 0 #4c1d95, 0 16px 30px rgba(109,40,217,.3); }
+.boton-iniciar:hover { box-shadow:0 6px 0 #4c1d95, 0 20px 34px rgba(109,40,217,.4); transform:translateY(2px); }
+.boton-iniciar:active { box-shadow:0 2px 0 #4c1d95; transform:translateY(6px); }
+
+.hud-cabecera { background:linear-gradient(115deg, rgba(43,35,80,.92), rgba(14,16,27,.94)); }
+.hud-panel { background:linear-gradient(160deg, rgba(30,29,49,.95), rgba(13,14,22,.98)); }
+.hud-nombre { letter-spacing:.025em; }
+.hud-dorsal { color:var(--dorado); }
+.hud-escudo-club { filter:drop-shadow(0 8px 12px rgba(0,0,0,.42)); }
+
+.evento-container { border-left:3px solid var(--verde-brillo); background:linear-gradient(135deg, #221d37, #14141f); }
+.evento-titulo { color:#f4e9ff; letter-spacing:.025em; }
+.evento-opcion { text-align:left; border-radius:10px; border:1px solid rgba(167,139,250,.25); background:rgba(255,255,255,.035); }
+.evento-opcion:hover { border-color:var(--verde-brillo); background:rgba(139,92,246,.14); }
+
+.resumen-container { border-top:2px solid rgba(247,201,72,.72); background:linear-gradient(145deg, #242036, #11121b); }
+.resumen-stat { border-radius:10px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); }
+.carta { border-radius:13px; overflow:hidden; }
+.carta::before { content:""; display:block; height:3px; margin:-1px -1px 12px; background:currentColor; opacity:.9; }
 
 @keyframes entrada-resultado {
   from { opacity: 0; transform: scale(0.6) rotate(-10deg); }

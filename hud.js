@@ -521,8 +521,23 @@ function mostrarResumenAnual() {
       if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la Copa Sudamericana!\n";
       else if (copa.resultado === "subcampeon") textosInternacionales += "🥈 Subcampeón de la Copa Sudamericana.\n";
       else textosInternacionales += "❌ Eliminado de la Copa Sudamericana.\n";
+    } else if (copa.copa === "Mundial de Clubes") {
+      if (copa.resultado === "campeon") textosInternacionales += "🌍 ¡Campeón del Mundial de Clubes!\n";
+      else textosInternacionales += `❌ Eliminado del Mundial de Clubes en ${copa.resultado.replace("eliminado_", "")}.\n`;
     }
   });
+
+  const clasificacionMundial = (jugador.clasificacionesMundialClubes || []).find(c => c.año === año);
+  let textoMundialClubes = "";
+  if (clasificacionMundial) {
+    if (clasificacionMundial.tipo === "titulo") {
+      textoMundialClubes = `🌍 ¡Clasificaste al Mundial de Clubes ${clasificacionMundial.edicion} como campeón continental!`;
+    } else if (clasificacionMundial.clasifico) {
+      textoMundialClubes = `🌍 ¡Has clasificado al Mundial de Clubes por tabla de puntos! (${clasificacionMundial.puntos} puntos)`;
+    } else {
+      textoMundialClubes = `🌍 Has quedado fuera del Mundial de Clubes por tabla de puntos (${clasificacionMundial.puntos} puntos).`;
+    }
+  }
 
   let textoClasificacionLibertadores = "";
   let textoClasificacionSudamericana = "";
@@ -585,6 +600,7 @@ function mostrarResumenAnual() {
       <strong>Copa Argentina:</strong><br>${textoCopa || "No participó o sin datos."}
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
+      ${textoMundialClubes ? `<br><br><strong>${textoMundialClubes}</strong>` : ''}
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
       ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
     </div>
