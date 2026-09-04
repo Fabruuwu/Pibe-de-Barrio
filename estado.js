@@ -5,7 +5,7 @@ const Estado = (() => {
 
   function cargar() {
     if (window.jugadorActual) {
-      jugador = expandirJugador(window.jugadorActual);
+      jugador = normalizarJugador(expandirJugador(window.jugadorActual));
       guardar();
       return jugador;
     }
@@ -13,7 +13,8 @@ const Estado = (() => {
     const guardado = localStorage.getItem(CLAVE_STORAGE);
     if (guardado) {
       try {
-        jugador = JSON.parse(guardado);
+        jugador = normalizarJugador(JSON.parse(guardado));
+        guardar();
         return jugador;
       } catch (error) {
         console.warn("No se pudo leer la carrera guardada, se descarta.", error);
@@ -50,7 +51,7 @@ const Estado = (() => {
     };
 
     const atributosPorPosicion = {
-      enganche: ["pase", "vision"],
+      enganche: ["pase", "cerebro"],
       central: ["marca", "quite", "juegoAereo"],
       arquero: ["reflejos", "ataje", "juegoAereo"],
     };
@@ -126,6 +127,20 @@ const Estado = (() => {
         atajadas: 0
       }
     };
+  }
+
+  function normalizarJugador(base) {
+    const jugadorNormalizado = { ...base, stats: { ...(base.stats || {}) } };
+    const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugadorNormalizado.posicion];
+    (config?.atributos || []).forEach(({ clave }) => {
+      if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = numeroAleatorio(53, 67);
+    });
+    ["liderazgo", "resistencia", "goles", "asistencias", "partidos", "titulos", "vallasInvictas", "recuperaciones", "atajadas"].forEach((clave) => {
+      if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = 0;
+    });
+    jugadorNormalizado.media = calcularMedia(jugadorNormalizado.stats, jugadorNormalizado.posicion);
+    jugadorNormalizado.valor = calcularValor(jugadorNormalizado.media, jugadorNormalizado.edad);
+    return jugadorNormalizado;
   }
 
   function jugadorDePrueba() {

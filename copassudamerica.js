@@ -478,6 +478,16 @@ function minijuegoCopaCompleta(callback, jugador, rivalInicial) {
 // ---------- Jugar Libertadores ----------
 function jugarLibertadores(callback, jugador, tipo) {
   const rival = obtenerRivalInternacional(jugador);
+  const minijuegosPorPosicion = {
+    enganche: typeof jugarLibertadoresEnganche === "function" ? jugarLibertadoresEnganche : null,
+    central: typeof jugarLibertadoresCentral === "function" ? jugarLibertadoresCentral : null,
+    arquero: typeof jugarLibertadoresArquero === "function" ? jugarLibertadoresArquero : null,
+  };
+  const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
+  if (minijuegoPosicion) {
+    minijuegoPosicion((exito, fase) => callback(exito, fase), jugador, rival);
+    return;
+  }
   if (tipo === "copa_completa") {
     minijuegoCopaCompleta((resultado) => {
       if (resultado.resultado === "campeon") callback(true, undefined);
@@ -515,16 +525,19 @@ function jugarSudamericana(callback, jugador) {
     return;
   }
 
-  const tipo = Math.random() < 0.5 ? "memoria" : "tirolibre";
-  if (tipo === "memoria") {
-    minijuegoMemoriaParejas((exito) => {
-      callback(exito);
-    }, jugador, rival);
-  } else {
-    minijuegoTiroLibre((exito) => {
-      callback(exito);
-    }, jugador, rival);
+  const minijuegosPorPosicion = {
+    enganche: typeof jugarSudamericanaEnganche === "function" ? jugarSudamericanaEnganche : null,
+    central: typeof jugarSudamericanaCentral === "function" ? jugarSudamericanaCentral : null,
+    arquero: typeof jugarSudamericanaArquero === "function" ? jugarSudamericanaArquero : null,
+  };
+  const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
+  if (minijuegoPosicion) {
+    minijuegoPosicion(callback, jugador, rival);
+    return;
   }
+
+  const tipo = Math.random() < 0.5 ? "memoria" : "tirolibre";
+  (tipo === "memoria" ? minijuegoMemoriaParejas : minijuegoTiroLibre)((exito) => callback(exito), jugador, rival);
 }
 
 // ---------- Mostrar Sudamericana ----------
@@ -582,6 +595,16 @@ function mostrarSudamericana(copa, callback) {
 
 // ---------- Jugar Recopa ----------
 function jugarRecopa(callback, jugador, rival) {
+  const minijuegosPorPosicion = {
+    enganche: typeof jugarRecopaEnganche === "function" ? jugarRecopaEnganche : null,
+    central: typeof jugarRecopaCentral === "function" ? jugarRecopaCentral : null,
+    arquero: typeof jugarRecopaArquero === "function" ? jugarRecopaArquero : null,
+  };
+  const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
+  if (minijuegoPosicion) {
+    minijuegoPosicion(callback, jugador, rival);
+    return;
+  }
   const contenedor = document.getElementById("competition-container");
   const cabecera = crearCabeceraMinijuego(jugador, rival);
   contenedor.innerHTML = `

@@ -142,7 +142,7 @@ function obtenerMejorasIndividuales() {
 
   const nombres = {
     pase: ["Pase filtrado", "Te quedaste después de práctica afinando pases entre líneas."],
-    vision: ["Lectura de juego", "Analizaste movimientos y encontrás espacios antes que nadie."],
+    cerebro: ["Lectura de juego", "Analizaste movimientos y encontrás espacios antes que nadie."],
     marca: ["Marca pegajosa", "Trabajaste duelos defensivos hasta que no pasó nadie."],
     quite: ["Barrida limpia", "Afinaste el momento justo para recuperar sin hacer falta."],
     juegoAereo: ["Dueño del aire", "Ganaste cada pelota aérea en una práctica de centros."],

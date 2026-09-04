@@ -6,7 +6,7 @@ const CONFIG_ENGANCHE = {
   ],
   atributos: [
     { clave: "pase", etiqueta: "Pase" },
-    { clave: "vision", etiqueta: "Visión" },
+    { clave: "cerebro", etiqueta: "Cerebro" },
     { clave: "gambeta", etiqueta: "Gambeta" },
   ],
 };
