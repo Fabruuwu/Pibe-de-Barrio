@@ -84,6 +84,8 @@ function crearCabeceraMinijuego(jugador, rival) {
   const escudoJugador = clubJugador ? clubJugador.escudo : "";
   const escudoRival = rival ? rival.escudo : "";
   
+  const contexto = window.CONTEXTO_PARTIDO || {};
+  const detalleTorneo = contexto.torneo ? `<span class="minijuego-contexto">${contexto.torneo}${contexto.fase ? ` · ${contexto.fase}` : ""}</span>` : "";
   return `
     <div class="minijuego-marcador">
       <div class="equipo">
@@ -95,6 +97,7 @@ function crearCabeceraMinijuego(jugador, rival) {
         <img src="${escudoRival}" alt="Rival" onerror="this.hidden=true">
         <span>${rival ? rival.nombre : "Rival"}</span>
       </div>
+      ${detalleTorneo}
     </div>
   `;
 }

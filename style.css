@@ -1683,6 +1683,10 @@ body::before {
 .competition-card > * { position: relative; }
 
 .badge-copa { display:inline-block; margin-bottom: 9px; padding: 4px 9px; border: 1px solid rgba(247, 201, 72, .65); border-radius: 999px; color: var(--dorado); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.minijuego-marcador { position:relative; padding-bottom: 29px; }
+.minijuego-contexto { position:absolute; bottom:7px; left:50%; transform:translateX(-50%); white-space:nowrap; color:var(--dorado); font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+.instructivo-minijuego ol { margin: 18px 0 24px; padding-left: 22px; text-align:left; color:var(--gris); }
+.instructivo-minijuego li { margin: 8px 0; }
 .estado-minijuego { min-height: 22px; margin: 10px 0; color: var(--verde-texto); font-weight: 700; }
 
 .tablero-tactico { grid-template-columns: repeat(5, 1fr) !important; max-width: 460px; }

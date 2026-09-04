@@ -485,7 +485,16 @@ function jugarLibertadores(callback, jugador, tipo) {
   };
   const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
   if (minijuegoPosicion) {
-    minijuegoPosicion((exito, fase) => callback(exito, fase), jugador, rival);
+    const textos = {
+      enganche: ["Lectura de juego", "Memorizá los pases que se iluminan. En grupos podés equivocarte; en eliminación directa un error te deja afuera.", ["Repetí el patrón en orden.", "Cerebro y Liderazgo ralentizan las luces.", "Superá los grupos y cada llave."]],
+      central: ["Duelo aéreo constante", "Ganale a los delanteros rivales frenando el círculo en la zona dorada.", ["Tocá cuando el anillo coincida.", "Imponete en los duelos.", "Cada ronda va más rápido."]],
+      arquero: ["Bajo los tres palos", "Frená el cursor dentro de la franja verde para salvar cada remate.", ["Iniciá la atajada.", "Reflejos y Velocidad agrandan la zona.", "La exigencia aumenta por ronda."]],
+    };
+    const [titulo, descripcion, reglas] = textos[jugador.posicion];
+    mostrarInstructivoInternacional(jugador, rival, "Copa Libertadores", titulo, descripcion, reglas, () => {
+      window.CONTEXTO_PARTIDO = { torneo: "Copa Libertadores", fase: "Camino a la final" };
+      minijuegoPosicion((exito, fase) => callback(exito, fase), jugador, rival);
+    });
     return;
   }
   if (tipo === "copa_completa") {
@@ -532,7 +541,16 @@ function jugarSudamericana(callback, jugador) {
   };
   const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
   if (minijuegoPosicion) {
-    minijuegoPosicion(callback, jugador, rival);
+    const textos = {
+      enganche: ["Final de Copa Sudamericana", "Tenés que completar el Pase filtrado y después acertar El bombazo.", ["SeguÍ la secuencia de teclas.", "Frená el medidor en la zona violeta.", "Los dos desafíos deben salir bien."]],
+      central: ["Final de Copa Sudamericana", "Primero cerrá el mano a mano y después despejá sobre la línea.", ["Esperá la señal para reaccionar.", "Frená el cursor en la zona segura.", "Un error corta la final."]],
+      arquero: ["Final de Copa Sudamericana", "Tenés que cortar el córner y resolver un mano a mano.", ["Sincronizá tu salida en el centro.", "Memorizá el orden de achique.", "Superá ambos desafíos."]],
+    };
+    const [titulo, descripcion, reglas] = textos[jugador.posicion];
+    mostrarInstructivoInternacional(jugador, rival, "Copa Sudamericana", titulo, descripcion, reglas, () => {
+      window.CONTEXTO_PARTIDO = { torneo: "Copa Sudamericana", fase: "Final" };
+      minijuegoPosicion(callback, jugador, rival);
+    });
     return;
   }
 
@@ -602,7 +620,16 @@ function jugarRecopa(callback, jugador, rival) {
   };
   const minijuegoPosicion = minijuegosPorPosicion[jugador.posicion];
   if (minijuegoPosicion) {
-    minijuegoPosicion(callback, jugador, rival);
+    const textos = {
+      enganche: ["Recopa Sudamericana", "Controlá el caos con La pausa y definí con el tiro libre.", ["Memorizá cinco toques.", "Soltá el remate en la zona ideal.", "Los dos momentos definen el título."]],
+      central: ["Recopa Sudamericana", "Ordená el offside y sobreviví al cuerpo a cuerpo.", ["Recordá qué rival pica al vacío.", "Presioná rápido para ganar el forcejeo.", "No hay margen para fallar."]],
+      arquero: ["Recopa Sudamericana", "Salvá el rebote y atajá el penal del campeonato.", ["Reaccioná al segundo tiro.", "Frená el cursor en la franja verde.", "Las dos atajadas son necesarias."]],
+    };
+    const [titulo, descripcion, reglas] = textos[jugador.posicion];
+    mostrarInstructivoInternacional(jugador, rival, "Recopa Sudamericana", titulo, descripcion, reglas, () => {
+      window.CONTEXTO_PARTIDO = { torneo: "Recopa Sudamericana", fase: "Final" };
+      minijuegoPosicion(callback, jugador, rival);
+    });
     return;
   }
   const contenedor = document.getElementById("competition-container");
@@ -634,10 +661,12 @@ function jugarRecopa(callback, jugador, rival) {
 // ---------- Mostrar Libertadores ----------
 function mostrarLibertadores(copa, callback) {
   const jugador = Estado.obtener();
+  // Las carreras creadas antes de las copas internacionales no tienen esta lista.
+  // Inicializarla antes de cualquier resultado (victoria o eliminación) evita cortar la partida.
+  if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
   const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
   jugarLibertadores((resultado, fase) => {
     if (resultado) {
-      if (!jugador.resultadosInternacionales) jugador.resultadosInternacionales = [];
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: "campeon" });
       jugador.stats.titulos++;
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
@@ -713,4 +742,17 @@ function mostrarCartelInternacional(ganador, fase, imagen) {
 // ---------- (opcional) eliminar ejecutarInternacionales ----------
 function ejecutarInternacionales(callback) {
   callback(); // No hace nada, todo está en copasPendientes
+}
+
+function mostrarInstructivoInternacional(jugador, rival, torneo, titulo, descripcion, reglas, iniciar) {
+  const contenedor = document.getElementById("competition-container");
+  window.CONTEXTO_PARTIDO = { torneo, fase: "Partido decisivo" };
+  contenedor.innerHTML = `${crearCabeceraMinijuego(jugador, rival)}
+    <div class="competition-card instructivo-minijuego">
+      <span class="badge-copa">CÓMO SE JUEGA</span>
+      <h3>${titulo}</h3><p>${descripcion}</p>
+      <ol>${reglas.map(regla => `<li>${regla}</li>`).join("")}</ol>
+      <button class="boton-jugar-minijuego">Entendido, jugar</button>
+    </div>`;
+  contenedor.querySelector(".boton-jugar-minijuego").onclick = iniciar;
 }
