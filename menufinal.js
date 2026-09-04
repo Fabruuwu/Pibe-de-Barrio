@@ -83,6 +83,13 @@ function calcularResumenCarrera(jugador) {
     sumarPuntos(clubId, "balonDeOro", "🥇 Balón de Oro", año);
   });
 
+  // Bota de Oro
+  (jugador.botasDeOro || []).forEach((reg) => {
+    const clubId = reg.club || jugador.club;
+    const año = reg.temporada || reg.galaAño;
+    sumarPuntos(clubId, "botaDeOro", "👢 Bota de Oro", año);
+  });
+
   const puntosTotal = detalle.reduce((acc, d) => acc + d.subtotal, 0);
   const titulosTotales = detalle.reduce((acc, d) => acc + d.veces, 0);
 

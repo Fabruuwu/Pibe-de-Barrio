@@ -133,6 +133,91 @@ function mostrarVotacionBalonDeOro(premio, alTerminar) {
   };
 }
 
+// ============================================
+// BOTA DE ORO
+// -----------------------------------------
+// Se decide en 2 etapas, igual que el Balón de Oro:
+// Etapa A (al terminar la temporada, según los goles): ¿sos candidato?
+// Etapa B (al arrancar la temporada siguiente, sobre simulado, según región): ¿te lo dan?
+// ============================================
+
+function probabilidadCandidatoBotaDeOro(goles) {
+  if (goles <= 25) return 0;
+  if (goles <= 50) return 35;
+  if (goles <= 70) return 70;
+  return 100;
+}
+
+function probabilidadRegionBotaDeOro(liga) {
+  const continente = continenteDeLiga(liga);
+  if (continente === "Europa") return 100;
+  if (continente === "Sudamérica") return 60;
+  return 2;
+}
+
+// Llamar al FINAL de cada temporada (junto a prepararInvitacionBalonDeOro),
+// pasándole el jugador y la temporada que acaba de terminar.
+function prepararBotaDeOro(jugador, temporada) {
+  if (!Array.isArray(jugador.botasPendientes)) jugador.botasPendientes = [];
+  if (jugador.botasPendientes.some(p => p.temporada === temporada)) return;
+  const goles = Number(jugador.statsAnuales?.goles || 0);
+  const probabilidad = probabilidadCandidatoBotaDeOro(goles);
+  const candidato = Math.random() * 100 < probabilidad;
+  jugador.botasPendientes.push({
+    temporada,
+    galaAño: temporada + 1,
+    goles,
+    candidato,
+    resuelto: !candidato, // si no fue candidato, ya está resuelto: no hay sobre después
+    mensajeResumen: candidato
+      ? "¡Felicidades! Sos candidato a la Bota de Oro"
+      : "Lastimosamente tus goles no fueron suficientes para ser candidato a la Bota de Oro"
+  });
+  Estado.guardar();
+}
+
+// Usar esto en el resumen anual (mismo año en que se hicieron los goles)
+// para mostrar el cartel correspondiente a la etapa A.
+function obtenerMensajeBotaDeOroResumen(jugador, temporada) {
+  const entrada = (jugador.botasPendientes || []).find(p => p.temporada === temporada);
+  return entrada ? entrada.mensajeResumen : null;
+}
+
+// Llamar al INICIO de la temporada siguiente (junto a mostrarGalaBalonDeOro).
+// Devuelve true si mostró el sobre (para no seguir con el resto del flujo de inicio de año).
+function mostrarGalaBotaDeOro(alTerminar) {
+  const jugador = Estado.obtener();
+  const premio = (jugador.botasPendientes || []).find(p => p.galaAño === jugador.año && p.candidato && !p.resuelto);
+  if (!premio) return false;
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+  contenedor.innerHTML = `
+    <div class="competition-card gala-sobre">
+      <span class="gala-sobre__sello">👢</span>
+      <h2>Nominación a la Bota de Oro ${premio.temporada}</h2>
+      <p>Fuiste nominado a la Bota de Oro ${premio.temporada}. Hacé clic en el sobre para conocer el resultado.</p>
+      <button class="gala-sobre__boton">✉ Abrir sobre</button>
+    </div>`;
+  contenedor.querySelector(".gala-sobre__boton").onclick = () => {
+    const probabilidad = probabilidadRegionBotaDeOro(jugador.liga);
+    const gano = Math.random() * 100 < probabilidad;
+    premio.resuelto = true;
+    premio.gano = gano;
+    premio.region = continenteDeLiga(jugador.liga);
+    premio.probabilidadRegion = probabilidad;
+    if (gano) {
+      if (!Array.isArray(jugador.botasDeOro)) jugador.botasDeOro = [];
+      jugador.botasDeOro.push({ temporada: premio.temporada, galaAño: jugador.año, goles: premio.goles, club: jugador.club });
+    }
+    Estado.guardar();
+    contenedor.innerHTML = gano
+      ? `<div class="competition-card campeon gala-ganador"><h2>¡BOTA DE ORO ${premio.temporada}!</h2><img src="Trofeos/BotaDeOro.png" alt="Bota de Oro"><p>Felicidades, ganaste la Bota de Oro luego de anotar ${premio.goles} en ${premio.temporada}!</p><p>Tu nombre queda en la historia como el máximo artillero de esa temporada. ¡A seguir metiéndola!</p><button class="boton-continuar">Continuar</button></div>`
+      : `<div class="competition-card subcampeon"><h2>No hubo Bota de Oro esta vez</h2><p>Lastimosamente tu región no fue calificada como apta para esta entrega del premio, aun así demostraste de qué sos capaz!</p><button class="boton-continuar">Continuar</button></div>`;
+    contenedor.querySelector(".boton-continuar").onclick = () => { contenedor.innerHTML = ""; contenedor.hidden = true; alTerminar(); };
+  };
+  return true;
+}
+
 function mostrarResultadoBalonDeOro(premio, resultados, alTerminar) {
   const jugador = Estado.obtener();
   const resultadoJugador = resultados.find(r => r.nombre === jugador.nombre);

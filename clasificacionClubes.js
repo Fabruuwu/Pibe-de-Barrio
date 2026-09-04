@@ -104,4 +104,5 @@ const PUNTOS_TITULOS = {
   Recopa: 600, // Recopa Sudamericana
   "Mundial de Clubes": 1500, // Mundial de Clubes
   balonDeOro: 2500, // Balón de Oro
+  botaDeOro: 500, // Bota de Oro
 };

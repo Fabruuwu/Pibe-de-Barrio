@@ -58,26 +58,27 @@ function generarCarta() {
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = rareza === "comun" ? numeroAleatorio(3, 5) : numeroAleatorio(6, 8);
+    puntos = rareza === "comun" ? numeroAleatorio(2, 3) : numeroAleatorio(3, 5);
   } else if (rareza === "dorada") {
-    if (Math.random() < 0.8) {
+    if (Math.random() < 0.85) {
       const mejora = elegirAleatorio(mejorasIndividuales);
       stats = [mejora.stat];
       nombre = mejora.nombre;
       desc = mejora.desc;
+      puntos = numeroAleatorio(5, 7);
     } else {
       const mejora = elegirAleatorio(mejorasDobles);
       stats = mejora.stats;
       nombre = mejora.nombre;
       desc = mejora.desc;
+      puntos = numeroAleatorio(6, 8);
     }
-    puntos = numeroAleatorio(9, 12);
   } else {
     const mejora = elegirAleatorio(mejorasDobles);
     stats = mejora.stats;
     nombre = mejora.nombre;
     desc = mejora.desc;
-    puntos = numeroAleatorio(13, 16);
+    puntos = numeroAleatorio(9, 12);
   }
 
   return { rareza: rareza, stats: stats, puntos: puntos, nombre: nombre, desc: desc };
@@ -128,10 +129,10 @@ function calcularValorActualizado(media, edad) {
 
 function elegirRareza() {
   const random = Math.random() * 100;
-  if (random < 50) return "comun";
-  if (random < 85) return "rara";
-  if (random < 98) return "dorada";
-  return "leyenda";
+  if (random < 60) return "comun";   // antes 50%
+  if (random < 92) return "rara";    // antes 35% -> ahora 32%
+  if (random < 99) return "dorada";  // antes 13% -> ahora 7%
+  return "leyenda";                  // antes 2% -> ahora 1%
 }
 
 function elegirAleatorio(array) {
