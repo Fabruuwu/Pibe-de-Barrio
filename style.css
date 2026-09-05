@@ -2436,12 +2436,12 @@ body::before {
 
 .oferta-card__escudo-fondo {
   position: absolute;
-  right: -18px;
-  bottom: -18px;
-  width: 110px;
-  height: 110px;
+  right: -10px;
+  bottom: -10px;
+  width: 190px;
+  height: 190px;
   object-fit: contain;
-  opacity: 0.08;
+  opacity: 0.16;
   pointer-events: none;
   filter: grayscale(0.2);
 }
