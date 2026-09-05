@@ -472,7 +472,9 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.atajadas = produccion.atajadas;
 
     jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
-    jugador.statsAnuales.dinero = (jugador.valor || 0) * 0.02;
+    // Dinero de la temporada = salario mensual del contrato actual x 12.
+    const salarioMensual = (jugador.contrato && jugador.contrato.salario) || 0;
+    jugador.statsAnuales.dinero = (salarioMensual * 12) / 1000000; // formatearDinero espera millones
   }
 
   if (jugador.statsAnuales.bonusCopas === undefined) {
@@ -694,8 +696,13 @@ function mostrarResumenAnual() {
     // Las galas/sobres pendientes se resuelven, en orden, antes de arrancar
     // la nueva temporada. Cada una devuelve true si mostró su pantalla
     // (en ese caso, ella misma llama a la siguiente al terminar).
-    if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(continuarInicioDeAño)) return;
-    continuarInicioDeAño();
+    if (typeof mostrarOfertasTraspaso === "function" && mostrarOfertasTraspaso(continuarInicioDeAñoPreOferta)) return;
+    continuarInicioDeAñoPreOferta();
+
+    function continuarInicioDeAñoPreOferta() {
+      if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(continuarInicioDeAño)) return;
+      continuarInicioDeAño();
+    }
 
     function continuarInicioDeAño() {
       if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAño2)) return;

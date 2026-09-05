@@ -116,6 +116,9 @@ const Estado = (() => {
       dinero: 0,
       retirado: false,
       temporada: 1,
+      contrato: { salario: 5000, duracionAnios: 2, añoInicio: base.año },
+      maletinUsos: 0,
+      volverACasaUsado: false,
       statsAnuales: {
         partidos: 0,
         goles: 0,
@@ -158,6 +161,9 @@ const Estado = (() => {
   function normalizarJugador(base) {
     const jugadorNormalizado = { ...base, stats: { ...(base.stats || {}) } };
     if (jugadorNormalizado.esPromesa === undefined) jugadorNormalizado.esPromesa = false;
+    if (!jugadorNormalizado.contrato) jugadorNormalizado.contrato = { salario: 5000, duracionAnios: 2, añoInicio: jugadorNormalizado.año };
+    if (jugadorNormalizado.maletinUsos === undefined) jugadorNormalizado.maletinUsos = 0;
+    if (jugadorNormalizado.volverACasaUsado === undefined) jugadorNormalizado.volverACasaUsado = false;
     if (!Array.isArray(jugadorNormalizado.resultadosInternacionales)) jugadorNormalizado.resultadosInternacionales = [];
     if (!Array.isArray(jugadorNormalizado.clasificacionesMundialClubes)) jugadorNormalizado.clasificacionesMundialClubes = [];
     if (!Array.isArray(jugadorNormalizado.premiosPendientes)) jugadorNormalizado.premiosPendientes = [];

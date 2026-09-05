@@ -235,6 +235,7 @@ function mostrarResultadoMundial(ganador, etapa, anio, callback) {
   jugador.resultadosInternacionales.push({ año: anio, copa: "Mundial de Clubes", resultado: ganador ? "campeon" : `eliminado_${etapa}` });
   if (ganador) jugador.stats.titulos++;
   Estado.guardar();
+  if (ganador && typeof lanzarConfeti === "function") lanzarConfeti();
   contenedor.innerHTML = ganador
     ? `<div class="competition-card campeon"><h2>¡CAMPEÓN DEL MUNDIAL DE CLUBES ${anio}!</h2><img src="Trofeos/MundialClubes.png" alt="Trofeo del Mundial de Clubes"><p>Conquistaste el mundo. Esta campaña queda para siempre en la historia.</p><button class="boton-continuar">Continuar</button></div>`
     : `<div class="competition-card subcampeon"><h2>El sueño mundial terminó en ${etapa}</h2><p>Te tocó una élite feroz, pero llegaste hasta ${etapa}. Habrá revancha.</p><button class="boton-continuar">Continuar</button></div>`;

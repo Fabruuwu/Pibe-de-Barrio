@@ -1123,6 +1123,7 @@ function mostrarCartelResultadoMundial(campeon, etapaFinal, año, alTerminar) {
   contenedor.hidden = false;
 
   if (campeon) {
+    if (typeof lanzarConfeti === "function") lanzarConfeti();
     contenedor.innerHTML = `
       <div class="competition-card campeon mundial-final-card">
         <span class="badge-copa">WORLD CUP ${año}</span>
