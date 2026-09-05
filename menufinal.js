@@ -106,7 +106,7 @@ function calcularResumenCarrera(jugador) {
 
   // Copa América (y futuras copas de selecciones): multiplican por el
   // tamaño de la SELECCIÓN, no del club, así que se agregan aparte.
-  const PUNTOS_SELECCIONES = { "Copa América": 500, "Finalissima": 500 };
+  const PUNTOS_SELECCIONES = { "Copa América": 500, "Finalissima": 500, "Mundial": 1200 };
   (jugador.resultadosSelecciones || []).forEach((reg) => {
     if (reg.resultado !== "campeon") return;
     const puntosBase = PUNTOS_SELECCIONES[reg.competencia] || 0;

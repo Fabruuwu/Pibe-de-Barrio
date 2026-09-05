@@ -492,6 +492,7 @@ function mostrarResumenAnual() {
   if (typeof prepararBotaDeOro === "function") prepararBotaDeOro(jugador, año);
   if (typeof prepararCopaAmerica === "function") prepararCopaAmerica(jugador, año);
   if (typeof prepararFinalissima === "function") prepararFinalissima(jugador, año);
+  if (typeof prepararMundial === "function") prepararMundial(jugador, año);
   // Segunda pasada: la clasificación se revisa tras jugar todas las copas del año.
   if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
 
@@ -705,8 +706,11 @@ function mostrarResumenAnual() {
       continuarInicioDeAño3();
     }
     function continuarInicioDeAño3() {
-      // La Finalissima se juega antes que el Mundial de Selecciones (cuando exista ese paso).
-      if (typeof mostrarFinalissima === "function" && mostrarFinalissima(abrirModalCartas)) return;
+      if (typeof mostrarFinalissima === "function" && mostrarFinalissima(continuarInicioDeAño4)) return;
+      continuarInicioDeAño4();
+    }
+    function continuarInicioDeAño4() {
+      if (typeof mostrarMundial === "function" && mostrarMundial(abrirModalCartas)) return;
       abrirModalCartas();
     }
   });

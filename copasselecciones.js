@@ -1,8 +1,8 @@
 /**
  * copasselecciones.js
  * -----------------------------------------
- * Sistema de competiciones de Selecciones. Empieza con la Copa América;
- * Finalissima y Mundial se suman después con la misma base:
+ * Sistema de competiciones de Selecciones: Copa América, Finalissima
+ * y la Copa Mundial. Todas comparten la misma base:
  * 1) Convocatoria (RNG por media) -> ¿te llaman para esta competencia?
  * 2) Si te llaman, se juega la competencia puntual con su propia lógica.
  *
@@ -845,4 +845,610 @@ function minijuegoBalistica(callback) {
     };
     setTimeout(() => { if (activo) { activo = false; callback(false); } }, 6000);
   };
+}
+
+/**
+ * mundial.js
+ * -----------------------------------------
+ * La Copa Mundial de Selecciones. Se juega en 2030 y luego cada 4 años
+ * (reutiliza esAnioMundialSelecciones de copasselecciones.js).
+ *
+ * Sigue EXACTAMENTE el mismo patrón que ya usa el resto del juego:
+ * 1) prepararMundial(jugador, año) se llama al cerrar la temporada
+ *    (junto a prepararCopaAmerica/prepararFinalissima en hud.js).
+ *    Sortea la convocatoria (sortearConvocatoria, ya genérica) y, si
+ *    te llaman, agenda el torneo completo en jugador.copasSeleccionPendientes.
+ * 2) mostrarMundial(alTerminar) se llama al arrancar la temporada
+ *    siguiente (en la misma cadena que mostrarCopaAmerica/mostrarFinalissima).
+ *    A diferencia de esas dos (un solo partido), el Mundial es un
+ *    torneo progresivo completo: 3 partidos de grupos + Octavos +
+ *    Cuartos + Semifinal + Final, con el mismo criterio de clasificación
+ *    que ya se usa en copasinternacionalesclubes.js (ganar 2 de 3 en
+ *    grupos, 2 derrotas eliminan directo, en la llave pierde una vez y
+ *    quedás afuera).
+ *
+ * Depende de: data.js (PAISES), estado.js (Estado), clasificacionClubes.js
+ * (MULTIPLICADOR_POR_TAMANO), copasselecciones.js (obtenerTamanoSeleccion,
+ * elegirTamanoPorPeso, sortearConvocatoria, obtenerMensajeNoConvocado,
+ * esAnioMundialSelecciones).
+ * -----------------------------------------
+ */
+
+const ETAPAS_MUNDIAL = [
+  "Fase de Grupos · Partido 1",
+  "Fase de Grupos · Partido 2",
+  "Fase de Grupos · Partido 3",
+  "Octavos de Final",
+  "Cuartos de Final",
+  "Semifinal",
+  "Final",
+];
+const ETIQUETAS_FIXTURE_MUNDIAL = ["G1", "G2", "G3", "8vos", "4tos", "Semi", "Final"];
+
+// ============================================
+// 1) CONVOCATORIA + SORTEO DEL RIVAL
+// ============================================
+
+const PESOS_CONTINENTE_MUNDIAL = { UEFA: 40, CONMEBOL: 25, CONCACAF: 10, AFC: 10, CAF: 10, OFC: 5 };
+const PESOS_TAMANO_RIVAL_MUNDIAL = { grande: 55, mediana: 30, chica: 10, diminuta: 5 };
+
+/**
+ * Elige el rival del próximo partido: primero el continente (por peso),
+ * después el tamaño de selección (por peso), y recién ahí un país al
+ * azar que cumpla ambos requisitos. Si no hay ningún país que cumpla
+ * exactamente esa combinación, relaja primero el tamaño y, como último
+ * recurso, cualquier país de otro continente.
+ */
+function elegirRivalMundial(jugador) {
+  if (typeof PAISES === "undefined") return null;
+
+  const continente = elegirTamanoPorPeso(PESOS_CONTINENTE_MUNDIAL);
+  const tamano = elegirTamanoPorPeso(PESOS_TAMANO_RIVAL_MUNDIAL);
+
+  const exacto = PAISES.filter(
+    (p) => p.confederacion === continente && obtenerTamanoSeleccion(p.id) === tamano && p.id !== jugador.pais
+  );
+  if (exacto.length) return exacto[Math.floor(Math.random() * exacto.length)];
+
+  const porContinente = PAISES.filter((p) => p.confederacion === continente && p.id !== jugador.pais);
+  if (porContinente.length) return porContinente[Math.floor(Math.random() * porContinente.length)];
+
+  const cualquiera = PAISES.filter((p) => p.id !== jugador.pais);
+  return cualquiera[Math.floor(Math.random() * cualquiera.length)] || null;
+}
+
+/**
+ * Llamar una vez por año (junto a prepararCopaAmerica/prepararFinalissima
+ * en mostrarResumenAnual). Si es año de Mundial, sortea si te convocan
+ * y, en caso afirmativo, agenda el torneo completo para jugarse al
+ * arrancar la temporada siguiente.
+ */
+function prepararMundial(jugador, año) {
+  if (!esAnioMundialSelecciones(año)) return;
+  if (!Array.isArray(jugador.resultadosSelecciones)) jugador.resultadosSelecciones = [];
+  if (jugador.resultadosSelecciones.some((r) => r.competencia === "Mundial" && r.año === año)) return;
+
+  const convocado = sortearConvocatoria(jugador, "Mundial", año);
+  if (!convocado) {
+    jugador.resultadosSelecciones.push({
+      competencia: "Mundial",
+      año,
+      resultado: "no-convocado",
+      mensajeResumen: obtenerMensajeNoConvocado("Mundial", año),
+    });
+    Estado.guardar();
+    return;
+  }
+
+  if (!Array.isArray(jugador.copasSeleccionPendientes)) jugador.copasSeleccionPendientes = [];
+  jugador.copasSeleccionPendientes.push({
+    competencia: "Mundial",
+    año,
+    jugado: false,
+    etapaActual: 0,
+    partidosGrupo: 0,
+    ganadosGrupo: 0,
+    perdidosGrupo: 0,
+  });
+  Estado.guardar();
+}
+
+// ============================================
+// 2) MOTOR DEL TORNEO
+// ============================================
+
+/**
+ * Llamar al arrancar la temporada (en la misma cadena que
+ * mostrarCopaAmerica/mostrarFinalissima). Si hay un Mundial pendiente,
+ * muestra la pantalla de inicio y devuelve true.
+ */
+function mostrarMundial(alTerminar) {
+  const jugador = Estado.obtener();
+  const pendiente = (jugador.copasSeleccionPendientes || []).find(
+    (c) => c.competencia === "Mundial" && !c.jugado
+  );
+  if (!pendiente) return false;
+
+  mostrarPortadaMundial(jugador, pendiente, alTerminar);
+  return true;
+}
+
+function mostrarPortadaMundial(jugador, pendiente, alTerminar) {
+  const pais = (typeof PAISES !== "undefined") ? PAISES.find((p) => p.id === jugador.pais) : null;
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+  contenedor.innerHTML = `
+    <div class="competition-card mundial-final-card mundial-portada">
+      <span class="badge-copa">WORLD CUP ${pendiente.año}</span>
+      <img class="mundial-portada__bandera" src="${pais?.bandera || ""}" alt="" onerror="this.hidden=true">
+      <h2>¡Empieza la Copa Mundial!</h2>
+      <p>Todo un país detrás tuyo. Siete partidos te separan de la gloria eterna: fase de grupos, octavos, cuartos, semifinal y la final.</p>
+      <button class="boton-jugar-minijuego" id="mundial-arrancar">Salir a la cancha</button>
+    </div>`;
+  contenedor.querySelector("#mundial-arrancar").onclick = () => jugarEtapaMundial(jugador, pendiente, alTerminar);
+}
+
+function crearFixtureMundial(pendiente) {
+  return `<div class="mundial-fixture">${ETIQUETAS_FIXTURE_MUNDIAL.map((etiqueta, i) => {
+    let clase = "mundial-fixture__punto";
+    if (i < pendiente.etapaActual) clase += " mundial-fixture__punto--jugado";
+    else if (i === pendiente.etapaActual) clase += " mundial-fixture__punto--actual";
+    return `<span class="${clase}">${etiqueta}</span>`;
+  }).join("")}</div>`;
+}
+
+function crearCabeceraMundial(jugador, rival) {
+  const miPais = (typeof PAISES !== "undefined") ? PAISES.find((p) => p.id === jugador.pais) : null;
+  const contexto = window.CONTEXTO_PARTIDO || {};
+  const detalleTorneo = contexto.torneo
+    ? `<span class="minijuego-contexto">${contexto.torneo}${contexto.fase ? ` · ${contexto.fase}` : ""}</span>`
+    : "";
+  return `
+    <div class="minijuego-marcador">
+      <div class="equipo">
+        <img src="${miPais?.bandera || ""}" alt="" onerror="this.hidden=true">
+        <span>${miPais ? miPais.nombre : "Tu selección"}</span>
+      </div>
+      <span class="en-vivo">🔴 EN VIVO</span>
+      <div class="equipo">
+        <img src="${rival?.bandera || ""}" alt="" onerror="this.hidden=true">
+        <span>${rival ? rival.nombre : "Rival"}</span>
+      </div>
+      ${detalleTorneo}
+    </div>
+  `;
+}
+
+function jugarEtapaMundial(jugador, pendiente, alTerminar) {
+  const etapa = ETAPAS_MUNDIAL[pendiente.etapaActual];
+  const rival = elegirRivalMundial(jugador);
+  const nivel = pendiente.etapaActual <= 2 ? 0 : pendiente.etapaActual <= 4 ? 1 : 2;
+  window.CONTEXTO_PARTIDO = { torneo: "Copa Mundial", fase: etapa };
+
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+  const tamanoRival = rival ? obtenerTamanoSeleccion(rival.id) : "?";
+  contenedor.innerHTML = `
+    <div class="competition-card mundial-card">
+      <span class="badge-copa">WORLD CUP ${pendiente.año}</span>
+      ${crearFixtureMundial(pendiente)}
+      ${crearCabeceraMundial(jugador, rival)}
+      <h3>${etapa}</h3>
+      <p class="mundial-rival-tag">Rival: ${rival ? rival.nombre : "?"} · Selección ${tamanoRival}</p>
+      <button class="boton-jugar-minijuego" id="mundial-jugar-etapa">Jugar</button>
+    </div>`;
+
+  contenedor.querySelector("#mundial-jugar-etapa").onclick = () => {
+    const juegos = {
+      delantero: minijuegoLatidoFinal,
+      enganche: minijuegoVisionPanoramica,
+      central: minijuegoUltimoHombre,
+      arquero: minijuegoManosDeHielo,
+    };
+    const jugar = juegos[jugador.posicion] || minijuegoLatidoFinal;
+    jugar(nivel, (exito) => resolverPartidoMundial(jugador, pendiente, etapa, exito, alTerminar));
+  };
+}
+
+function resolverPartidoMundial(jugador, pendiente, etapaJugada, exito, alTerminar) {
+  const enGrupos = pendiente.etapaActual < 3;
+
+  if (enGrupos) {
+    pendiente.partidosGrupo = (pendiente.partidosGrupo || 0) + 1;
+    if (exito) pendiente.ganadosGrupo = (pendiente.ganadosGrupo || 0) + 1;
+    else pendiente.perdidosGrupo = (pendiente.perdidosGrupo || 0) + 1;
+    Estado.guardar();
+
+    if (pendiente.perdidosGrupo >= 2) {
+      return finalizarMundial(jugador, pendiente, false, "Fase de Grupos", alTerminar);
+    }
+    if (pendiente.partidosGrupo >= 3) {
+      if (pendiente.ganadosGrupo < 2) {
+        return finalizarMundial(jugador, pendiente, false, "Fase de Grupos", alTerminar);
+      }
+      pendiente.etapaActual = 3; // clasificó: salta directo a Octavos
+      Estado.guardar();
+      return jugarEtapaMundial(jugador, pendiente, alTerminar);
+    }
+    pendiente.etapaActual += 1;
+    Estado.guardar();
+    return jugarEtapaMundial(jugador, pendiente, alTerminar);
+  }
+
+  // Mata-mata: una derrota y quedás afuera.
+  if (!exito) {
+    return finalizarMundial(jugador, pendiente, false, etapaJugada, alTerminar);
+  }
+  if (etapaJugada === "Final") {
+    return finalizarMundial(jugador, pendiente, true, "Final", alTerminar);
+  }
+  pendiente.etapaActual += 1;
+  Estado.guardar();
+  jugarEtapaMundial(jugador, pendiente, alTerminar);
+}
+
+function finalizarMundial(jugador, pendiente, campeon, etapaFinal, alTerminar) {
+  pendiente.jugado = true;
+  pendiente.campeon = campeon;
+
+  let resultado;
+  let mensajeResumen;
+  if (campeon) {
+    resultado = "campeon";
+    mensajeResumen = `¡Campeón de la World Cup ${pendiente.año}!`;
+    jugador.stats.titulos = (jugador.stats.titulos || 0) + 1;
+  } else if (etapaFinal === "Final") {
+    resultado = "subcampeon";
+    mensajeResumen = `Subcampeón de la World Cup ${pendiente.año}`;
+  } else {
+    resultado = `eliminado_${etapaFinal}`;
+    mensajeResumen = `Eliminado de la World Cup ${pendiente.año} en ${etapaFinal}`;
+  }
+
+  if (!Array.isArray(jugador.resultadosSelecciones)) jugador.resultadosSelecciones = [];
+  jugador.resultadosSelecciones.push({
+    competencia: "Mundial",
+    año: pendiente.año,
+    resultado,
+    pais: jugador.pais,
+    mensajeResumen,
+  });
+  Estado.guardar();
+
+  mostrarCartelResultadoMundial(campeon, etapaFinal, pendiente.año, alTerminar);
+}
+
+function mostrarCartelResultadoMundial(campeon, etapaFinal, año, alTerminar) {
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+
+  if (campeon) {
+    contenedor.innerHTML = `
+      <div class="competition-card campeon mundial-final-card">
+        <span class="badge-copa">WORLD CUP ${año}</span>
+        <h2>¡CAMPEÓN DE LA WORLD CUP ${año}!!</h2>
+        <img src="Trofeos/Mundial.png" alt="Copa del Mundo" onerror="this.hidden=true">
+        <p>Tocar el cielo con los dedos es incomparable, trajiste alegría a tu país.</p>
+        <button class="boton-continuar">Continuar</button>
+      </div>`;
+  } else if (etapaFinal === "Final") {
+    contenedor.innerHTML = `
+      <div class="competition-card subcampeon">
+        <h2>Has quedado como Subcampeón de la World Cup ${año}</h2>
+        <p>Tan cerca que a la vez se siente tan lejos, duele el doble.</p>
+        <button class="boton-continuar">Continuar</button>
+      </div>`;
+  } else {
+    contenedor.innerHTML = `
+      <div class="competition-card subcampeon">
+        <h2>Eliminado de la World Cup ${año}</h2>
+        <p>El sueño mundialista se corta en ${etapaFinal}. Todavía hay revancha dentro de cuatro años.</p>
+        <button class="boton-continuar">Continuar</button>
+      </div>`;
+  }
+
+  contenedor.querySelector(".boton-continuar").onclick = () => {
+    contenedor.innerHTML = "";
+    contenedor.hidden = true;
+    alTerminar();
+  };
+}
+
+// ============================================
+// 3) MINIJUEGOS (uno por posición, 3 niveles de dificultad: 0 grupos,
+//    1 octavos/cuartos, 2 semis/final)
+// ============================================
+
+function tarjetaMundialMinijuego(titulo, descripcion, cuerpo) {
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+  contenedor.innerHTML = `
+    <div class="competition-card mundial-card">
+      <span class="badge-copa">WORLD CUP</span>
+      <h3>${titulo}</h3>
+      <p>${descripcion}</p>
+      ${cuerpo}
+    </div>`;
+  return contenedor;
+}
+
+// ---------- DELANTERO: "El Latido Final" ----------
+// Una barra cae al ritmo de un latido; hay que reaccionar justo cuando
+// cruza la línea. En la final hacen falta 5 aciertos seguidos.
+function minijuegoLatidoFinal(nivel, callbackFinal) {
+  const necesarios = [1, 3, 5][nivel];
+  const contenedor = tarjetaMundialMinijuego(
+    "El Latido Final",
+    `Presioná ESPACIO (o tocá el botón) justo cuando la barra cruce la línea. Necesitás ${necesarios} acierto${necesarios > 1 ? "s" : ""} seguido${necesarios > 1 ? "s" : ""}.`,
+    `<div class="latido-pista"><div class="latido-linea"></div><div class="latido-barra" id="latido-barra"></div></div>
+     <button class="boton-jugar-minijuego" id="latido-boton">¡AHORA!</button>
+     <p class="minijuego-progreso" id="latido-progreso">Aciertos: 0/${necesarios}</p>`
+  );
+  const barra = contenedor.querySelector("#latido-barra");
+  const boton = contenedor.querySelector("#latido-boton");
+  const progresoTxt = contenedor.querySelector("#latido-progreso");
+
+  let aciertos = 0;
+  let activo = true;
+  let cayendo = false;
+  let inicio = 0;
+  let duracion = 0;
+  let timeoutFallo = null;
+
+  function limpiarYCerrar(exito) {
+    activo = false;
+    cayendo = false;
+    clearTimeout(timeoutFallo);
+    document.removeEventListener("keydown", listenerTeclado);
+    callbackFinal(exito);
+  }
+
+  function nuevaCaida() {
+    cayendo = true;
+    duracion = nivel === 0 ? 1600 : nivel === 1 ? 950 + Math.random() * 200 : 600 + Math.random() * 220;
+    inicio = Date.now();
+    barra.style.transition = "none";
+    barra.style.top = "0%";
+    void barra.offsetWidth; // fuerza el reflow para reiniciar la transición
+    barra.style.transition = `top ${duracion}ms linear`;
+    requestAnimationFrame(() => {
+      barra.style.top = "100%";
+    });
+    clearTimeout(timeoutFallo);
+    timeoutFallo = setTimeout(() => {
+      if (activo && cayendo) limpiarYCerrar(false);
+    }, duracion + 120);
+  }
+
+  function intentar() {
+    if (!activo || !cayendo) return;
+    cayendo = false;
+    clearTimeout(timeoutFallo);
+    const transcurrido = Date.now() - inicio;
+    const progreso = transcurrido / duracion; // la línea está al 85% del recorrido
+    const ventana = nivel === 0 ? 0.16 : nivel === 1 ? 0.11 : 0.08;
+    const acierto = Math.abs(progreso - 0.85) <= ventana;
+
+    if (acierto) {
+      aciertos++;
+      progresoTxt.textContent = `Aciertos: ${aciertos}/${necesarios}`;
+      if (aciertos >= necesarios) return limpiarYCerrar(true);
+      setTimeout(nuevaCaida, 380);
+    } else {
+      limpiarYCerrar(false);
+    }
+  }
+
+  const listenerTeclado = (e) => {
+    if (e.code === "Space") {
+      e.preventDefault();
+      intentar();
+    }
+  };
+  document.addEventListener("keydown", listenerTeclado);
+  boton.onclick = intentar;
+
+  nuevaCaida();
+}
+
+// ---------- ENGANCHE: "Visión Panorámica" ----------
+// Memorizás dónde están tus compañeros (verde) y clickeás esos
+// casilleros de memoria. Tocar un rival (rojo) es contragolpe.
+function minijuegoVisionPanoramica(nivel, callbackFinal) {
+  const tam = [3, 4, 5][nivel];
+  const totalCeldas = tam * tam;
+  const compañeros = [3, 4, 6][nivel];
+  const rivalesCant = [1, 2, 3][nivel];
+  const tiempoVer = [1500, 1100, 750][nivel];
+
+  const contenedor = tarjetaMundialMinijuego(
+    "Visión Panorámica",
+    "Memorizá dónde están tus compañeros (verde). Van a desaparecer: hacé clic en esos casilleros exactos para encadenar los pases. Si tocás una zona roja (rival), es contragolpe.",
+    `<div class="vision-grid" id="vision-grid" style="grid-template-columns:repeat(${tam},1fr)"></div>`
+  );
+  const grid = contenedor.querySelector("#vision-grid");
+  const celdas = [];
+  for (let i = 0; i < totalCeldas; i++) {
+    const celda = document.createElement("button");
+    celda.className = "vision-celda";
+    celda.type = "button";
+    grid.appendChild(celda);
+    celdas.push(celda);
+  }
+
+  function elegirVarios(cantidad, disponibles) {
+    const copia = [...disponibles];
+    const elegidos = [];
+    for (let k = 0; k < cantidad && copia.length; k++) {
+      elegidos.push(copia.splice(Math.floor(Math.random() * copia.length), 1)[0]);
+    }
+    return elegidos;
+  }
+
+  const indices = Array.from({ length: totalCeldas }, (_, i) => i);
+  const verdes = elegirVarios(compañeros, indices);
+  const restantes = indices.filter((i) => !verdes.includes(i));
+  const rojos = elegirVarios(rivalesCant, restantes);
+
+  verdes.forEach((i) => celdas[i].classList.add("vision-celda--verde"));
+  rojos.forEach((i) => celdas[i].classList.add("vision-celda--roja-preview"));
+
+  setTimeout(() => {
+    celdas.forEach((c) => c.classList.remove("vision-celda--verde", "vision-celda--roja-preview"));
+    let restantesVerdes = new Set(verdes);
+    let activo = true;
+
+    celdas.forEach((celda, i) => {
+      celda.onclick = () => {
+        if (!activo) return;
+        if (rojos.includes(i)) {
+          activo = false;
+          celda.classList.add("vision-celda--fallo");
+          return callbackFinal(false);
+        }
+        if (restantesVerdes.has(i)) {
+          restantesVerdes.delete(i);
+          celda.classList.add("vision-celda--acierto");
+          celda.disabled = true;
+          if (restantesVerdes.size === 0) {
+            activo = false;
+            callbackFinal(true);
+          }
+        } else {
+          celda.disabled = true;
+        }
+      };
+    });
+  }, tiempoVer);
+}
+
+// ---------- CENTRAL: "El Último Hombre" ----------
+// El delantero corre hacia la línea de robo. Hay que clickear justo
+// cuando la toca. En rondas altas hace amagues que rompen el ritmo.
+function minijuegoUltimoHombre(nivel, callbackFinal) {
+  const contenedor = tarjetaMundialMinijuego(
+    "El Último Hombre",
+    "El delantero rival corre hacia vos. Hacé clic justo cuando su pelota toque la línea de robo.",
+    `<div class="ultimo-hombre-pista">
+       <div class="ultimo-hombre-jugador" id="uh-jugador">⚽</div>
+       <div class="ultimo-hombre-linea"></div>
+     </div>
+     <button class="boton-jugar-minijuego" id="uh-boton">¡QUITE!</button>`
+  );
+  const jugadorEl = contenedor.querySelector("#uh-jugador");
+  const boton = contenedor.querySelector("#uh-boton");
+
+  let pos = 0;
+  let velocidad = nivel === 0 ? 0.85 : nivel === 1 ? 1.15 : 1.35;
+  let activo = true;
+  let resuelto = false;
+  const conAmague = nivel >= 1;
+
+  function terminar(exito) {
+    if (resuelto) return;
+    resuelto = true;
+    activo = false;
+    callbackFinal(exito);
+  }
+
+  function tick() {
+    if (!activo) return;
+    if (conAmague && Math.random() < (nivel === 1 ? 0.02 : 0.045)) {
+      velocidad = Math.random() < 0.5 ? velocidad * 0.15 : velocidad * 2.4;
+      setTimeout(() => {
+        velocidad = nivel === 1 ? 1.15 : 1.4;
+      }, 260);
+    }
+    pos += velocidad;
+    jugadorEl.style.left = `${Math.min(100, pos)}%`;
+    if (pos >= 100) {
+      terminar(false); // lo dejaste llegar sin marcar
+      return;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  boton.onclick = () => {
+    if (!activo || resuelto) return;
+    const ventana = nivel === 0 ? 7 : nivel === 1 ? 5 : 3.5;
+    terminar(Math.abs(pos - 100) <= ventana);
+  };
+}
+
+// ---------- ARQUERO: "Manos de Hielo" ----------
+// Aparecen blancos en el arco: hay que clickearlos antes de que
+// desaparezcan. Los marcados con una X roja son amagues (no tocar).
+function minijuegoManosDeHielo(nivel, callbackFinal) {
+  const necesarios = [3, 4, 5][nivel];
+  const simultaneos = [1, 2, 3][nivel];
+  const vida = nivel === 0 ? 1300 : nivel === 1 ? 950 : 750;
+  const probFalso = nivel === 0 ? 0 : nivel === 1 ? 0.2 : 0.35;
+
+  const contenedor = tarjetaMundialMinijuego(
+    "Manos de Hielo",
+    "Atajá los remates (círculos) antes de que desaparezcan. Los que tienen una X roja son amagues: si los tocás, te tirás mal y dejás el arco libre.",
+    `<div class="hielo-arco" id="hielo-arco"><span class="hielo-contador" id="hielo-contador">0/${necesarios}</span></div>`
+  );
+  const zona = contenedor.querySelector("#hielo-arco");
+  const contadorTxt = contenedor.querySelector("#hielo-contador");
+
+  let atajadas = 0;
+  let activas = 0;
+  let activo = true;
+
+  function terminar(exito) {
+    if (!activo) return;
+    activo = false;
+    callbackFinal(exito);
+  }
+
+  function lanzar() {
+    if (!activo || atajadas >= necesarios) return;
+    if (activas >= simultaneos) {
+      setTimeout(lanzar, 150);
+      return;
+    }
+    activas++;
+    const esFalso = Math.random() < probFalso;
+    const blanco = document.createElement("button");
+    blanco.type = "button";
+    blanco.className = `hielo-blanco${esFalso ? " hielo-blanco--falso" : ""}`;
+    blanco.textContent = esFalso ? "✕" : "";
+    blanco.style.left = `${8 + Math.random() * 78}%`;
+    blanco.style.top = `${10 + Math.random() * 70}%`;
+    zona.appendChild(blanco);
+
+    const vencido = setTimeout(() => {
+      blanco.remove();
+      activas--;
+      if (!activo) return;
+      if (!esFalso) {
+        terminar(false); // dejaste pasar un remate real
+        return;
+      }
+      setTimeout(lanzar, 100);
+    }, vida);
+
+    blanco.onclick = () => {
+      if (!activo) return;
+      clearTimeout(vencido);
+      blanco.remove();
+      activas--;
+      if (esFalso) {
+        terminar(false); // te tiraste mal con el amague
+        return;
+      }
+      atajadas++;
+      contadorTxt.textContent = `${atajadas}/${necesarios}`;
+      if (atajadas >= necesarios) {
+        terminar(true);
+        return;
+      }
+      setTimeout(lanzar, 120);
+    };
+
+    setTimeout(lanzar, nivel === 0 ? 500 : 250);
+  }
+  lanzar();
 }

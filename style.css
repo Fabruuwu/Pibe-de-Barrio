@@ -2153,3 +2153,202 @@ body::before {
   color: #f7c948;
   white-space: nowrap;
 }
+
+/* ============================================
+   COPA MUNDIAL DE SELECCIONES
+   ============================================ */
+
+.mundial-portada {
+  text-align: center;
+}
+.mundial-portada__bandera {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 4px auto 10px;
+  border-radius: 6px;
+}
+
+.mundial-final-card.campeon {
+  box-shadow: 0 0 40px rgba(247, 201, 72, 0.35);
+}
+
+.mundial-rival-tag {
+  font-size: 12.5px;
+  color: #9aa196;
+  margin-top: -4px;
+}
+
+/* Fixture de 7 etapas (G1, G2, G3, 8vos, 4tos, Semi, Final) */
+.mundial-fixture {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 14px;
+}
+.mundial-fixture__punto {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #7d8478;
+  background: rgba(255, 255, 255, 0.03);
+}
+.mundial-fixture__punto--jugado {
+  border-color: rgba(95, 217, 138, 0.5);
+  color: #5fd98a;
+  background: rgba(95, 217, 138, 0.08);
+}
+.mundial-fixture__punto--actual {
+  border-color: var(--dorado, #f7c948);
+  color: var(--dorado, #f7c948);
+  background: rgba(247, 201, 72, 0.12);
+  box-shadow: 0 0 10px rgba(247, 201, 72, 0.25);
+}
+
+.minijuego-progreso {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--dorado, #f7c948);
+  margin-top: 8px;
+}
+
+/* ---------- Delantero: El Latido Final ---------- */
+.latido-pista {
+  position: relative;
+  height: 220px;
+  width: 60px;
+  margin: 14px auto;
+  background: linear-gradient(180deg, #12160f, #0a0d08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.latido-linea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 85%;
+  height: 3px;
+  background: var(--dorado, #f7c948);
+  box-shadow: 0 0 8px rgba(247, 201, 72, 0.6);
+}
+.latido-barra {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0%;
+  height: 22px;
+  border-radius: 6px;
+  background: #5fd98a;
+  box-shadow: 0 0 10px rgba(95, 217, 138, 0.5);
+}
+
+/* ---------- Enganche: Visión Panorámica ---------- */
+.vision-grid {
+  display: grid;
+  gap: 8px;
+  max-width: 320px;
+  margin: 14px auto 0;
+}
+.vision-celda {
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #14180f;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.vision-celda:disabled {
+  cursor: default;
+}
+.vision-celda--verde {
+  background: rgba(95, 217, 138, 0.45);
+  border-color: #5fd98a;
+}
+.vision-celda--roja-preview {
+  background: rgba(230, 60, 60, 0.45);
+  border-color: #e63c3c;
+}
+.vision-celda--acierto {
+  background: rgba(95, 217, 138, 0.28);
+  border-color: #5fd98a;
+}
+.vision-celda--fallo {
+  background: rgba(230, 60, 60, 0.55);
+  border-color: #e63c3c;
+}
+
+/* ---------- Central: El Último Hombre ---------- */
+.ultimo-hombre-pista {
+  position: relative;
+  height: 90px;
+  margin: 16px 8px 8px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #12160f, #0a0d08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.ultimo-hombre-jugador {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%);
+  font-size: 22px;
+  transition: left 0.03s linear;
+}
+.ultimo-hombre-linea {
+  position: absolute;
+  right: 6%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--dorado, #f7c948);
+  box-shadow: 0 0 8px rgba(247, 201, 72, 0.6);
+}
+
+/* ---------- Arquero: Manos de Hielo ---------- */
+.hielo-arco {
+  position: relative;
+  height: 200px;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(45deg, #12160f, #12160f 10px, #0f130c 10px, #0f130c 20px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.hielo-contador {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dorado, #f7c948);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.hielo-blanco {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid #5fd98a;
+  background: rgba(95, 217, 138, 0.2);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  color: #e63c3c;
+  font-weight: 900;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hielo-blanco--falso {
+  border-color: #e63c3c;
+  background: rgba(230, 60, 60, 0.2);
+}
