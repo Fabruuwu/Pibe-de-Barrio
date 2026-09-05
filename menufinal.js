@@ -30,11 +30,25 @@
 
 function calcularResumenCarrera(jugador) {
   const detalle = []; // [{ clave, etiqueta, club, veces, puntosBase, multiplicador, subtotal }]
-  const titulosPorClub = {}; // clubId -> ["🏆 Liga Argentina 2027", ...]
+  const titulosPorClub = {}; // clubId -> { clave: { etiqueta, imagen, años: [...] } }
+  const titulosPorSeleccion = {}; // paisId -> { competencia: { etiqueta, imagen, años: [...] } }
 
-  function agregarTituloVisual(clubId, etiqueta, año) {
-    if (!titulosPorClub[clubId]) titulosPorClub[clubId] = [];
-    titulosPorClub[clubId].push(año ? `${etiqueta} ${año}` : etiqueta);
+  function agregarTituloVisual(clubId, clave, etiqueta, año) {
+    if (!clubId) return;
+    if (!titulosPorClub[clubId]) titulosPorClub[clubId] = {};
+    if (!titulosPorClub[clubId][clave]) {
+      titulosPorClub[clubId][clave] = { etiqueta, imagen: IMAGENES_TITULOS[clave] || null, años: [] };
+    }
+    if (año) titulosPorClub[clubId][clave].años.push(año);
+  }
+
+  function agregarTituloSeleccion(paisId, clave, etiqueta, año) {
+    if (!paisId) return;
+    if (!titulosPorSeleccion[paisId]) titulosPorSeleccion[paisId] = {};
+    if (!titulosPorSeleccion[paisId][clave]) {
+      titulosPorSeleccion[paisId][clave] = { etiqueta, imagen: IMAGENES_TITULOS[clave] || null, años: [] };
+    }
+    if (año) titulosPorSeleccion[paisId][clave].años.push(año);
   }
 
   function sumarPuntos(clubId, clave, etiqueta, año) {
@@ -50,7 +64,7 @@ function calcularResumenCarrera(jugador) {
     entrada.veces += 1;
     entrada.subtotal += puntosBase * multiplicador;
 
-    agregarTituloVisual(clubId, etiqueta, año);
+    agregarTituloVisual(clubId, clave, etiqueta, año);
   }
 
   // Liga / Copa Argentina / SuperCopa / Trofeo / SuperCopa Internacional
@@ -97,7 +111,8 @@ function calcularResumenCarrera(jugador) {
     if (reg.resultado !== "campeon") return;
     const puntosBase = PUNTOS_SELECCIONES[reg.competencia] || 0;
     if (!puntosBase) return;
-    const multiplicador = obtenerMultiplicadorSeleccion(reg.pais || jugador.pais);
+    const paisId = reg.pais || jugador.pais;
+    const multiplicador = obtenerMultiplicadorSeleccion(paisId);
     const subtotal = puntosBase * multiplicador;
     detalle.push({
       clave: `seleccion_${reg.competencia}_${reg.año}`,
@@ -109,6 +124,7 @@ function calcularResumenCarrera(jugador) {
       subtotal,
       esSeleccion: true,
     });
+    agregarTituloSeleccion(paisId, reg.competencia, reg.competencia, reg.año);
   });
 
   const puntosTotal = detalle.reduce((acc, d) => acc + d.subtotal, 0);
@@ -121,6 +137,7 @@ function calcularResumenCarrera(jugador) {
   return {
     detalle,
     titulosPorClub,
+    titulosPorSeleccion,
     puntosTotal,
     totales: {
       años: jugador.temporada || 1,
@@ -241,9 +258,27 @@ function mostrarResumenFinal(jugador, resumen) {
   }
 
   renderClubesResumen(jugador, resumen);
-  renderSeleccionResumen(jugador);
+  renderSeleccionResumen(jugador, resumen);
   renderTotalesResumen(jugador, resumen);
   renderPuntosResumen(resumen);
+}
+
+function renderChipsDeTitulos(titulosPorCompetencia) {
+  if (!titulosPorCompetencia) return "";
+  const claves = Object.keys(titulosPorCompetencia);
+  if (!claves.length) return "";
+  return `<div class="resumen-final__chips">${claves.map((clave) => {
+    const t = titulosPorCompetencia[clave];
+    const años = [...t.años].sort((a, b) => a - b).join(", ");
+    const imagenHtml = t.imagen
+      ? `<img src="${t.imagen}" alt="${t.etiqueta}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🏆',className:'trofeo-chip__icono-fallback'}))">`
+      : `<span class="trofeo-chip__icono-fallback">🏆</span>`;
+    return `
+      <div class="trofeo-chip" title="${t.etiqueta}">
+        <span class="trofeo-chip__imagen">${imagenHtml}</span>
+        <span class="trofeo-chip__años">${años}</span>
+      </div>`;
+  }).join("")}</div>`;
 }
 
 function renderClubesResumen(jugador, resumen) {
@@ -260,7 +295,7 @@ function renderClubesResumen(jugador, resumen) {
     const statsTxt = statsClaves
       .map((s) => `${jugador.stats[s.clave] ?? 0}${(s.etiqueta || "")[0] || ""}`)
       .join(" ");
-    const titulos = resumen.titulosPorClub[entry.club] || [];
+    const chipsHtml = renderChipsDeTitulos(resumen.titulosPorClub[entry.club]);
 
     const fila = document.createElement("div");
     fila.className = "resumen-final__club-fila";
@@ -269,7 +304,7 @@ function renderClubesResumen(jugador, resumen) {
       <div class="resumen-final__club-info">
         <div class="resumen-final__club-nombre">${club ? club.nombre : entry.club} (${entry.desde}-${entry.hasta ?? "presente"})</div>
         <div class="resumen-final__club-cariño">${etapa.nombre}</div>
-        ${titulos.length ? `<div class="resumen-final__club-titulos">${titulos.join(" · ")}</div>` : ""}
+        ${chipsHtml}
       </div>
       <div class="resumen-final__club-stats">${entry.partidos ?? jugador.stats.partidos ?? 0}PJ ${statsTxt}</div>
     `;
@@ -281,9 +316,10 @@ function renderClubesResumen(jugador, resumen) {
   }
 }
 
-function renderSeleccionResumen(jugador) {
+function renderSeleccionResumen(jugador, resumen) {
   const contenedor = document.getElementById("resumen-final-seleccion");
   const pais = PAISES_POR_ID[jugador.pais];
+  const chipsHtml = renderChipsDeTitulos(resumen.titulosPorSeleccion[jugador.pais]);
 
   contenedor.innerHTML = `
     <div class="resumen-final__club-fila">
@@ -291,7 +327,7 @@ function renderSeleccionResumen(jugador) {
       <div class="resumen-final__club-info">
         <div class="resumen-final__club-nombre">${pais ? pais.nombre : "—"}</div>
         <div class="resumen-final__club-cariño">${ESTADOS_SELECCION[jugador.seleccion] || "—"}</div>
-        <div class="resumen-final__vacio-nota">Todavía no existen las convocatorias a la Selección: esta sección se completa cuando sumemos esa mecánica.</div>
+        ${chipsHtml}
       </div>
     </div>
   `;

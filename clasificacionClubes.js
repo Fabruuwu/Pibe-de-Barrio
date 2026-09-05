@@ -106,3 +106,28 @@ const PUNTOS_TITULOS = {
   balonDeOro: 2500, // Balón de Oro
   botaDeOro: 500, // Bota de Oro
 };
+
+/**
+ * IMAGENES_TITULOS
+ * -----------------------------------------
+ * Ícono de trofeo/premio para el resumen final (chip con imagen + años).
+ * La clave tiene que coincidir con la misma clave que usa PUNTOS_TITULOS
+ * (o, para selecciones, con el nombre de la competencia tal cual se
+ * guarda en jugador.resultadosSelecciones[].competencia).
+ * Ajustá las rutas si tus archivos se llaman distinto dentro de /Trofeos.
+ * -----------------------------------------
+ */
+const IMAGENES_TITULOS = {
+  liga: "Trofeos/LigaArgentina.png",
+  copa: "Trofeos/CopaArgentina.png",
+  trofeo: "Trofeos/TrofeoDeCampeones.png",
+  superCopa: "Trofeos/SuperCopaArgentina.png",
+  superCopaInt: "Trofeos/SuperCopaInternacional.png",
+  Libertadores: "Trofeos/CopaLibertadores.png",
+  Sudamericana: "Trofeos/CopaSudamericana.png",
+  Recopa: "Trofeos/Recopa.png",
+  "Mundial de Clubes": "Trofeos/MundialClubes.png",
+  balonDeOro: "Trofeos/BalonDeOro.png",
+  botaDeOro: "Trofeos/BotaDeOro.png",
+  "Copa América": "Trofeos/CopaAmerica.png",
+};
