@@ -130,4 +130,5 @@ const IMAGENES_TITULOS = {
   balonDeOro: "Trofeos/BalonDeOro.png",
   botaDeOro: "Trofeos/BotaDeOro.png",
   "Copa América": "Trofeos/CopaAmerica.png",
+  "Finalissima": "Trofeos/Finalissima.png",
 };

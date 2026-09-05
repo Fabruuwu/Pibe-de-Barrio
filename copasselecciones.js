@@ -488,3 +488,361 @@ function minijuegoGuerraPsicologica(callback) {
 function numeroAleatorioSel(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+// ============================================
+// FINALISSIMA
+// -----------------------------------------
+// Enfrenta al campeón de la Copa América contra el campeón de la
+// Eurocopa. Se juega el mismo año del Mundial de Selecciones, antes
+// del Mundial. Solo es relevante si tu selección ganó la copa
+// continental que le corresponde a su confederación.
+// (La Eurocopa todavía no está implementada como competencia jugable;
+// el gancho para CONMEBOL/CONCACAF -> UEFA ya funciona hoy mismo, y el
+// de UEFA -> CONMEBOL/CONCACAF queda listo para cuando se sume.)
+// ============================================
+
+function esAnioMundialSelecciones(año) {
+  // Ediciones: 2030, 2034, 2038... Ajustá el año base si hace falta.
+  return año >= 2030 && (año - 2030) % 4 === 0;
+}
+
+function esConfederacionAmericana(confederacion) {
+  return confederacion === "CONMEBOL" || confederacion === "CONCACAF";
+}
+
+function elegirTamanoPorPeso(pesos) {
+  const total = Object.values(pesos).reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (const tamano of Object.keys(pesos)) {
+    if (r < pesos[tamano]) return tamano;
+    r -= pesos[tamano];
+  }
+  return Object.keys(pesos)[0];
+}
+
+function elegirRivalFinalissima(candidatos) {
+  const PESOS_TAMANO_RIVAL = { grande: 60, mediana: 25, chica: 10, diminuta: 5 };
+  const tamanoElegido = elegirTamanoPorPeso(PESOS_TAMANO_RIVAL);
+  const delTamano = candidatos.filter(p => obtenerTamanoSeleccion(p.id) === tamanoElegido);
+  const pool = delTamano.length ? delTamano : candidatos;
+  return pool[Math.floor(Math.random() * pool.length)] || null;
+}
+
+/**
+ * Llamar una vez por año (junto a prepararCopaAmerica). Si es año de
+ * Mundial de Selecciones y tu selección ganó la copa continental que
+ * le toca (Copa América para CONMEBOL/CONCACAF, Eurocopa para UEFA),
+ * agenda la Finalissima para jugarse al arranque de ese mismo año.
+ */
+function prepararFinalissima(jugador, año) {
+  if (!esAnioMundialSelecciones(año)) return;
+  if (!Array.isArray(jugador.resultadosSelecciones)) jugador.resultadosSelecciones = [];
+  if (jugador.resultadosSelecciones.some(r => r.competencia === "Finalissima" && r.año === año)) return;
+
+  const pais = (typeof PAISES !== "undefined") ? PAISES.find(p => p.id === jugador.pais) : null;
+  const confederacion = pais?.confederacion;
+  if (!confederacion) return;
+
+  const esAmericano = esConfederacionAmericana(confederacion);
+  const esEuropeo = confederacion === "UEFA";
+  if (!esAmericano && !esEuropeo) return; // solo relevante si tu confederación juega alguna de las dos copas
+
+  let clasifico = false;
+  if (esAmericano) {
+    const añoCopaAmerica = año - 3; // edición inmediatamente anterior al Mundial
+    clasifico = jugador.resultadosSelecciones.some(
+      r => r.competencia === "Copa América" && r.año === añoCopaAmerica && r.resultado === "campeon"
+    );
+  } else {
+    const añoEurocopa = año - 2; // esquema típico: Eurocopa 2 años antes del Mundial
+    clasifico = jugador.resultadosSelecciones.some(
+      r => r.competencia === "Eurocopa" && r.año === añoEurocopa && r.resultado === "campeon"
+    );
+  }
+  if (!clasifico) return;
+
+  const confederacionesRival = esAmericano ? ["UEFA"] : ["CONMEBOL", "CONCACAF"];
+  const candidatos = (typeof PAISES !== "undefined")
+    ? PAISES.filter(p => confederacionesRival.includes(p.confederacion) && p.id !== jugador.pais)
+    : [];
+  const rival = elegirRivalFinalissima(candidatos);
+
+  if (!Array.isArray(jugador.copasSeleccionPendientes)) jugador.copasSeleccionPendientes = [];
+  jugador.copasSeleccionPendientes.push({
+    competencia: "Finalissima",
+    año,
+    jugado: false,
+    rivalPais: rival?.id || null,
+    rivalNombre: rival?.nombre || "el campeón rival",
+  });
+  Estado.guardar();
+}
+
+/**
+ * Llamar al arrancar la temporada (junto a mostrarCopaAmerica, antes
+ * del Mundial). Si hay una Finalissima pendiente, la muestra y
+ * devuelve true.
+ */
+function mostrarFinalissima(alTerminar) {
+  const jugador = Estado.obtener();
+  const pendiente = (jugador.copasSeleccionPendientes || []).find(
+    c => c.competencia === "Finalissima" && !c.jugado
+  );
+  if (!pendiente) return false;
+
+  const contenedor = document.getElementById("competition-container");
+  contenedor.hidden = false;
+  contenedor.innerHTML = `
+    <div class="competition-card">
+      <span class="badge-copa">FINALISSIMA ${pendiente.año}</span>
+      <h2>🌍 Finalissima (Final Directa)</h2>
+      <p>Duelo intercontinental contra ${pendiente.rivalNombre}, campeón de la otra confederación. Precisión quirúrgica y técnica depurada.</p>
+      <button class="boton-jugar-minijuego" id="iniciar-finalissima">Jugar la final</button>
+    </div>`;
+
+  contenedor.querySelector("#iniciar-finalissima").onclick = () => {
+    const juegos = {
+      delantero: minijuegoVoleaDeOro,
+      enganche: minijuegoHuecoTactico,
+      central: minijuegoLecturaEuropea,
+      arquero: minijuegoBalistica
+    };
+    const jugarMinijuego = juegos[jugador.posicion] || minijuegoVoleaDeOro;
+    jugarMinijuego((gano) => resolverFinalissima(pendiente, gano, alTerminar));
+  };
+  return true;
+}
+
+function resolverFinalissima(pendiente, gano, alTerminar) {
+  const jugador = Estado.obtener();
+  pendiente.jugado = true;
+  pendiente.gano = gano;
+
+  const registro = {
+    competencia: "Finalissima",
+    año: pendiente.año,
+    resultado: gano ? "campeon" : "subcampeon",
+    pais: jugador.pais,
+    mensajeResumen: gano
+      ? `¡Campeón de la Finalissima ${pendiente.año}!`
+      : `Subcampeón de la Finalissima ${pendiente.año}`
+  };
+  if (!Array.isArray(jugador.resultadosSelecciones)) jugador.resultadosSelecciones = [];
+  jugador.resultadosSelecciones.push(registro);
+  Estado.guardar();
+
+  const contenedor = document.getElementById("competition-container");
+  contenedor.innerHTML = gano
+    ? `<div class="competition-card campeon">
+         <h2>¡CAMPEÓN DE LA FINALISSIMA ${pendiente.año}!!</h2>
+         <img src="Trofeos/Finalissima.png" alt="Finalissima">
+         <p>Le ganaste al campeón de la otra confederación en un partidazo intercontinental. Tu selección se corona ante todo el planeta.</p>
+         <button class="boton-continuar">Continuar</button>
+       </div>`
+    : `<div class="competition-card subcampeon">
+         <h2>Subcampeón de la Finalissima ${pendiente.año}</h2>
+         <p>Peleaste de igual a igual con la otra confederación, pero no alcanzó. Aun así, llegar a esta final ya es un logro enorme.</p>
+         <button class="boton-continuar">Continuar</button>
+       </div>`;
+  contenedor.querySelector(".boton-continuar").onclick = () => {
+    contenedor.innerHTML = "";
+    contenedor.hidden = true;
+    alTerminar();
+  };
+}
+
+// ============================================
+// MINIJUEGOS DE LA FINALISSIMA
+// ============================================
+
+// Delantero: "Volea de Oro" — una sombra en el piso se hace cada vez
+// más nítida; hay que patear justo cuando choca con el círculo central.
+function minijuegoVoleaDeOro(callback) {
+  const contenedor = tarjetaCopaAmerica(
+    "Volea de Oro",
+    "La pelota viene de un centro. Mirá la sombra en el piso y apretá PATEAR justo cuando choque con el círculo central.",
+    `<button class="boton-jugar-minijuego" id="volea-empezar">Empezar</button>
+     <div id="volea-zona" hidden style="position:relative;height:160px;margin-top:14px;">
+       <span style="position:absolute;left:50%;top:50%;width:60px;height:60px;border:3px solid #f5c542;border-radius:50%;transform:translate(-50%,-50%);"></span>
+       <span id="volea-sombra" style="position:absolute;left:50%;top:50%;width:140px;height:140px;border-radius:50%;background:rgba(0,0,0,.35);transform:translate(-50%,-50%);opacity:.15;"></span>
+       <button class="boton-jugar-minijuego" id="volea-patear" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);">¡PATEAR!</button>
+     </div>`
+  );
+  contenedor.querySelector("#volea-empezar").onclick = () => {
+    const zona = contenedor.querySelector("#volea-zona");
+    zona.hidden = false;
+    const sombra = contenedor.querySelector("#volea-sombra");
+    const inicio = Date.now();
+    const DURACION = 1400 + Math.random() * 900; // momento ideal (sombra 100% nítida)
+    let resuelto = false;
+
+    const animar = () => {
+      if (resuelto) return;
+      const t = Math.min(1, (Date.now() - inicio) / DURACION);
+      const escala = 1.8 - t * 1.3; // arranca grande y difusa, termina del tamaño del círculo
+      sombra.style.opacity = String(0.15 + t * 0.7);
+      sombra.style.width = `${140 * escala}px`;
+      sombra.style.height = `${140 * escala}px`;
+      if (t >= 1) { resuelto = true; return callback(false); } // se pasó del momento, no llegó a patear
+      requestAnimationFrame(animar);
+    };
+    animar();
+
+    contenedor.querySelector("#volea-patear").onclick = () => {
+      if (resuelto) return;
+      const t = Math.min(1, (Date.now() - inicio) / DURACION);
+      resuelto = true;
+      callback(t >= 0.85 && t <= 1.02); // ventana de timing cerca del impacto
+    };
+  };
+}
+
+// Enganche: "El Hueco Táctico" — una flecha gira sin parar; hay que
+// hacer clic justo cuando apunta a uno de los huecos angostos.
+function minijuegoHuecoTactico(callback) {
+  const contenedor = tarjetaCopaAmerica(
+    "El Hueco Táctico",
+    "La flecha gira sin parar alrededor tuyo. Hacé clic justo cuando apunte a uno de los huecos angostos entre los defensores.",
+    `<button class="boton-jugar-minijuego" id="hueco-empezar">Empezar</button>
+     <div id="hueco-zona" hidden style="position:relative;width:220px;height:220px;margin:14px auto;border-radius:50%;border:2px dashed rgba(255,255,255,.2);">
+       <div id="hueco-ventana-1" style="position:absolute;width:26px;height:26px;background:rgba(80,200,120,.4);border-radius:50%;top:50%;left:-13px;transform:translateY(-50%);"></div>
+       <div id="hueco-ventana-2" style="position:absolute;width:26px;height:26px;background:rgba(80,200,120,.4);border-radius:50%;top:50%;right:-13px;transform:translateY(-50%);"></div>
+       <div id="hueco-flecha" style="position:absolute;left:50%;top:50%;width:100px;height:4px;background:#f5c542;transform-origin:0 50%;"></div>
+     </div>
+     <button class="boton-jugar-minijuego" id="hueco-clic" hidden>¡Pase!</button>`
+  );
+  contenedor.querySelector("#hueco-empezar").onclick = () => {
+    const zona = contenedor.querySelector("#hueco-zona");
+    const flecha = contenedor.querySelector("#hueco-flecha");
+    const boton = contenedor.querySelector("#hueco-clic");
+    zona.hidden = false;
+    boton.hidden = false;
+    let angulo = 0;
+    let activo = true;
+    const velocidad = 6; // grados por frame, "súper rápido"
+
+    const girar = () => {
+      if (!activo) return;
+      angulo = (angulo + velocidad) % 360;
+      flecha.style.transform = `rotate(${angulo}deg)`;
+      requestAnimationFrame(girar);
+    };
+    girar();
+
+    boton.onclick = () => {
+      if (!activo) return;
+      activo = false;
+      // Los huecos están en 0° (derecha) y 180° (izquierda). Tolerancia angular.
+      const normalizado = angulo % 180;
+      const distancia = Math.min(normalizado, 180 - normalizado);
+      callback(distancia <= 12);
+    };
+  };
+}
+
+// Central: "Lectura Europea" — 4 líneas de pase punteadas; un
+// indicador (ojos) mira hacia una un segundo antes de soltar la pelota.
+function minijuegoLecturaEuropea(callback) {
+  const contenedor = tarjetaCopaAmerica(
+    "Lectura Europea",
+    "El mediocampista rival tiene 4 opciones de pase. Sus ojos van a mirar hacia una un segundo antes de soltarla: hacé clic en esa línea para anticiparte.",
+    `<button class="boton-jugar-minijuego" id="lectura-empezar">Empezar</button>
+     <div id="lectura-zona" hidden style="position:relative;height:200px;margin-top:14px;">
+       <span id="lectura-ojos" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:28px;">👀</span>
+     </div>`
+  );
+  contenedor.querySelector("#lectura-empezar").onclick = () => {
+    const zona = contenedor.querySelector("#lectura-zona");
+    zona.hidden = false;
+    const posiciones = [
+      { x: 10, y: 10 }, { x: 90, y: 10 }, { x: 10, y: 90 }, { x: 90, y: 90 }
+    ];
+    const lineas = posiciones.map((p, i) => {
+      const linea = document.createElement("button");
+      linea.className = "mundial-nodo";
+      linea.textContent = "→";
+      linea.style.left = `${p.x}%`;
+      linea.style.top = `${p.y}%`;
+      linea.dataset.i = i;
+      zona.appendChild(linea);
+      return linea;
+    });
+    let activo = true;
+    const objetivo = Math.floor(Math.random() * 4);
+    lineas.forEach((linea, i) => {
+      linea.onclick = () => {
+        if (!activo) return;
+        activo = false;
+        callback(i === objetivo);
+      };
+    });
+    // Demora antes de la mirada, luego 1 segundo de "aviso" antes del pase.
+    setTimeout(() => {
+      if (!activo) return;
+      const ojos = contenedor.querySelector("#lectura-ojos");
+      ojos.style.left = `${posiciones[objetivo].x}%`;
+      ojos.style.top = `${posiciones[objetivo].y}%`;
+      setTimeout(() => { if (activo) { activo = false; callback(false); } }, 1000);
+    }, 800 + Math.random() * 1000);
+  };
+}
+
+// Arquero: "Balística" — se dibuja media parábola y desaparece; hay
+// que hacer clic en el punto exacto donde va a caer la pelota.
+function minijuegoBalistica(callback) {
+  const contenedor = tarjetaCopaAmerica(
+    "Balística",
+    "Tiro libre del europeo por encima de la barrera. Se dibuja la trayectoria inicial y desaparece a mitad de camino: hacé clic donde calculás que va a caer.",
+    `<button class="boton-jugar-minijuego" id="balistica-empezar">Empezar</button>
+     <div id="balistica-zona" hidden style="position:relative;height:180px;margin-top:14px;border-bottom:2px solid rgba(255,255,255,.25);"></div>`
+  );
+  contenedor.querySelector("#balistica-empezar").onclick = () => {
+    const zona = contenedor.querySelector("#balistica-zona");
+    zona.hidden = false;
+
+    // Parábola: y = a*(x-h)^2 + k, con caída en algún punto entre 55%-90% del ancho.
+    const xCaida = 40 + Math.random() * 45; // % del ancho
+    const alturaMax = 60 + Math.random() * 60;
+    const a = -alturaMax / Math.pow(xCaida, 2);
+
+    // Dibujo simplificado: puntos visibles solo hasta la mitad del recorrido.
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.position = "absolute";
+    svg.style.left = "0"; svg.style.top = "0";
+    zona.appendChild(svg);
+
+    function alturaEnX(x) {
+      // Parábola normalizada: arranca en (0,100) el "piso", sube y cae en (xCaida,100).
+      const progreso = x / xCaida;
+      return 100 - Math.sin(Math.min(1, Math.max(0, progreso)) * Math.PI) * alturaMax * (100 / 180);
+    }
+
+    let path = "";
+    const visibleHasta = xCaida * 0.5;
+    for (let x = 0; x <= visibleHasta; x += 2) {
+      const y = alturaEnX(x);
+      path += (x === 0 ? "M" : "L") + x + "," + y + " ";
+    }
+    const trazo = document.createElementNS(svgNS, "path");
+    trazo.setAttribute("d", path);
+    trazo.setAttribute("stroke", "#f5c542");
+    trazo.setAttribute("stroke-width", "1.2");
+    trazo.setAttribute("fill", "none");
+    svg.appendChild(trazo);
+
+    let activo = true;
+    zona.onclick = (e) => {
+      if (!activo) return;
+      activo = false;
+      const rect = zona.getBoundingClientRect();
+      const xClic = ((e.clientX - rect.left) / rect.width) * 100;
+      callback(Math.abs(xClic - xCaida) <= 6);
+    };
+    setTimeout(() => { if (activo) { activo = false; callback(false); } }, 6000);
+  };
+}

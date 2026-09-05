@@ -169,6 +169,13 @@ function pintarCariño(jugador) {
   etiqueta.textContent = etapa.nombre;
 }
 
+function calcularEstadoSeleccionPorMedia(media) {
+  if (media <= 60) return "sin-chances";
+  if (media <= 79) return "ojo-puesto";
+  if (media <= 90) return "en-carpeta";
+  return "titular"; // 91-109
+}
+
 function pintarSeleccion(jugador) {
   const bandera = document.getElementById("hud-bandera-seleccion");
   const pais = PAISES_POR_ID[jugador.pais];
@@ -181,6 +188,10 @@ function pintarSeleccion(jugador) {
     bandera.hidden = true;
   }
 
+  const estadoActualizado = calcularEstadoSeleccionPorMedia(jugador.media || 0);
+  if (jugador.seleccion !== estadoActualizado) {
+    jugador = Estado.actualizar({ seleccion: estadoActualizado });
+  }
   document.getElementById("hud-estado-seleccion").textContent = ESTADOS_SELECCION[jugador.seleccion] || "Sin chances";
 }
 
@@ -480,6 +491,7 @@ function mostrarResumenAnual() {
   if (typeof prepararInvitacionBalonDeOro === "function") prepararInvitacionBalonDeOro(jugador, año);
   if (typeof prepararBotaDeOro === "function") prepararBotaDeOro(jugador, año);
   if (typeof prepararCopaAmerica === "function") prepararCopaAmerica(jugador, año);
+  if (typeof prepararFinalissima === "function") prepararFinalissima(jugador, año);
   // Segunda pasada: la clasificación se revisa tras jugar todas las copas del año.
   if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
 
@@ -689,7 +701,12 @@ function mostrarResumenAnual() {
       continuarInicioDeAño2();
     }
     function continuarInicioDeAño2() {
-      if (typeof mostrarCopaAmerica === "function" && mostrarCopaAmerica(abrirModalCartas)) return;
+      if (typeof mostrarCopaAmerica === "function" && mostrarCopaAmerica(continuarInicioDeAño3)) return;
+      continuarInicioDeAño3();
+    }
+    function continuarInicioDeAño3() {
+      // La Finalissima se juega antes que el Mundial de Selecciones (cuando exista ese paso).
+      if (typeof mostrarFinalissima === "function" && mostrarFinalissima(abrirModalCartas)) return;
       abrirModalCartas();
     }
   });
