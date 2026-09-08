@@ -220,7 +220,7 @@ const Estado = (() => {
     const edad = jugador.edad;
     let resPen = 0;
     let statPen = 0;
-    if (edad >= 30 && edad <= 34) resPen = 1;
+    if (edad >= 30 && edad <= 33) resPen = 1;
     else if (edad >= 34 && edad <= 42) resPen = 2;
     else if (edad >= 43 && edad <= 45) resPen = 3;
 

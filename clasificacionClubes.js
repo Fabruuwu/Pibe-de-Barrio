@@ -60,6 +60,28 @@ const CLASIFICACION_CLUBES = {
   // ---- Primera Nacional Argentina ----
   "chacarita-juniors": "diminuto",
   "almirante-brown": "diminuto",
+
+  // ---- LaLiga (España) ---- (mismas categorías que en data.js)
+  "alaves": "chico",
+  "athletic-bilbao": "mediano",
+  "atletico-madrid": "grande",
+  "barcelona": "grande",
+  "celta-vigo": "chico",
+  "deportivo-la-coruna": "diminuto",
+  "elche": "chico",
+  "espanyol": "chico",
+  "getafe": "chico",
+  "levante": "chico",
+  "malaga": "chico",
+  "osasuna": "chico",
+  "racing-santander": "diminuto",
+  "rayo-vallecano": "chico",
+  "real-betis": "mediano",
+  "real-madrid": "grande",
+  "real-sociedad": "mediano",
+  "sevilla": "mediano",
+  "valencia": "mediano",
+  "villarreal": "mediano",
 };
 
 /**
@@ -105,6 +127,11 @@ const PUNTOS_TITULOS = {
   "Mundial de Clubes": 1500, // Mundial de Clubes
   balonDeOro: 2500, // Balón de Oro
   botaDeOro: 500, // Bota de Oro
+
+  // ---- España ----
+  ligaEspana: 85, // LaLiga
+  copaDelRey: 100, // Copa del Rey
+  superCopaEspana: 15, // SuperCopa de España
 };
 
 /**
@@ -131,4 +158,9 @@ const IMAGENES_TITULOS = {
   botaDeOro: "Trofeos/BotaDeOro.png",
   "Copa América": "Trofeos/CopaAmerica.png",
   "Finalissima": "Trofeos/Finalissima.png",
+
+  // ---- España ----
+  ligaEspana: "Trofeos/LaLiga.png",
+  copaDelRey: "Trofeos/CopaEspaña.png",
+  superCopaEspana: "Trofeos/SuperCopaEspaña.png",
 };

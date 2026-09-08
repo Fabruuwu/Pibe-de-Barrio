@@ -247,6 +247,17 @@ function procesarEventos() {
     const jugador = Estado.obtener();
     const año = jugador.año;
 
+    // España (LaLiga + Copa del Rey + SuperCopa) vive en espana.js, totalmente
+    // aparte del flujo Argentino de acá abajo. Cuando sumemos más ligas
+    // europeas, cada una agrega su propio "else if" acá.
+    if (jugador.liga === "laliga-espana" && typeof procesarTemporadaEspana === "function") {
+      procesarTemporadaEspana(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
     const resultadoLiga = simularLiga(jugador);
     
     let resultadoCopa = null;
@@ -263,7 +274,11 @@ function procesarEventos() {
 
       if (!jugador.campeonesHistorial) jugador.campeonesHistorial = [];
       const especialesDelAño = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
-      const nuevaEntrada = { año, liga: jugador.club, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
+      // OJO: antes acá decía "liga: jugador.club" SIEMPRE, sin importar si
+      // habías salido campeón o no. Eso hacía que CUALQUIER temporada jugada
+      // contara como título de Liga Argentina a la hora de sumar puntos en
+      // menufinal.js. Se corrige para que solo cuente si resLiga.esCampeon.
+      const nuevaEntrada = { año, liga: resLiga.esCampeon ? jugador.club : null, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
       especialesDelAño.forEach((c) => {
         if (c.resultado !== "campeon") return;
         if (c.tipo === "supercopa") nuevaEntrada.superCopa = jugador.club;
@@ -508,30 +523,44 @@ function mostrarResumenAnual() {
   const tituloResumen = resumen.titulo;
   const textoResumen = resumen.texto;
 
-  // Resultado de la Liga
-  const resultadoLiga = jugador.resultadoLiga || null;
+  // Resultado de la Liga y la Copa. El bloque de España vive en espana.js
+  // (jugador.resultadoLigaEspana / resultadoCopaDelRey) y usa sus propios
+  // nombres; el de Argentina sigue igual que siempre.
+  const esEspana = jugador.liga === "laliga-espana";
+  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : "Liga Argentina";
+  const nombreCopaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey") : "Copa Argentina";
+
+  const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null) : (jugador.resultadoLiga || null);
   let textoLiga = "";
   if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
-    textoLiga = "🏆 ¡Campeón de la Liga Argentina!";
+    textoLiga = `🏆 ¡Campeón de ${nombreLigaTexto}!`;
   } else if (resultadoLiga && resultadoLiga.subcampeon) {
-    textoLiga = "🥈 Subcampeón de la Liga Argentina.";
+    textoLiga = `🥈 Subcampeón de ${nombreLigaTexto}.`;
   } else if (resultadoLiga) {
-    textoLiga = `Posición ${resultadoLiga.posicion}° en la Liga Argentina.`;
+    textoLiga = `Posición ${resultadoLiga.posicion}° en ${nombreLigaTexto}.`;
   }
 
-  // Resultado de la Copa Argentina
-  const resultadoCopa = jugador.resultadoCopa || null;
+  const resultadoCopa = esEspana ? (jugador.resultadoCopaDelRey || null) : (jugador.resultadoCopa || null);
   let textoCopa = "";
   if (resultadoCopa && resultadoCopa.esCampeon) {
-    textoCopa = "🏆 ¡Campeón de la Copa Argentina!";
+    textoCopa = `🏆 ¡Campeón de ${nombreCopaTexto}!`;
   } else if (resultadoCopa && resultadoCopa.subcampeon) {
-    textoCopa = "🥈 Subcampeón de la Copa Argentina.";
+    textoCopa = `🥈 Subcampeón de ${nombreCopaTexto}.`;
   } else if (resultadoCopa && resultadoCopa.ronda) {
-    textoCopa = `Eliminado en ${resultadoCopa.ronda} de la Copa Argentina.`;
+    textoCopa = `Eliminado en ${resultadoCopa.ronda} de ${nombreCopaTexto}.`;
   }
 
   // Resultados de las copas especiales (Supercopa, Trofeo, Supercopa Internacional)
   let textosCopasEspeciales = "";
+
+  // SuperCopa de España (si se resolvió este año)
+  if (esEspana && jugador.campeonesHistorial) {
+    const histAño = jugador.campeonesHistorial.find((h) => h.año === año);
+    if (histAño && histAño.superCopaEspana === jugador.club) {
+      textosCopasEspeciales += `🏆 ¡Campeón de la ${typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreSuperCopa : "SuperCopa de España"}!\n`;
+    }
+  }
+
   const copasEspeciales = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
   copasEspeciales.forEach(copa => {
     let nombre = "";

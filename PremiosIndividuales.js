@@ -16,7 +16,7 @@ function probabilidadInvitacionPorNota(nota) {
 
 function continenteDeLiga(liga) {
   if (["liga-profesional-argentina", "brasileirao-brasil"].includes(liga)) return "Sudamérica";
-  if (["bundesliga-alemania", "primera-division-espana", "serie-a-italia", "ligue-1-francia", "premier-league-inglaterra"].includes(liga)) return "Europa";
+  if (["bundesliga-alemania", "laliga-espana", "serie-a-italia", "ligue-1-francia", "premier-league-inglaterra"].includes(liga)) return "Europa";
   if (liga?.includes("mex") || liga?.includes("mls")) return "Norteamérica";
   if (liga?.includes("africa")) return "África";
   if (liga?.includes("asia")) return "Asia";

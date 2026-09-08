@@ -74,6 +74,10 @@ function calcularResumenCarrera(jugador) {
     if (reg.superCopa) sumarPuntos(reg.superCopa, "superCopa", "🏆 SuperCopa Argentina", reg.año);
     if (reg.trofeo) sumarPuntos(reg.trofeo, "trofeo", "🏆 Trofeo de Campeones", reg.año);
     if (reg.superCopaInt) sumarPuntos(reg.superCopaInt, "superCopaInt", "🏆 Super Copa Internacional", reg.año);
+    // España
+    if (reg.ligaEspana) sumarPuntos(reg.ligaEspana, "ligaEspana", "🏆 LaLiga", reg.año);
+    if (reg.copaDelRey) sumarPuntos(reg.copaDelRey, "copaDelRey", "🏆 Copa del Rey", reg.año);
+    if (reg.superCopaEspana) sumarPuntos(reg.superCopaEspana, "superCopaEspana", "🏆 SuperCopa de España", reg.año);
   });
 
   // Copas internacionales de clubes
