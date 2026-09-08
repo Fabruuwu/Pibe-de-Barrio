@@ -226,6 +226,14 @@ function procesarCopasPendientes(callback) {
       mostrarChampions(copa, () => {
         siguiente();
       });
+    } else if (copa.tipo === "europa-league" && typeof mostrarEuropaLeague === "function") {
+      mostrarEuropaLeague(copa, () => {
+        siguiente();
+      });
+    } else if (copa.tipo === "conference-league" && typeof mostrarConferenceLeague === "function") {
+      mostrarConferenceLeague(copa, () => {
+        siguiente();
+      });
     } else if (copa.tipo === "supercopa-uefa" && typeof mostrarSuperCopaUEFA === "function") {
       mostrarSuperCopaUEFA(copa, () => {
         siguiente();
@@ -1371,13 +1379,44 @@ function obtenerRivalChampions(jugador) {
 // CLASIFICACIÓN: top 4 (o campeón) de LaLiga
 // ------------------------------------------------------------------
 function agendarChampionsLeague(jugador, añoActual, resLiga) {
+  agendarCompeticionesUEFA(jugador, añoActual, resLiga);
+}
+
+// LaLiga: 1.º-4.º Champions, 5.º Europa League y 6.º Conference League.
+// Una plaza superior reemplaza siempre a una inferior en la misma edición.
+function agendarCompeticionesUEFA(jugador, añoActual, resLiga) {
   if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
   if (!resLiga) return;
   const añoProximo = añoActual + 1;
   const posicion = Number(resLiga.posicion);
-  const clasifica = resLiga.esCampeon || (Number.isFinite(posicion) && posicion >= 1 && posicion <= 4);
-  if (clasifica && !jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "champions")) {
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "champions", rivalId: null });
+  let tipo = null;
+  if (resLiga.esCampeon || (Number.isFinite(posicion) && posicion >= 1 && posicion <= 4)) tipo = "champions";
+  else if (posicion === 5) tipo = "europa-league";
+  else if (posicion === 6) tipo = "conference-league";
+  if (tipo) {
+    agendarPlazaUEFA(jugador, añoProximo, tipo, "laliga");
+  }
+}
+
+function agendarPlazaUEFA(jugador, año, tipo, clasificacion) {
+  if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
+  const prioridad = { "conference-league": 1, "europa-league": 2, champions: 3 };
+  const nuevaPrioridad = prioridad[tipo] || 0;
+  if (jugador.copasPendientes.some(copa => copa.año === año && (prioridad[copa.tipo] || 0) > nuevaPrioridad)) return;
+  jugador.copasPendientes = jugador.copasPendientes.filter(copa => {
+    if (copa.año !== año || prioridad[copa.tipo] === undefined) return true;
+    return prioridad[copa.tipo] > nuevaPrioridad;
+  });
+  if (!jugador.copasPendientes.some(copa => copa.año === año && copa.tipo === tipo)) {
+    jugador.copasPendientes.push({ año, tipo, rivalId: null, clasificacion });
+  }
+}
+
+function asegurarPlazaMundialClubesProximo(jugador, añoActual, clasificacion) {
+  if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
+  const añoProximo = añoActual + 1;
+  if (!jugador.copasPendientes.some(copa => copa.año === añoProximo && copa.tipo === "mundial-clubes")) {
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "mundial-clubes", rivalId: null, clasificacion });
   }
 }
 
@@ -1794,28 +1833,128 @@ function minijuegoChampionsCompleta(callback, jugador) {
 }
 
 // ------------------------------------------------------------------
-// SUPERCOPA UEFA (versión inicial: un solo partido decisivo, en lo que
-// se suma la Europa League y su campeón como rival "real")
+// FINALES UEFA: Europa League, Conference League y Supercopa UEFA.
+// Cada una tiene un único desafío por posición, sin fase de grupos.
 // ------------------------------------------------------------------
-function jugarSuperCopaUEFA(callback, jugador, rival) {
-  const etapa = { nombre: "SuperCopa UEFA", fase: "eliminatoria", dificultad: 0.6 };
-  window.CONTEXTO_PARTIDO = { torneo: "SuperCopa UEFA", fase: "Partido único" };
-  jugarPartidoChampions(jugador, rival, etapa, callback);
+function tarjetaFinalUEFA(jugador, rival, titulo, descripcion, cuerpo) {
+  return tarjetaMundial(jugador, rival, titulo, descripcion, `<button class="boton-jugar-minijuego">Empezar</button>${cuerpo}`);
 }
+
+function minijuegoFinalUEFA(tipo, callback, jugador, rival) {
+  const posicion = jugador.posicion || "delantero";
+  const terminarConTiempo = (contenedor, ms, resolver) => {
+    let activo = true;
+    const terminar = exito => { if (!activo) return; activo = false; resolver(exito); };
+    setTimeout(() => terminar(false), ms);
+    return terminar;
+  };
+
+  if (tipo === "europa") {
+    if (posicion === "delantero") {
+      const c = tarjetaFinalUEFA(jugador, rival, "Equilibrio y Fuego", "Apretá ESPACIO para aguantar al defensor. Cuando aparezca el blanco, clickealo sin perder el equilibrio.", `<div class="barra-qte"><div class="barra-progreso"></div></div><div class="mundial-arco" hidden></div>`);
+      c.querySelector("button").onclick = () => {
+        const barra = c.querySelector(".barra-progreso"), arco = c.querySelector(".mundial-arco"); let equilibrio = 25, activo = true;
+        const tecla = e => { if (e.code === "Space") { e.preventDefault(); equilibrio = Math.min(100, equilibrio + 12); barra.style.width = `${equilibrio}%`; } };
+        window.addEventListener("keydown", tecla);
+        const cerrar = exito => { if (!activo) return; activo = false; window.removeEventListener("keydown", tecla); callback(exito); };
+        const desgaste = setInterval(() => { equilibrio = Math.max(0, equilibrio - 3); barra.style.width = `${equilibrio}%`; if (!equilibrio) { clearInterval(desgaste); cerrar(false); } }, 120);
+        setTimeout(() => { if (!activo) return; arco.hidden = false; const blanco = document.createElement("button"); blanco.className = "mundial-nodo"; blanco.textContent = "🎯"; blanco.style.left = `${20 + Math.random() * 60}%`; blanco.style.top = `${25 + Math.random() * 45}%`; blanco.onclick = () => { clearInterval(desgaste); cerrar(equilibrio >= 45); }; arco.appendChild(blanco); setTimeout(() => { clearInterval(desgaste); cerrar(false); }, 1100); }, 2200);
+      }; return;
+    }
+    if (posicion === "enganche") {
+      const lado = Math.random() < .5 ? "izquierda" : "derecha";
+      const c = tarjetaFinalUEFA(jugador, rival, "Radar Mental", "El radar va a titilar dos veces. Detectá la corrida y hacé clic en la zona ciega correcta.", `<div class="radar-uefa">📡</div><div class="opciones-uefa" hidden><button data-lado="izquierda">← Pase a la izquierda</button><button data-lado="derecha">Pase a la derecha →</button></div>`);
+      c.querySelector("button").onclick = () => { const radar = c.querySelector(".radar-uefa"), opciones = c.querySelector(".opciones-uefa"); let destellos = 0; const i = setInterval(() => { radar.textContent = lado === "izquierda" ? "📡 ◀" : "▶ 📡"; setTimeout(() => radar.textContent = "📡", 180); if (++destellos === 2) { clearInterval(i); setTimeout(() => { opciones.hidden = false; }, 400); } }, 550); opciones.onclick = e => { if (e.target.dataset.lado) callback(e.target.dataset.lado === lado); }; }; return;
+    }
+    if (posicion === "central") {
+      const c = tarjetaFinalUEFA(jugador, rival, "Barrida de Obstáculos", "Usá ← y → para esquivar obstáculos. Terminá en el carril de la pelota.", `<div class="carriles-uefa">⚽<span>🦵</span><span>💧</span></div><p>Posición: <b>2</b></p>`);
+      c.querySelector("button").onclick = () => { let pos = 2, activo = true; const txt = c.querySelector("b"); const tecla = e => { if (e.key === "ArrowLeft") pos = Math.max(1, pos - 1); if (e.key === "ArrowRight") pos = Math.min(3, pos + 1); txt.textContent = pos; }; window.addEventListener("keydown", tecla); setTimeout(() => { if (!activo) return; activo = false; window.removeEventListener("keydown", tecla); callback(pos === 2); }, 3000); }; return;
+    }
+    const c = tarjetaFinalUEFA(jugador, rival, "Rebote a Quemarropa", "Tras el flash, clickeá el rebote rojo en 0.4 segundos.", `<div class="mundial-arco" hidden></div>`);
+    c.querySelector("button").onclick = () => { const arco = c.querySelector(".mundial-arco"); setTimeout(() => { arco.hidden = false; const punto = document.createElement("button"); punto.className = "mundial-nodo"; punto.textContent = "🔴"; punto.style.left = `${10 + Math.random() * 80}%`; punto.style.top = `${15 + Math.random() * 65}%`; let activo = true; punto.onclick = () => { if (activo) { activo = false; callback(true); } }; arco.appendChild(punto); setTimeout(() => { if (activo) { activo = false; callback(false); } }, 400); }, 500); }; return;
+  }
+
+  if (tipo === "conference") {
+    if (posicion === "delantero") {
+      const c = tarjetaFinalUEFA(jugador, rival, "Chilena Rota", "El círculo se mueve de forma irregular: hacé clic cuando llegue al centro dorado.", `<div class="timing-uefa"><div class="anillo-uefa">⚽</div></div>`);
+      c.querySelector("button").onclick = () => { const anillo = c.querySelector(".anillo-uefa"); let tam = 100, activo = true; const tick = () => { if (!activo) return; tam -= 3 + Math.random() * 8; anillo.style.transform = `scale(${Math.max(.1, tam / 100)})`; if (tam <= 12) { activo = false; callback(false); return; } setTimeout(tick, 90 + Math.random() * 180); }; anillo.onclick = () => { if (activo) { activo = false; callback(tam <= 32 && tam >= 15); } }; tick(); }; return;
+    }
+    if (posicion === "enganche") {
+      const teclaCorrecta = ["w", "a", "s", "d"][Math.floor(Math.random() * 4)];
+      const c = tarjetaFinalUEFA(jugador, rival, "La Ruleta de Zidane", "Esperá que la ruleta pare: la salida verde indica la tecla correcta.", `<div class="ruleta-uefa">🌀</div><p class="salida-uefa" hidden></p>`);
+      c.querySelector("button").onclick = () => { const ruleta = c.querySelector(".ruleta-uefa"), salida = c.querySelector(".salida-uefa"); ruleta.style.animation = "spin 1.5s linear"; setTimeout(() => { let activo = true; salida.hidden = false; salida.textContent = `SALIDA VERDE: ${teclaCorrecta.toUpperCase()}`; const tecla = e => { if (activo && ["w", "a", "s", "d"].includes(e.key.toLowerCase())) { activo = false; window.removeEventListener("keydown", tecla); callback(e.key.toLowerCase() === teclaCorrecta); } }; window.addEventListener("keydown", tecla); setTimeout(() => { if (activo) { activo = false; window.removeEventListener("keydown", tecla); callback(false); } }, 2500); }, 1500); }; return;
+    }
+    if (posicion === "central") {
+      const c = tarjetaFinalUEFA(jugador, rival, "La Sombra", "Mantené tu mouse cerca del cursor rival durante 3 segundos.", `<div class="mundial-arco"><span class="mundial-delantero">✦</span><span class="sombra-uefa">●</span></div><p>Marca: <b>0.0</b>/3.0 s</p>`);
+      c.querySelector("button").onclick = () => { const zona = c.querySelector(".mundial-arco"), rivalCursor = zona.querySelector(".mundial-delantero"), txt = c.querySelector("b"); let x = 50, y = 50, mx = -999, my = -999, carga = 0, activo = true; zona.onpointermove = e => { const r = zona.getBoundingClientRect(); mx = (e.clientX-r.left)/r.width*100; my = (e.clientY-r.top)/r.height*100; }; const mover = setInterval(() => { x = Math.max(5, Math.min(90, x + (Math.random()-.5)*22)); y = Math.max(8, Math.min(85, y + (Math.random()-.5)*20)); rivalCursor.style.left=`${x}%`; rivalCursor.style.top=`${y}%`; }, 260); const medir = setInterval(() => { const cerca = Math.hypot(mx-x,my-y) < 13; carga = Math.max(0, carga + (cerca ? .1 : -.12)); txt.textContent=carga.toFixed(1); if(carga>=3){activo=false;clearInterval(mover);clearInterval(medir);callback(true);}},100); setTimeout(()=>{if(activo){activo=false;clearInterval(mover);clearInterval(medir);callback(false);}},8000); }; return;
+    }
+    const viento = Math.random() < .5 ? -1 : 1;
+    const c = tarjetaFinalUEFA(jugador, rival, "Viento Traicionero", `La pelota va al centro, pero el viento la empuja hacia la ${viento < 0 ? "izquierda" : "derecha"}. Elegí la atajada final.`, `<div class="opciones-uefa"><button data-zona="-1">←</button><button data-zona="0">Centro</button><button data-zona="1">→</button></div>`);
+    c.querySelector("button").onclick = () => { const o=c.querySelector(".opciones-uefa"); o.onclick=e=>{if(e.target.dataset.zona!==undefined) callback(Number(e.target.dataset.zona)===viento);}; }; return;
+  }
+
+  // Supercopa UEFA
+  if (posicion === "delantero") {
+    const c = tarjetaFinalUEFA(jugador, rival, "Gatillo de Tensión", "Mantené clic. Soltá solamente cuando la mira se vuelva dorada.", `<div class="mira-super">✣</div>`);
+    c.querySelector("button").onclick = () => { const mira=c.querySelector(".mira-super"); let dorada=false, activo=true; const mover=setInterval(()=>{mira.style.transform=`translate(${Math.random()*120-60}px,${Math.random()*80-40}px)`;},90); setTimeout(()=>{dorada=true;mira.style.color="#ffd34d";},1800); mira.onpointerdown=()=>{}; c.onpointerup=()=>{if(activo){activo=false;clearInterval(mover);callback(dorada);}}; setTimeout(()=>{if(activo){activo=false;clearInterval(mover);callback(false);}},2800); }; return;
+  }
+  if (posicion === "enganche") {
+    const orden=[1,2,3].sort(()=>Math.random()-.5);
+    const c = tarjetaFinalUEFA(jugador, rival, "Geometría de Billar", `Armá la carambola: clickeá los nodos en orden ${orden.join(" → ")}.`, `<div class="opciones-uefa"><button data-n="1">↗ Nodo 1</button><button data-n="2">↘ Nodo 2</button><button data-n="3">↖ Nodo 3</button></div>`);
+    c.querySelector("button").onclick=()=>{let paso=0,activo=true;const o=c.querySelector(".opciones-uefa");o.onclick=e=>{if(!activo||!e.target.dataset.n)return;if(Number(e.target.dataset.n)!==orden[paso]){activo=false;return callback(false);}if(++paso===3){activo=false;callback(true);}};setTimeout(()=>{if(activo){activo=false;callback(false);}},3000);};return;
+  }
+  if (posicion === "central") {
+    const c = tarjetaFinalUEFA(jugador, rival, "Contrapeso Físico", "El mouse funciona al revés: compensá los empujones y mantené el indicador centrado.", `<div class="barra-qte"><div class="barra-progreso"></div></div><p><b>0.0</b>/4.0 s de equilibrio</p>`);
+    c.querySelector("button").onclick=()=>{let balance=50,carga=0,activo=true,anterior=null;const barra=c.querySelector(".barra-progreso"),txt=c.querySelector("b");c.onpointermove=e=>{if(anterior!==null)balance-= (e.clientX-anterior)*.28;anterior=e.clientX;};const i=setInterval(()=>{balance+=Math.random()*12-6;balance=Math.max(0,Math.min(100,balance));barra.style.width=`${balance}%`;carga=Math.max(0,carga+(Math.abs(balance-50)<15?.1:-.14));txt.textContent=carga.toFixed(1);if(carga>=4){activo=false;clearInterval(i);callback(true);}},100);setTimeout(()=>{if(activo){activo=false;clearInterval(i);callback(false);}},9000);};return;
+  }
+  const desvio=Math.random()<.5?-1:1;
+  const c = tarjetaFinalUEFA(jugador, rival, "Lectura de Efecto", `La rotación hará doblar la pelota a la ${desvio<0?"izquierda":"derecha"}. Elegí dónde volar con los guantes.`, `<div class="opciones-uefa"><button data-z="-1">🧤 ←</button><button data-z="1">🧤 →</button></div>`);
+  c.querySelector("button").onclick=()=>{const o=c.querySelector(".opciones-uefa");o.onclick=e=>{if(e.target.dataset.z!==undefined)callback(Number(e.target.dataset.z)===desvio);};};
+}
+
+function obtenerRivalUEFA(jugador, pesos) {
+  const clubes = obtenerClubesEuropeos(jugador);
+  const r = Math.random() * 100; let acumulado = 0; let categoria = "mediano";
+  for (const [clave, peso] of Object.entries(pesos)) { acumulado += peso; if (r < acumulado) { categoria = clave; break; } }
+  const pool = clubes.filter(club => club.categoria === categoria);
+  return pool[Math.floor(Math.random() * pool.length)] || clubes[Math.floor(Math.random() * clubes.length)] || null;
+}
+
+function mostrarFinalUEFA(copa, callback, config) {
+  const jugador = Estado.obtener(); const rival = obtenerRivalUEFA(jugador, config.pesos);
+  window.CONTEXTO_PARTIDO = { torneo: config.nombre, fase: "Final" };
+  mostrarInstructivoInternacional(jugador, rival, config.nombre, config.titulo, config.descripcion, ["Final directa a partido único.", "Ganala para levantar el trofeo.", "El desafío depende de tu posición."], () => {
+    minijuegoFinalUEFA(config.tipo, exito => {
+      if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales=[];
+      jugador.resultadosInternacionales.push({ año:copa.año, copa:config.nombre, resultado:exito?"campeon":"subcampeon" });
+      if(exito){jugador.stats.titulos++; config.recompensa?.(jugador,copa.año);}
+      Estado.guardar(); mostrarCartelInternacional(exito, exito?undefined:"Final", config.imagen);
+      document.getElementById("competition-container").querySelector(".boton-continuar").onclick=()=>{const c=document.getElementById("competition-container");c.innerHTML="";c.hidden=true;callback();};
+    }, jugador, rival);
+  });
+}
+
+function mostrarEuropaLeague(copa, callback) { mostrarFinalUEFA(copa, callback, { tipo:"europa", nombre:"Europa League", titulo:"UEFA Europa League", descripcion:"Un torneo físico, de canchas difíciles y finales que se juegan al límite.", imagen:"Trofeos/EuropaLeague.png", pesos:{grande:40,mediano:40,chico:15,diminuto:5}, recompensa:(j,a)=>{agendarPlazaUEFA(j,a+1,"champions","campeon-europa");if(!j.copasPendientes.some(c=>c.año===a+1&&c.tipo==="supercopa-uefa"))j.copasPendientes.push({año:a+1,tipo:"supercopa-uefa",rivalId:null});} }); }
+function mostrarConferenceLeague(copa, callback) { mostrarFinalUEFA(copa, callback, { tipo:"conference", nombre:"Conference League", titulo:"UEFA Conference League", descripcion:"El torneo del factor sorpresa: estadios raros y situaciones atípicas.", imagen:"Trofeos/ConferenceLeague.png", pesos:{mediano:45,chico:40,grande:10,diminuto:5}, recompensa:(j,a)=>agendarPlazaUEFA(j,a+1,"europa-league","campeon-conference") }); }
+
+function jugarSuperCopaUEFA(callback, jugador, rival) { minijuegoFinalUEFA("supercopa", callback, jugador, rival); }
 
 function mostrarSuperCopaUEFA(copa, callback) {
   const jugador = Estado.obtener();
-  const rival = obtenerRivalChampions(jugador);
+  const rival = obtenerRivalUEFA(jugador, { grande: 65, mediano: 20, chico: 10, diminuto: 5 });
   mostrarInstructivoInternacional(
     jugador, rival, "SuperCopa UEFA",
     "Duelo de campeones",
-    "Ganaste la Champions y ahora te medís a cara de perro por la SuperCopa UEFA.",
-    ["Es un solo partido, no hay revancha.", "Usá el mismo minijuego de tu posición.", "Ganalo y sumás otro título a la vitrina."],
+    "El campeón de Champions o Europa League se mide por la Supercopa UEFA.",
+    ["Es un solo partido, no hay revancha.", "El desafío depende de tu posición.", "Ganalo y asegurás tu lugar en el próximo Mundial de Clubes."],
     () => {
       jugarSuperCopaUEFA((exito) => {
         if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
         jugador.resultadosInternacionales.push({ año: copa.año, copa: "SuperCopa UEFA", resultado: exito ? "campeon" : "subcampeon" });
-        if (exito) jugador.stats.titulos++;
+        if (exito) {
+          jugador.stats.titulos++;
+          asegurarPlazaMundialClubesProximo(jugador, copa.año, "campeon-supercopa-uefa");
+        }
         Estado.guardar();
         mostrarCartelInternacional(exito, exito ? undefined : "Final", "Trofeos/SuperCopaUEFA.png");
         const contenedor = document.getElementById("competition-container");
@@ -1859,6 +1998,7 @@ function mostrarChampions(copa, callback) {
       jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: "campeon" });
       jugador.stats.titulos++;
       asegurarPlazaCampeonContinental(jugador, "champions", copa.año);
+      asegurarPlazaMundialClubesProximo(jugador, copa.año, "campeon-champions");
 
       // Clasifica a Mundial de Clubes y a la SuperCopa UEFA del año próximo.
       if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, copa.año);

@@ -86,6 +86,8 @@ function calcularResumenCarrera(jugador) {
     Sudamericana: "🏆 Copa Sudamericana",
     Recopa: "🏆 Recopa Sudamericana",
     Champions: "🏆 UEFA Champions League",
+    "Europa League": "🏆 UEFA Europa League",
+    "Conference League": "🏆 UEFA Conference League",
     "SuperCopa UEFA": "🏆 SuperCopa UEFA",
     "Mundial de Clubes": "🌍 Mundial de Clubes",
   };

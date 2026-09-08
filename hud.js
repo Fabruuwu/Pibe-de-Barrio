@@ -546,6 +546,10 @@ function mostrarResumenAnual() {
       if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la UEFA Champions League!\n";
       else if (copa.resultado === "subcampeon") textosInternacionales += "🥈 Subcampeón de la UEFA Champions League.\n";
       else textosInternacionales += `❌ Eliminado de la Champions League en ${copa.resultado.replace("eliminado_", "")}.\n`;
+    } else if (copa.copa === "Europa League") {
+      textosInternacionales += copa.resultado === "campeon" ? "🏆 ¡Campeón de la UEFA Europa League!\n" : "🥈 Subcampeón de la UEFA Europa League.\n";
+    } else if (copa.copa === "Conference League") {
+      textosInternacionales += copa.resultado === "campeon" ? "🏆 ¡Campeón de la UEFA Conference League!\n" : "🥈 Subcampeón de la UEFA Conference League.\n";
     } else if (copa.copa === "SuperCopa UEFA") {
       if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la SuperCopa UEFA!\n";
       else textosInternacionales += "🥈 Subcampeón de la SuperCopa UEFA.\n";
@@ -609,10 +613,16 @@ function mostrarResumenAnual() {
   }
 
   let textoClasificacionChampions = "";
+  let textoClasificacionEuropa = "";
+  let textoClasificacionConference = "";
   if (esEspana && resultadoLiga) {
     const posicionLiga = Number(resultadoLiga.posicion);
     if (resultadoLiga.esCampeon || (Number.isFinite(posicionLiga) && posicionLiga >= 1 && posicionLiga <= 4)) {
       textoClasificacionChampions = "📢 ¡Clasificaste a la Champions League!";
+    } else if (posicionLiga === 5) {
+      textoClasificacionEuropa = "📢 ¡Clasificaste a la UEFA Europa League!";
+    } else if (posicionLiga === 6) {
+      textoClasificacionConference = "📢 ¡Clasificaste a la UEFA Conference League!";
     }
   }
 
@@ -670,6 +680,8 @@ function mostrarResumenAnual() {
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
       ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
       ${textoClasificacionChampions ? `<br><br><strong>${textoClasificacionChampions}</strong>` : ''}
+      ${textoClasificacionEuropa ? `<br><br><strong>${textoClasificacionEuropa}</strong>` : ''}
+      ${textoClasificacionConference ? `<br><br><strong>${textoClasificacionConference}</strong>` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;

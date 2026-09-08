@@ -1915,6 +1915,14 @@ html, body {
 .mundial-hueco { position: absolute; top: 37%; height: 28%; background: #35df7a; border-radius: 4px; box-shadow: 0 0 18px #35df7a; }
 .mundial-nodo { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a78bfa; background: #201b38; color: white; font-weight: bold; line-height: .85; transform: translate(-50%, -50%); }
 .mundial-nodo small { font-size: 10px; }
+.radar-uefa, .ruleta-uefa, .mira-super { min-height: 150px; display: grid; place-items: center; font-size: 64px; color: #35df7a; }
+.opciones-uefa { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+.opciones-uefa button { min-width: 100px; min-height: 52px; border: 1px solid #a78bfa; border-radius: 8px; background: #201b38; color: white; font-weight: 700; cursor: pointer; }
+.carriles-uefa { display: flex; justify-content: space-around; align-items: center; min-height: 130px; font-size: 36px; border: 1px solid var(--panel-borde); border-radius: 10px; }
+.timing-uefa { min-height: 180px; display: grid; place-items: center; border: 2px solid #ffd34d; border-radius: 50%; }
+.anillo-uefa { width: 120px; height: 120px; display: grid; place-items: center; border: 5px solid #a78bfa; border-radius: 50%; font-size: 42px; cursor: pointer; }
+.mira-super { cursor: crosshair; transition: color .1s; }
+@keyframes spin { to { transform: rotate(1080deg); } }
 .mundial-nodo.completado { background: #35df7a; border-color: #35df7a; }
 .mundial-zona-roja { position: absolute; width: 48px; height: 48px; border-radius: 50%; background: rgba(230, 60, 60, .72); transform: translate(-50%, -50%); }
 .mundial-delantero { position: absolute; display: block; border-radius: 50%; background: #e84141; box-shadow: 0 0 18px #e84141; }
