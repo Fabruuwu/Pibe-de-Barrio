@@ -54,14 +54,14 @@ function generarCarta() {
   let desc = "";
 
   if (rareza === "comun" || rareza === "rara") {
-    const mejora = elegirAleatorio(mejorasIndividuales);
+    const mejora = elegirMejoraIndividualPonderada(mejorasIndividuales);
     stats = [mejora.stat];
     nombre = mejora.nombre;
     desc = mejora.desc;
     puntos = rareza === "comun" ? numeroAleatorio(2, 3) : numeroAleatorio(3, 5);
   } else if (rareza === "dorada") {
     if (Math.random() < 0.85) {
-      const mejora = elegirAleatorio(mejorasIndividuales);
+      const mejora = elegirMejoraIndividualPonderada(mejorasIndividuales);
       stats = [mejora.stat];
       nombre = mejora.nombre;
       desc = mejora.desc;
@@ -137,6 +137,26 @@ function elegirRareza() {
 
 function elegirAleatorio(array) {
   return array[Math.floor(Math.random() * array.length)];
+}
+
+// Elige una mejora de 1 stat respetando una proporción fija por categoría,
+// en vez de sortear uniformemente sobre todo el pool (que castigaba a
+// posiciones con pocas variantes de stat, como el arquero).
+// 70% -> stats exclusivos de la posición | 30% -> liderazgo / resistencia
+const PROB_STAT_POSICION = 0.7;
+
+function elegirMejoraIndividualPonderada(mejorasIndividuales) {
+  const deLiderazgoOResistencia = (m) => m.stat === "liderazgo" || m.stat === "resistencia";
+  const posicion = mejorasIndividuales.filter(m => !deLiderazgoOResistencia(m));
+  const liderazgoResistencia = mejorasIndividuales.filter(deLiderazgoOResistencia);
+
+  // Si a alguna de las dos bolsas le faltan cartas (caso límite), se cae
+  // a la otra para no romper el sorteo.
+  if (posicion.length === 0) return elegirAleatorio(liderazgoResistencia.length ? liderazgoResistencia : mejorasIndividuales);
+  if (liderazgoResistencia.length === 0) return elegirAleatorio(posicion);
+
+  const usarPosicion = Math.random() < PROB_STAT_POSICION;
+  return elegirAleatorio(usarPosicion ? posicion : liderazgoResistencia);
 }
 
 function numeroAleatorio(min, max) {

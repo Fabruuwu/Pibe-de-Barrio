@@ -572,8 +572,22 @@ function procesarTemporadaEspana(jugador, año, callbackFinal) {
           resCopa.esCampeon ? jugador.club : null
         );
 
-        Estado.guardar();
-        callbackFinal();
+        // Igual que en el flujo argentino: agenda la clasificación al Mundial
+        // de Clubes (si corresponde este año) y procesa la cola de copas
+        // pendientes (incluye "mundial-clubes") para que se pueda JUGAR,
+        // no solo clasificar.
+        if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
+
+        const terminarTemporada = () => {
+          Estado.guardar();
+          callbackFinal();
+        };
+
+        if (typeof procesarCopasPendientes === "function") {
+          procesarCopasPendientes(terminarTemporada);
+        } else {
+          terminarTemporada();
+        }
       };
 
       if (simCopa.enFinal) mostrarResultadoCopaDelRey(simCopa, continuarConCopa);

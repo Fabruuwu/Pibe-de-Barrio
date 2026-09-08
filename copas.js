@@ -1617,10 +1617,28 @@ function minijuegoConstelacion(callback, jugador, rival, nivel) {
     if (nivel === 2) for (let i = 0; i < 3; i++) { const z = document.createElement("span"); z.className = "mundial-zona-roja"; z.style.left = `${15 + Math.random() * 65}%`; z.style.top = `${15 + Math.random() * 65}%`; zona.appendChild(z); }
     const terminar = exito => { if (!activo) return; activo = false; callback(exito); };
     zona.style.touchAction = "none";
+
+    // Antes solo se validaba el nodo tocado durante el ARRASTRE
+    // (onpointermove). El primer toque (pointerdown) nunca se chequeaba,
+    // así que si te equivocabas de cuadradito justo al bajar el dedo/click
+    // (típicamente el último nodo, sin arrastrar más después), el juego
+    // no detectaba el error y te dejaba intentar de nuevo. Ahora se valida
+    // el nodo tanto al tocar como al arrastrar.
+    const evaluarToque = objetivo => {
+      if (!activo) return;
+      if (objetivo?.classList.contains("mundial-zona-roja")) return terminar(false);
+      if (objetivo?.classList.contains("mundial-nodo")) {
+        if (+objetivo.dataset.i !== esperado) return terminar(false);
+        objetivo.classList.add("completado"); esperado++;
+        if (esperado === total) terminar(true);
+      }
+    };
+
     zona.onpointerdown = e => {
       arrastrando = true;
       try { zona.setPointerCapture(e.pointerId); } catch (_) {}
       e.preventDefault();
+      evaluarToque(document.elementFromPoint(e.clientX, e.clientY));
     };
     zona.onpointerup = e => {
       arrastrando = false;
@@ -1629,13 +1647,7 @@ function minijuegoConstelacion(callback, jugador, rival, nivel) {
     zona.onpointercancel = () => { arrastrando = false; };
     zona.onpointermove = e => {
       if (!arrastrando || !activo) return;
-      const objetivo = document.elementFromPoint(e.clientX, e.clientY);
-      if (objetivo?.classList.contains("mundial-zona-roja")) return terminar(false);
-      if (objetivo?.classList.contains("mundial-nodo")) {
-        if (+objetivo.dataset.i !== esperado) return terminar(false);
-        objetivo.classList.add("completado"); esperado++;
-        if (esperado === total) terminar(true);
-      }
+      evaluarToque(document.elementFromPoint(e.clientX, e.clientY));
     };
     const tick = () => { if (!activo) return; const restante = limite - (Date.now() - inicio) / 1000; contenedor.querySelector("#mundial-tiempo").textContent = `Tiempo: ${Math.max(0, restante).toFixed(1)}s`; if (restante <= 0) return terminar(false); requestAnimationFrame(tick); }; tick();
   };
