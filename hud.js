@@ -599,17 +599,19 @@ function mostrarResumenAnual() {
   const resCopa = jugador.resultadoCopa || {};
   const liga = jugador.liga;
   if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
-    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (resLiga.posicion >= 2 && resLiga.posicion <= 3) || resCopa.esCampeon;
+    const posicionLiga = Number(resLiga.posicion);
+    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (posicionLiga >= 1 && posicionLiga <= 3) || resCopa.esCampeon;
     if (clasificaLiberta) {
       textoClasificacionLibertadores = "📢 ¡Clasificaste a la Copa Libertadores del próximo año!";
-    } else if (liga === "liga-profesional-argentina" && resLiga.posicion >= 4 && resLiga.posicion <= 9) {
+    } else if (liga === "liga-profesional-argentina" && posicionLiga >= 4 && posicionLiga <= 9) {
       textoClasificacionSudamericana = "📢 ¡Jugarás la Copa Sudamericana el próximo año!";
     }
   }
 
   let textoClasificacionChampions = "";
   if (esEspana && resultadoLiga) {
-    if (resultadoLiga.esCampeon || (typeof resultadoLiga.posicion === "number" && resultadoLiga.posicion <= 4)) {
+    const posicionLiga = Number(resultadoLiga.posicion);
+    if (resultadoLiga.esCampeon || (Number.isFinite(posicionLiga) && posicionLiga >= 1 && posicionLiga <= 4)) {
       textoClasificacionChampions = "📢 ¡Clasificaste a la Champions League!";
     }
   }
@@ -705,14 +707,23 @@ function mostrarResumenAnual() {
       continuarInicioDeAño2();
     }
     function continuarInicioDeAño2() {
-      if (typeof mostrarCopaAmerica === "function" && mostrarCopaAmerica(continuarInicioDeAño3)) return;
+      // Las plazas de clubes se obtienen al cierre del año anterior. Se
+      // juegan ahora, al empezar la temporada para la que se clasificó.
+      if (typeof procesarCopasPendientes === "function") {
+        procesarCopasPendientes(continuarInicioDeAño3);
+        return;
+      }
       continuarInicioDeAño3();
     }
     function continuarInicioDeAño3() {
-      if (typeof mostrarFinalissima === "function" && mostrarFinalissima(continuarInicioDeAño4)) return;
+      if (typeof mostrarCopaAmerica === "function" && mostrarCopaAmerica(continuarInicioDeAño4)) return;
       continuarInicioDeAño4();
     }
     function continuarInicioDeAño4() {
+      if (typeof mostrarFinalissima === "function" && mostrarFinalissima(continuarInicioDeAño5)) return;
+      continuarInicioDeAño5();
+    }
+    function continuarInicioDeAño5() {
       if (typeof mostrarMundial === "function" && mostrarMundial(abrirModalCartas)) return;
       abrirModalCartas();
     }

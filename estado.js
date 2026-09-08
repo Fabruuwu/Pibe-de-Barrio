@@ -240,6 +240,26 @@ const Estado = (() => {
       });
     }
 
+    // Entrenamiento de pretemporada: las estadísticas de juego crecen cada
+    // año, sin afectar los contadores históricos (goles, partidos, etc.).
+    const statsEntrenables = [...new Set([
+      "pegada", "velocidad", "gambeta", "liderazgo", "resistencia",
+      ...(config?.atributos || []).map(a => a.clave)
+    ])].filter(clave => typeof jugador.stats[clave] === "number");
+
+    if (jugador.esPromesa) {
+      statsEntrenables.forEach(clave => {
+        jugador.stats[clave] = Math.min(cap, jugador.stats[clave] + 2);
+      });
+    } else {
+      const elegibles = [...statsEntrenables];
+      for (let i = 0; i < Math.min(3, elegibles.length); i++) {
+        const indice = Math.floor(Math.random() * elegibles.length);
+        const clave = elegibles.splice(indice, 1)[0];
+        jugador.stats[clave] = Math.min(cap, jugador.stats[clave] + 1);
+      }
+    }
+
     jugador.media = calcularMedia(jugador.stats, jugador.posicion);
     jugador.mediaMaxima = Math.max(jugador.mediaMaxima || 0, jugador.media);
     jugador.valorMaximo = Math.max(jugador.valorMaximo || 0, jugador.valor || 0);

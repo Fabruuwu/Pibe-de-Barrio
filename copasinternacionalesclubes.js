@@ -261,14 +261,14 @@ function obtenerRivalInternacional(jugador) {
 function clasificaLibertadores(jugador) {
   const resLiga = jugador.resultadoLiga;
   const resCopa = jugador.resultadoCopa;
-  const pos = resLiga?.posicion;
+  const pos = Number(resLiga?.posicion);
   const liga = jugador.liga;
 
   if (liga !== "liga-profesional-argentina" && liga !== "brasileirao-brasil") return false;
   if (resCopa?.esCampeon) return true;
   if (resLiga?.esCampeon) return true;
   if (resLiga?.subcampeon) return true;
-  if (pos === 2 || pos === 3) return true;
+  if (pos >= 1 && pos <= 3) return true;
   return false;
 }
 
@@ -1375,7 +1375,8 @@ function agendarChampionsLeague(jugador, añoActual, resLiga) {
   if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
   if (!resLiga) return;
   const añoProximo = añoActual + 1;
-  const clasifica = resLiga.esCampeon || (typeof resLiga.posicion === "number" && resLiga.posicion <= 4);
+  const posicion = Number(resLiga.posicion);
+  const clasifica = resLiga.esCampeon || (Number.isFinite(posicion) && posicion >= 1 && posicion <= 4);
   if (clasifica && !jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "champions")) {
     jugador.copasPendientes.push({ año: añoProximo, tipo: "champions", rivalId: null });
   }

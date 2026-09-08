@@ -53,7 +53,8 @@ function agendarChampionsLeague(jugador, añoActual, resLiga) {
   if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
   if (!resLiga) return;
   const añoProximo = añoActual + 1;
-  const clasifica = resLiga.esCampeon || (typeof resLiga.posicion === "number" && resLiga.posicion <= 4);
+  const posicion = Number(resLiga.posicion);
+  const clasifica = resLiga.esCampeon || (Number.isFinite(posicion) && posicion >= 1 && posicion <= 4);
   if (clasifica && !jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "champions")) {
     jugador.copasPendientes.push({ año: añoProximo, tipo: "champions", rivalId: null });
   }

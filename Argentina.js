@@ -444,11 +444,11 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
   // La Supercopa Internacional se agenda al resolver el Trofeo del mismo año.
 
   // ---- NUEVOS: Libertadores y Sudamericana (solo si corresponde) ----
-  const pos = resLiga.posicion;
+  const pos = Number(resLiga.posicion);
   const liga = jugador.liga;
 
   if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
-    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (pos === 2 || pos === 3) || resCopa.esCampeon;
+    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (pos >= 1 && pos <= 3) || resCopa.esCampeon;
     const clasificaSud = (liga === "liga-profesional-argentina") && (pos >= 4 && pos <= 9) && !clasificaLiberta;
 
     if (clasificaLiberta) {

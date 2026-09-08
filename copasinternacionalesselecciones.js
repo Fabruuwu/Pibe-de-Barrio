@@ -107,10 +107,12 @@ function obtenerMultiplicadorSeleccion(idPais) {
 // ============================================
 
 function probabilidadConvocatoriaPorMedia(media) {
-  if (media <= 60) return 0;
-  if (media <= 79) return 25;
-  if (media <= 90) return 50;
-  if (media <= 95) return 75;
+  // Se suma un 8% a cada tramo, sin superar el 100%. Así también mejora
+  // la chance de las medias bajas, tal como el resto de la progresión.
+  if (media <= 60) return 8;
+  if (media <= 79) return 33;
+  if (media <= 90) return 58;
+  if (media <= 95) return 83;
   return 100; // 96-109
 }
 
