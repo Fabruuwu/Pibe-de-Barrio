@@ -82,6 +82,13 @@ const CLASIFICACION_CLUBES = {
   "sevilla": "mediano",
   "valencia": "mediano",
   "villarreal": "mediano",
+
+  // ---- Série A de Brasil ----
+  "athletico-paranaense": "mediano", "atletico-mineiro": "grande", "bahia": "mediano",
+  "botafogo": "grande", "bragantino": "mediano", "chapecoense": "chico", "corinthians": "grande",
+  "coritiba": "chico", "cruzeiro": "grande", "flamengo": "grande", "fluminense": "grande",
+  "gremio": "grande", "internacional": "grande", "mirassol": "diminuto", "palmeiras": "grande",
+  "remo": "diminuto", "santos": "grande", "sao-paulo": "grande", "vasco-da-gama": "grande", "vitoria": "chico",
 };
 
 /**
@@ -136,6 +143,8 @@ const PUNTOS_TITULOS = {
   ligaEspana: 85, // LaLiga
   copaDelRey: 100, // Copa del Rey
   superCopaEspana: 15, // SuperCopa de España
+  ligaBrasil: 120,
+  copaBrasil: 80,
 };
 
 /**
@@ -162,6 +171,8 @@ const IMAGENES_TITULOS = {
   "Conference League": "Trofeos/ConferenceLeague.png",
   "SuperCopa UEFA": "Trofeos/SuperCopaUEFA.png",
   "Mundial de Clubes": "Trofeos/MundialClubes.png",
+  ligaBrasil: "Trofeos/Brasileirao.png",
+  copaBrasil: "Trofeos/CopaBrasil.png",
   balonDeOro: "Trofeos/BalonDeOro.png",
   botaDeOro: "Trofeos/BotaDeOro.png",
   "Copa América": "Trofeos/CopaAmerica.png",

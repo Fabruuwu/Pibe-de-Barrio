@@ -78,6 +78,8 @@ function calcularResumenCarrera(jugador) {
     if (reg.ligaEspana) sumarPuntos(reg.ligaEspana, "ligaEspana", "🏆 LaLiga", reg.año);
     if (reg.copaDelRey) sumarPuntos(reg.copaDelRey, "copaDelRey", "🏆 Copa del Rey", reg.año);
     if (reg.superCopaEspana) sumarPuntos(reg.superCopaEspana, "superCopaEspana", "🏆 SuperCopa de España", reg.año);
+    if (reg.ligaBrasil) sumarPuntos(reg.ligaBrasil, "ligaBrasil", "🏆 Brasileirão", reg.año);
+    if (reg.copaBrasil) sumarPuntos(reg.copaBrasil, "copaBrasil", "🏆 Copa do Brasil", reg.año);
   });
 
   // Copas internacionales de clubes

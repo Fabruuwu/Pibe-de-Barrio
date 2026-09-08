@@ -259,6 +259,14 @@ function procesarEventos() {
       return;
     }
 
+    if (jugador.liga === "brasileirao-brasil" && typeof procesarTemporadaBrasil === "function") {
+      procesarTemporadaBrasil(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
     // Argentina (y por ahora también Brasil, que comparte el mismo flujo
     // de minijuegos de Liga + Copa Argentina) vive en Argentina.js.
     procesarTemporadaArgentina(jugador, año, () => {
@@ -479,8 +487,9 @@ function mostrarResumenAnual() {
   // (jugador.resultadoLigaEspana / resultadoCopaDelRey) y usa sus propios
   // nombres; el de Argentina sigue igual que siempre.
   const esEspana = jugador.liga === "laliga-espana";
-  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : "Liga Argentina";
-  const nombreCopaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey") : "Copa Argentina";
+  const esBrasil = jugador.liga === "brasileirao-brasil";
+  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : "Liga Argentina";
+  const nombreCopaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey") : esBrasil ? "Copa do Brasil" : "Copa Argentina";
 
   const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null) : (jugador.resultadoLiga || null);
   let textoLiga = "";
@@ -604,10 +613,11 @@ function mostrarResumenAnual() {
   const liga = jugador.liga;
   if (liga === "liga-profesional-argentina" || liga === "brasileirao-brasil") {
     const posicionLiga = Number(resLiga.posicion);
-    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (posicionLiga >= 1 && posicionLiga <= 3) || resCopa.esCampeon;
+    const limiteLibertadores = liga === "brasileirao-brasil" ? 5 : 3;
+    const clasificaLiberta = resLiga.esCampeon || resLiga.subcampeon || (posicionLiga >= 1 && posicionLiga <= limiteLibertadores) || resCopa.esCampeon;
     if (clasificaLiberta) {
       textoClasificacionLibertadores = "📢 ¡Clasificaste a la Copa Libertadores del próximo año!";
-    } else if (liga === "liga-profesional-argentina" && posicionLiga >= 4 && posicionLiga <= 9) {
+    } else if ((liga === "liga-profesional-argentina" && posicionLiga >= 4 && posicionLiga <= 9) || (liga === "brasileirao-brasil" && posicionLiga >= 6 && posicionLiga <= 11)) {
       textoClasificacionSudamericana = "📢 ¡Jugarás la Copa Sudamericana el próximo año!";
     }
   }
@@ -670,7 +680,7 @@ function mostrarResumenAnual() {
       <br><br>
       <strong>Liga:</strong><br>${textoLiga || "Sin datos de liga."}
       <br><br>
-      <strong>Copa Argentina:</strong><br>${textoCopa || "No participó o sin datos."}
+      <strong>${nombreCopaTexto}:</strong><br>${textoCopa || "No participó o sin datos."}
       ${textosCopasEspeciales ? `<br><br><strong>Otras copas:</strong><br>${textosCopasEspeciales.replace(/\n/g, '<br>')}` : ''}
       ${textosInternacionales ? `<br><br><strong>Copas Internacionales:</strong><br>${textosInternacionales.replace(/\n/g, '<br>')}` : ''}
       ${textoMundialClubes ? `<br><br><strong>${textoMundialClubes}</strong>` : ''}
