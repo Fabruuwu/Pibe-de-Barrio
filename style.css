@@ -1913,7 +1913,8 @@ html, body {
 .mundial-arco::before { content: "DEFENSAS DE ÉLITE"; position: absolute; inset: 12px auto auto 12px; color: var(--gris-tenue); font-size: 11px; letter-spacing: .12em; }
 .mundial-mira { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: white; transform: translateX(-50%); box-shadow: 0 0 10px white; }
 .mundial-hueco { position: absolute; top: 37%; height: 28%; background: #35df7a; border-radius: 4px; box-shadow: 0 0 18px #35df7a; }
-.mundial-nodo { position: absolute; width: 38px; height: 38px; border-radius: 50%; border: 2px solid #a78bfa; background: #201b38; color: white; font-weight: bold; transform: translate(-50%, -50%); }
+.mundial-nodo { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; border: 2px solid #a78bfa; background: #201b38; color: white; font-weight: bold; line-height: .85; transform: translate(-50%, -50%); }
+.mundial-nodo small { font-size: 10px; }
 .mundial-nodo.completado { background: #35df7a; border-color: #35df7a; }
 .mundial-zona-roja { position: absolute; width: 48px; height: 48px; border-radius: 50%; background: rgba(230, 60, 60, .72); transform: translate(-50%, -50%); }
 .mundial-delantero { position: absolute; display: block; border-radius: 50%; background: #e84141; box-shadow: 0 0 18px #e84141; }

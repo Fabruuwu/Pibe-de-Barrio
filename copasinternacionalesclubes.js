@@ -1226,48 +1226,47 @@ function minijuegoHuecoImposible(callback, jugador, rival, nivel) {
 }
 
 function minijuegoConstelacion(callback, jugador, rival, nivel) {
-  const total = [4, 6, 8][nivel]; const limite = [5, 7, 9][nivel];
-  const contenedor = tarjetaMundial(jugador, rival, "Constelación de Pases", `Uní los ${total} nodos en orden sin soltar. Tenés ${limite} segundos.`, `<button class="boton-jugar-minijuego">Empezar</button><div class="mundial-nodos" hidden></div><p id="mundial-tiempo"></p>`);
+  // La dificultad representa la experiencia acumulada: cada 25 partidos se
+  // agrega una pelota, con un máximo que mantiene el tablero legible.
+  const partidos = (jugador.stats?.partidos || 0) + (jugador.statsAnuales?.partidos || 0);
+  const total = Math.min(12, 4 + Math.floor(partidos / 25));
+  const limite = Math.max(6, Math.ceil(total * 1.4));
+  const contenedor = tarjetaMundial(jugador, rival, "Constelación de Pases", `Hacé clic en las ${total} pelotas en orden (1 → ${total}). Tenés ${limite} segundos.`, `<button class="boton-jugar-minijuego">Empezar</button><div class="mundial-nodos" hidden></div><p id="mundial-tiempo"></p>`);
   contenedor.querySelector("button").onclick = () => {
     const zona = contenedor.querySelector(".mundial-nodos"); zona.hidden = false;
-    const posiciones = Array.from({ length: total }, (_, i) => ({ x: 10 + Math.random() * 75, y: 10 + Math.random() * 70, i }));
-    let esperado = 0, arrastrando = false, activo = true, inicio = Date.now();
-    posiciones.forEach(p => { const n = document.createElement("button"); n.className = "mundial-nodo"; n.textContent = p.i + 1; n.style.left = `${p.x}%`; n.style.top = `${p.y}%`; n.dataset.i = p.i; zona.appendChild(n); });
-    if (nivel === 2) for (let i = 0; i < 3; i++) { const z = document.createElement("span"); z.className = "mundial-zona-roja"; z.style.left = `${15 + Math.random() * 65}%`; z.style.top = `${15 + Math.random() * 65}%`; zona.appendChild(z); }
+    const posiciones = [];
+    let intentos = 0;
+    while (posiciones.length < total && intentos++ < 300) {
+      const candidata = { x: 10 + Math.random() * 80, y: 12 + Math.random() * 72, i: posiciones.length };
+      const separada = posiciones.every(p => Math.hypot(p.x - candidata.x, p.y - candidata.y) >= 15);
+      if (separada || posiciones.length === 0) posiciones.push(candidata);
+    }
+    // Respaldo para que un sorteo excepcional nunca deje el desafío sin
+    // todas sus pelotas.
+    while (posiciones.length < total) {
+      const i = posiciones.length;
+      posiciones.push({ x: 14 + (i % 4) * 24, y: 18 + Math.floor(i / 4) * 28, i });
+    }
+    let esperado = 0, activo = true, inicio = Date.now();
     const terminar = exito => { if (!activo) return; activo = false; callback(exito); };
-    zona.style.touchAction = "none";
-
-    // Antes solo se validaba el nodo tocado durante el ARRASTRE
-    // (onpointermove). El primer toque (pointerdown) nunca se chequeaba,
-    // así que si te equivocabas de cuadradito justo al bajar el dedo/click
-    // (típicamente el último nodo, sin arrastrar más después), el juego
-    // no detectaba el error y te dejaba intentar de nuevo. Ahora se valida
-    // el nodo tanto al tocar como al arrastrar.
-    const evaluarToque = objetivo => {
-      if (!activo) return;
-      if (objetivo?.classList.contains("mundial-zona-roja")) return terminar(false);
-      if (objetivo?.classList.contains("mundial-nodo")) {
-        if (+objetivo.dataset.i !== esperado) return terminar(false);
-        objetivo.classList.add("completado"); esperado++;
+    posiciones.forEach(p => {
+      const n = document.createElement("button");
+      n.type = "button";
+      n.className = "mundial-nodo";
+      n.innerHTML = `<span aria-hidden="true">⚽</span><small>${p.i + 1}</small>`;
+      n.setAttribute("aria-label", `Pelota ${p.i + 1}`);
+      n.style.left = `${p.x}%`;
+      n.style.top = `${p.y}%`;
+      n.onclick = () => {
+        if (!activo) return;
+        if (p.i !== esperado) return terminar(false);
+        n.classList.add("completado");
+        n.disabled = true;
+        esperado++;
         if (esperado === total) terminar(true);
-      }
-    };
-
-    zona.onpointerdown = e => {
-      arrastrando = true;
-      try { zona.setPointerCapture(e.pointerId); } catch (_) {}
-      e.preventDefault();
-      evaluarToque(document.elementFromPoint(e.clientX, e.clientY));
-    };
-    zona.onpointerup = e => {
-      arrastrando = false;
-      try { zona.releasePointerCapture(e.pointerId); } catch (_) {}
-    };
-    zona.onpointercancel = () => { arrastrando = false; };
-    zona.onpointermove = e => {
-      if (!arrastrando || !activo) return;
-      evaluarToque(document.elementFromPoint(e.clientX, e.clientY));
-    };
+      };
+      zona.appendChild(n);
+    });
     const tick = () => { if (!activo) return; const restante = limite - (Date.now() - inicio) / 1000; contenedor.querySelector("#mundial-tiempo").textContent = `Tiempo: ${Math.max(0, restante).toFixed(1)}s`; if (restante <= 0) return terminar(false); requestAnimationFrame(tick); }; tick();
   };
 }
