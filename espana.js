@@ -577,6 +577,7 @@ function procesarTemporadaEspana(jugador, año, callbackFinal) {
         // pendientes (incluye "mundial-clubes") para que se pueda JUGAR,
         // no solo clasificar.
         if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, año);
+        if (typeof agendarChampionsLeague === "function") agendarChampionsLeague(jugador, año, resLiga);
 
         const terminarTemporada = () => {
           Estado.guardar();

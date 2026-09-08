@@ -85,6 +85,8 @@ function calcularResumenCarrera(jugador) {
     Libertadores: "🏆 Copa Libertadores",
     Sudamericana: "🏆 Copa Sudamericana",
     Recopa: "🏆 Recopa Sudamericana",
+    Champions: "🏆 UEFA Champions League",
+    "SuperCopa UEFA": "🏆 SuperCopa UEFA",
     "Mundial de Clubes": "🌍 Mundial de Clubes",
   };
   (jugador.resultadosInternacionales || []).forEach((reg) => {
@@ -110,7 +112,7 @@ function calcularResumenCarrera(jugador) {
 
   // Copa América (y futuras copas de selecciones): multiplican por el
   // tamaño de la SELECCIÓN, no del club, así que se agregan aparte.
-  const PUNTOS_SELECCIONES = { "Copa América": 500, "Finalissima": 500, "Mundial": 1200 };
+  const PUNTOS_SELECCIONES = { "Copa América": 600, "Finalissima": 400, "Mundial": 1600 };
   (jugador.resultadosSelecciones || []).forEach((reg) => {
     if (reg.resultado !== "campeon") return;
     const puntosBase = PUNTOS_SELECCIONES[reg.competencia] || 0;

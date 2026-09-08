@@ -124,6 +124,8 @@ const PUNTOS_TITULOS = {
   Libertadores: 700, // Copa Libertadores
   Sudamericana: 500, // Copa Sudamericana
   Recopa: 600, // Recopa Sudamericana
+  Champions: 1000, // UEFA Champions League
+  "SuperCopa UEFA": 150, // SuperCopa UEFA
   "Mundial de Clubes": 1500, // Mundial de Clubes
   balonDeOro: 2500, // Balón de Oro
   botaDeOro: 500, // Bota de Oro
@@ -153,6 +155,8 @@ const IMAGENES_TITULOS = {
   Libertadores: "Trofeos/CopaLibertadores.png",
   Sudamericana: "Trofeos/CopaSudamericana.png",
   Recopa: "Trofeos/Recopa.png",
+  Champions: "Trofeos/UEFAChampions.png",
+  "SuperCopa UEFA": "Trofeos/SuperCopaUEFA.png",
   "Mundial de Clubes": "Trofeos/MundialClubes.png",
   balonDeOro: "Trofeos/BalonDeOro.png",
   botaDeOro: "Trofeos/BotaDeOro.png",

@@ -247,9 +247,10 @@ function procesarEventos() {
     const jugador = Estado.obtener();
     const año = jugador.año;
 
-    // España (LaLiga + Copa del Rey + SuperCopa) vive en espana.js, totalmente
-    // aparte del flujo Argentino de acá abajo. Cuando sumemos más ligas
-    // europeas, cada una agrega su propio "else if" acá.
+    // Cada liga tiene su propio orquestador de temporada en su propio
+    // archivo (espana.js, Argentina.js...). hud.js solo decide a cuál
+    // llamar según jugador.liga y les pasa el año actual + un callback
+    // final que muestra el resumen anual.
     if (jugador.liga === "laliga-espana" && typeof procesarTemporadaEspana === "function") {
       procesarTemporadaEspana(jugador, año, () => {
         Estado.guardar();
@@ -258,60 +259,11 @@ function procesarEventos() {
       return;
     }
 
-    const resultadoLiga = simularLiga(jugador);
-    
-    let resultadoCopa = null;
-    const simCopa = simularCopaArgentina(jugador);
-    if (simCopa.enFinal) {
-      resultadoCopa = { enFinal: true, rival: simCopa.rival, resultado: null };
-    } else {
-      resultadoCopa = { enFinal: false, ronda: simCopa.ronda || "Eliminado" };
-    }
-
-    mostrarResultadoLiga(resultadoLiga, (resLiga) => {
-      jugador.resultadoLiga = resLiga;
-      if (resLiga.esCampeon) jugador.stats.titulos++;
-
-      if (!jugador.campeonesHistorial) jugador.campeonesHistorial = [];
-      const especialesDelAño = (jugador.resultadoCopasEspeciales || []).filter(c => c.año === año);
-      // OJO: antes acá decía "liga: jugador.club" SIEMPRE, sin importar si
-      // habías salido campeón o no. Eso hacía que CUALQUIER temporada jugada
-      // contara como título de Liga Argentina a la hora de sumar puntos en
-      // menufinal.js. Se corrige para que solo cuente si resLiga.esCampeon.
-      const nuevaEntrada = { año, liga: resLiga.esCampeon ? jugador.club : null, copa: null, superCopa: null, trofeo: null, superCopaInt: null };
-      especialesDelAño.forEach((c) => {
-        if (c.resultado !== "campeon") return;
-        if (c.tipo === "supercopa") nuevaEntrada.superCopa = jugador.club;
-        if (c.tipo === "trofeo") nuevaEntrada.trofeo = jugador.club;
-        if (c.tipo === "supercopaInt") nuevaEntrada.superCopaInt = jugador.club;
-      });
-      jugador.campeonesHistorial.push(nuevaEntrada);
-
-      if (resultadoCopa.enFinal) {
-        mostrarResultadoCopa(resultadoCopa, (resCopa) => {
-          const hist = jugador.campeonesHistorial.find(h => h.año === año);
-          hist.copa = resCopa.esCampeon ? jugador.club : null;
-          if (resCopa.esCampeon) jugador.stats.titulos++;
-          jugador.resultadoCopa = resCopa;
-
-          agendarProximasCopas(jugador, año, resLiga, resCopa);
-          procesarCopasPendientes(() => {
-            Estado.guardar();
-            mostrarResumenAnual();
-          });
-        });
-      } else {
-        const hist = jugador.campeonesHistorial.find(h => h.año === año);
-        hist.copa = null;
-        jugador.resultadoCopa = { esCampeon: false, ronda: resultadoCopa.ronda || "Eliminado" };
-        agendarProximasCopas(jugador, año, resLiga, { esCampeon: false });
-        ejecutarInternacionales(() => {
-          procesarCopasPendientes(() => {
-            Estado.guardar();
-            mostrarResumenAnual();
-          });
-        });
-      }
+    // Argentina (y por ahora también Brasil, que comparte el mismo flujo
+    // de minijuegos de Liga + Copa Argentina) vive en Argentina.js.
+    procesarTemporadaArgentina(jugador, año, () => {
+      Estado.guardar();
+      mostrarResumenAnual();
     });
   }
 }
@@ -590,6 +542,13 @@ function mostrarResumenAnual() {
     } else if (copa.copa === "Mundial de Clubes") {
       if (copa.resultado === "campeon") textosInternacionales += "🌍 ¡Campeón del Mundial de Clubes!\n";
       else textosInternacionales += `❌ Eliminado del Mundial de Clubes en ${copa.resultado.replace("eliminado_", "")}.\n`;
+    } else if (copa.copa === "Champions") {
+      if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la UEFA Champions League!\n";
+      else if (copa.resultado === "subcampeon") textosInternacionales += "🥈 Subcampeón de la UEFA Champions League.\n";
+      else textosInternacionales += `❌ Eliminado de la Champions League en ${copa.resultado.replace("eliminado_", "")}.\n`;
+    } else if (copa.copa === "SuperCopa UEFA") {
+      if (copa.resultado === "campeon") textosInternacionales += "🏆 ¡Campeón de la SuperCopa UEFA!\n";
+      else textosInternacionales += "🥈 Subcampeón de la SuperCopa UEFA.\n";
     }
   });
 
@@ -648,6 +607,13 @@ function mostrarResumenAnual() {
     }
   }
 
+  let textoClasificacionChampions = "";
+  if (esEspana && resultadoLiga) {
+    if (resultadoLiga.esCampeon || (typeof resultadoLiga.posicion === "number" && resultadoLiga.posicion <= 4)) {
+      textoClasificacionChampions = "📢 ¡Clasificaste a la Champions League!";
+    }
+  }
+
   const posicion = "2°";
   const decisiones = (jugador.historialEventos && jugador.historialEventos.length > 0)
     ? jugador.historialEventos.slice(-3).join("\n")
@@ -701,6 +667,7 @@ function mostrarResumenAnual() {
       ${textoSelecciones ? `<br><br><strong>${textoSelecciones}</strong>` : ''}
       ${textoClasificacionLibertadores ? `<br><br><strong>${textoClasificacionLibertadores}</strong>` : ''}
       ${textoClasificacionSudamericana ? `<br><br><strong>${textoClasificacionSudamericana}</strong>` : ''}
+      ${textoClasificacionChampions ? `<br><br><strong>${textoClasificacionChampions}</strong>` : ''}
     </div>
     <button class="resumen-boton" id="boton-siguiente-ano">Siguiente año ➡</button>
   `;
