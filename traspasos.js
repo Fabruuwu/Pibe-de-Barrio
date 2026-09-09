@@ -239,6 +239,19 @@ function firmarOferta(oferta) {
   const idLigaNueva = obtenerLigaDeClub(oferta.clubId) || jugador.liga;
   const idPaisLigaNuevo = obtenerPaisDeClub(oferta.clubId) || jugador.ligaPais;
 
+  // BUG REAL (el de "sigo jugando Libertadores con la Juventus"): las
+  // clasificaciones a copas (Libertadores, Champions, SuperCopa de España,
+  // etc.) se guardan colgadas del JUGADOR, no del club. Si te vas a otro
+  // club antes de jugarlas, ese cupo lo ganó el club viejo, no vos, así
+  // que hay que descartar todo lo agendado que todavía no se jugó.
+  const cambioDeClub = {};
+  if (esNuevoClub) {
+    cambioDeClub.copasPendientes = [];
+    cambioDeClub.copasPendientesEspana = [];
+    cambioDeClub.copasPendientesSerieA = [];
+    cambioDeClub.copasPendientesPremier = [];
+  }
+
   Estado.actualizar({
     club: oferta.clubId,
     division: idDivisionNueva,
@@ -247,6 +260,7 @@ function firmarOferta(oferta) {
     contrato: { salario: oferta.salario, duracionAnios: oferta.duracionAnios, añoInicio: jugador.año },
     cariño: esNuevoClub ? 5 : jugador.cariño,
     historialClubes: historial,
+    ...cambioDeClub,
   });
 }
 
