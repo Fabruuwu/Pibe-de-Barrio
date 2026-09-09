@@ -283,6 +283,22 @@ function procesarEventos() {
       return;
     }
 
+    if (jugador.liga === "bundesliga-alemania" && typeof procesarTemporadaBundesliga === "function") {
+      procesarTemporadaBundesliga(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
+    if (jugador.liga === "ligue-1-francia" && typeof procesarTemporadaFrancia === "function") {
+      procesarTemporadaFrancia(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
     // Argentina (y por ahora también Brasil, que comparte el mismo flujo
     // de minijuegos de Liga + Copa Argentina) vive en Argentina.js.
     procesarTemporadaArgentina(jugador, año, () => {
@@ -506,17 +522,26 @@ function mostrarResumenAnual() {
   const esBrasil = jugador.liga === "brasileirao-brasil";
   const esPremier = jugador.liga === "premier-league-inglaterra";
   const esSerieA = jugador.liga === "serie-a-italia";
-  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : esPremier ? "Premier League" : esSerieA ? "Serie A" : "Liga Argentina";
+  const esAlemania = jugador.liga === "bundesliga-alemania";
+  const esFrancia = jugador.liga === "ligue-1-francia";
+  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : esPremier ? "Premier League" : esSerieA ? "Serie A" : esAlemania ? "Bundesliga" : esFrancia ? "Ligue 1" : "Liga Argentina";
   const nombreCopaTexto = esEspana
     ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey")
     : esBrasil ? "Copa do Brasil"
     : esSerieA ? "Coppa Italia"
+    : esAlemania ? "DFB-Pokal"
+    : esFrancia ? "Copa de Francia"
     : esPremier ? "Copas domésticas" // Carabao Cup + FA Cup, van juntas en el mismo bloque
     : "Copa Argentina";
 
   // Premier y Serie A tienen más de una copa doméstica (Carabao+FA / Coppa),
   // así que su resultado se arma aparte más abajo, junto a las internacionales.
-  const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null) : esPremier ? (jugador.resultadoLigaPremier || null) : esSerieA ? (jugador.resultadoLigaSerieA || null) : (jugador.resultadoLiga || null);
+  const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null)
+    : esPremier ? (jugador.resultadoLigaPremier || null)
+    : esSerieA ? (jugador.resultadoLigaSerieA || null)
+    : esAlemania ? (jugador.resultadoLigaBundesliga || null)
+    : esFrancia ? (jugador.resultadoLigaFrancia || null)
+    : (jugador.resultadoLiga || null);
   let textoLiga = "";
   if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
     textoLiga = `🏆 ¡Campeón de ${nombreLigaTexto}!`;
@@ -526,7 +551,11 @@ function mostrarResumenAnual() {
     textoLiga = `Posición ${resultadoLiga.posicion}° en ${nombreLigaTexto}.`;
   }
 
-  const resultadoCopa = esEspana ? (jugador.resultadoCopaDelRey || null) : (esPremier || esSerieA) ? null : (jugador.resultadoCopa || null);
+  const resultadoCopa = esEspana ? (jugador.resultadoCopaDelRey || null)
+    : esAlemania ? (jugador.resultadoDFBPokal || null)
+    : esFrancia ? (jugador.resultadoCopaFrancia || null)
+    : (esPremier || esSerieA) ? null
+    : (jugador.resultadoCopa || null);
   let textoCopa = "";
   if (resultadoCopa && resultadoCopa.esCampeon) {
     textoCopa = `🏆 ¡Campeón de ${nombreCopaTexto}!`;
@@ -566,14 +595,21 @@ function mostrarResumenAnual() {
     }
   }
 
-  // Community Shield (Premier) y SuperCoppa Italia (Serie A), si se resolvieron este año
-  if ((esPremier || esSerieA) && jugador.campeonesHistorial) {
+  // Community Shield (Premier), SuperCoppa Italia (Serie A), Super Pokal
+  // (Bundesliga) y SuperCopa de Francia (Ligue 1), si se resolvieron este año
+  if ((esPremier || esSerieA || esAlemania || esFrancia) && jugador.campeonesHistorial) {
     const histAño = jugador.campeonesHistorial.find((h) => h.año === año);
     if (esPremier && histAño && histAño.communityShield === jugador.club) {
       textosCopasEspeciales += `🏆 ¡Campeón del Community Shield!\n`;
     }
     if (esSerieA && histAño && histAño.supercoppaItalia === jugador.club) {
       textosCopasEspeciales += `🏆 ¡Campeón de la SuperCoppa Italia!\n`;
+    }
+    if (esAlemania && histAño && histAño.dflSuperCopaPokal === jugador.club) {
+      textosCopasEspeciales += `🏆 ¡Campeón del Super Pokal!\n`;
+    }
+    if (esFrancia && histAño && histAño.superCopaFrancia === jugador.club) {
+      textosCopasEspeciales += `🏆 ¡Campeón de la SuperCopa de Francia!\n`;
     }
   }
 
@@ -680,13 +716,19 @@ function mostrarResumenAnual() {
   let textoClasificacionChampions = "";
   let textoClasificacionEuropa = "";
   let textoClasificacionConference = "";
-  if (esEspana && resultadoLiga) {
+  // Cualquiera de las 5 ligas UEFA (España, Inglaterra, Italia, Alemania,
+  // Francia) usa el mismo criterio por posición de liga: 1º-4º Champions,
+  // 5º Europa League, 6º Conference League (Premier no reparte plaza de
+  // Conference por posición de liga, así que directamente nunca llega a 6º
+  // clasificable acá; sus plazas de Conference salen de la Carabao Cup).
+  const esLigaUEFA = esEspana || esPremier || esSerieA || esAlemania || esFrancia;
+  if (esLigaUEFA && resultadoLiga) {
     const posicionLiga = Number(resultadoLiga.posicion);
     if (resultadoLiga.esCampeon || (Number.isFinite(posicionLiga) && posicionLiga >= 1 && posicionLiga <= 4)) {
       textoClasificacionChampions = "📢 ¡Clasificaste a la Champions League!";
     } else if (posicionLiga === 5) {
       textoClasificacionEuropa = "📢 ¡Clasificaste a la UEFA Europa League!";
-    } else if (posicionLiga === 6) {
+    } else if (posicionLiga === 6 && !esPremier) {
       textoClasificacionConference = "📢 ¡Clasificaste a la UEFA Conference League!";
     }
   }

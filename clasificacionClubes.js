@@ -174,6 +174,16 @@ const PUNTOS_TITULOS = {
   ligaSerieA: 100,
   coppaItalia: 80,
   supercoppaItalia: 20,
+
+  // ---- Bundesliga (Alemania) ----
+  ligaAlemania: 100,
+  dfbPokal: 80,
+  dflSuperCopaPokal: 20,
+
+  // ---- Ligue 1 (Francia) ----
+  ligaFrancia: 100,
+  copaFrancia: 80,
+  superCopaFrancia: 20,
 };
 
 /**
@@ -222,4 +232,14 @@ const IMAGENES_TITULOS = {
   ligaSerieA: "Trofeos/LigaItalia.png",
   coppaItalia: "Trofeos/CopaItalia.png",
   supercoppaItalia: "Trofeos/SuperCopaItalia.png",
+
+  // ---- Bundesliga (Alemania) ----
+  ligaAlemania: "Trofeos/LigaAlemania.png",
+  dfbPokal: "Trofeos/DFBPokal.png",
+  dflSuperCopaPokal: "Trofeos/DFLSuperCopaPokal.png",
+
+  // ---- Ligue 1 (Francia) ----
+  ligaFrancia: "Trofeos/LigaFrancia.png",
+  copaFrancia: "Trofeos/CopaFrancia.png",
+  superCopaFrancia: "Trofeos/SuperCopaFrancia.png",
 };

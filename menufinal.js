@@ -80,6 +80,23 @@ function calcularResumenCarrera(jugador) {
     if (reg.superCopaEspana) sumarPuntos(reg.superCopaEspana, "superCopaEspana", "🏆 SuperCopa de España", reg.año);
     if (reg.ligaBrasil) sumarPuntos(reg.ligaBrasil, "ligaBrasil", "🏆 Brasileirão", reg.año);
     if (reg.copaBrasil) sumarPuntos(reg.copaBrasil, "copaBrasil", "🏆 Copa do Brasil", reg.año);
+    // Premier League (Inglaterra)
+    if (reg.ligaPremier) sumarPuntos(reg.ligaPremier, "ligaPremier", "🏆 Premier League", reg.año);
+    if (reg.faCup) sumarPuntos(reg.faCup, "faCup", "🏆 FA Cup", reg.año);
+    if (reg.carabaoCup) sumarPuntos(reg.carabaoCup, "carabaoCup", "🏆 Carabao Cup", reg.año);
+    if (reg.communityShield) sumarPuntos(reg.communityShield, "communityShield", "🏆 Community Shield", reg.año);
+    // Serie A (Italia)
+    if (reg.ligaSerieA) sumarPuntos(reg.ligaSerieA, "ligaSerieA", "🏆 Serie A", reg.año);
+    if (reg.coppaItalia) sumarPuntos(reg.coppaItalia, "coppaItalia", "🏆 Coppa Italia", reg.año);
+    if (reg.supercoppaItalia) sumarPuntos(reg.supercoppaItalia, "supercoppaItalia", "🏆 SuperCoppa Italia", reg.año);
+    // Bundesliga (Alemania)
+    if (reg.ligaAlemania) sumarPuntos(reg.ligaAlemania, "ligaAlemania", "🏆 Bundesliga", reg.año);
+    if (reg.dfbPokal) sumarPuntos(reg.dfbPokal, "dfbPokal", "🏆 DFB-Pokal", reg.año);
+    if (reg.dflSuperCopaPokal) sumarPuntos(reg.dflSuperCopaPokal, "dflSuperCopaPokal", "🏆 Super Pokal", reg.año);
+    // Ligue 1 (Francia)
+    if (reg.ligaFrancia) sumarPuntos(reg.ligaFrancia, "ligaFrancia", "🏆 Ligue 1", reg.año);
+    if (reg.copaFrancia) sumarPuntos(reg.copaFrancia, "copaFrancia", "🏆 Copa de Francia", reg.año);
+    if (reg.superCopaFrancia) sumarPuntos(reg.superCopaFrancia, "superCopaFrancia", "🏆 SuperCopa de Francia", reg.año);
   });
 
   // Copas internacionales de clubes
