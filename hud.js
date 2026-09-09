@@ -267,6 +267,22 @@ function procesarEventos() {
       return;
     }
 
+    if (jugador.liga === "premier-league-inglaterra" && typeof procesarTemporadaPremier === "function") {
+      procesarTemporadaPremier(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
+    if (jugador.liga === "serie-a-italia" && typeof procesarTemporadaSerieA === "function") {
+      procesarTemporadaSerieA(jugador, año, () => {
+        Estado.guardar();
+        mostrarResumenAnual();
+      });
+      return;
+    }
+
     // Argentina (y por ahora también Brasil, que comparte el mismo flujo
     // de minijuegos de Liga + Copa Argentina) vive en Argentina.js.
     procesarTemporadaArgentina(jugador, año, () => {
@@ -488,10 +504,14 @@ function mostrarResumenAnual() {
   // nombres; el de Argentina sigue igual que siempre.
   const esEspana = jugador.liga === "laliga-espana";
   const esBrasil = jugador.liga === "brasileirao-brasil";
-  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : "Liga Argentina";
+  const esPremier = jugador.liga === "premier-league-inglaterra";
+  const esSerieA = jugador.liga === "serie-a-italia";
+  const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : esPremier ? "Premier League" : esSerieA ? "Serie A" : "Liga Argentina";
   const nombreCopaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey") : esBrasil ? "Copa do Brasil" : "Copa Argentina";
 
-  const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null) : (jugador.resultadoLiga || null);
+  // Premier y Serie A tienen más de una copa doméstica (Carabao+FA / Coppa),
+  // así que su resultado se arma aparte más abajo, junto a las internacionales.
+  const resultadoLiga = esEspana ? (jugador.resultadoLigaEspana || null) : esPremier ? (jugador.resultadoLigaPremier || null) : esSerieA ? (jugador.resultadoLigaSerieA || null) : (jugador.resultadoLiga || null);
   let textoLiga = "";
   if (resultadoLiga && resultadoLiga.esCampeon && !resultadoLiga.subcampeon) {
     textoLiga = `🏆 ¡Campeón de ${nombreLigaTexto}!`;
@@ -501,7 +521,7 @@ function mostrarResumenAnual() {
     textoLiga = `Posición ${resultadoLiga.posicion}° en ${nombreLigaTexto}.`;
   }
 
-  const resultadoCopa = esEspana ? (jugador.resultadoCopaDelRey || null) : (jugador.resultadoCopa || null);
+  const resultadoCopa = esEspana ? (jugador.resultadoCopaDelRey || null) : (esPremier || esSerieA) ? null : (jugador.resultadoCopa || null);
   let textoCopa = "";
   if (resultadoCopa && resultadoCopa.esCampeon) {
     textoCopa = `🏆 ¡Campeón de ${nombreCopaTexto}!`;
@@ -509,6 +529,25 @@ function mostrarResumenAnual() {
     textoCopa = `🥈 Subcampeón de ${nombreCopaTexto}.`;
   } else if (resultadoCopa && resultadoCopa.ronda) {
     textoCopa = `Eliminado en ${resultadoCopa.ronda} de ${nombreCopaTexto}.`;
+  }
+
+  // Copas domésticas de Premier League (Carabao Cup + FA Cup) y Serie A (Coppa Italia)
+  if (esPremier) {
+    const rC = jugador.resultadoCarabaoCup;
+    if (rC && rC.esCampeon) textoCopa += `${textoCopa ? "\n" : ""}🏆 ¡Campeón de la Carabao Cup!`;
+    else if (rC && rC.subcampeon) textoCopa += `${textoCopa ? "\n" : ""}🥈 Subcampeón de la Carabao Cup.`;
+    else if (rC && rC.ronda) textoCopa += `${textoCopa ? "\n" : ""}Eliminado en ${rC.ronda} de la Carabao Cup.`;
+
+    const rF = jugador.resultadoFACup;
+    if (rF && rF.esCampeon) textoCopa += `${textoCopa ? "\n" : ""}🏆 ¡Campeón de la FA Cup!`;
+    else if (rF && rF.subcampeon) textoCopa += `${textoCopa ? "\n" : ""}🥈 Subcampeón de la FA Cup.`;
+    else if (rF && rF.ronda) textoCopa += `${textoCopa ? "\n" : ""}Eliminado en ${rF.ronda} de la FA Cup.`;
+  }
+  if (esSerieA) {
+    const rCoppa = jugador.resultadoCoppaItalia;
+    if (rCoppa && rCoppa.esCampeon) textoCopa += `${textoCopa ? "\n" : ""}🏆 ¡Campeón de la Coppa Italia!`;
+    else if (rCoppa && rCoppa.subcampeon) textoCopa += `${textoCopa ? "\n" : ""}🥈 Subcampeón de la Coppa Italia.`;
+    else if (rCoppa && rCoppa.ronda) textoCopa += `${textoCopa ? "\n" : ""}Eliminado en ${rCoppa.ronda} de la Coppa Italia.`;
   }
 
   // Resultados de las copas especiales (Supercopa, Trofeo, Supercopa Internacional)
@@ -519,6 +558,17 @@ function mostrarResumenAnual() {
     const histAño = jugador.campeonesHistorial.find((h) => h.año === año);
     if (histAño && histAño.superCopaEspana === jugador.club) {
       textosCopasEspeciales += `🏆 ¡Campeón de la ${typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreSuperCopa : "SuperCopa de España"}!\n`;
+    }
+  }
+
+  // Community Shield (Premier) y SuperCoppa Italia (Serie A), si se resolvieron este año
+  if ((esPremier || esSerieA) && jugador.campeonesHistorial) {
+    const histAño = jugador.campeonesHistorial.find((h) => h.año === año);
+    if (esPremier && histAño && histAño.communityShield === jugador.club) {
+      textosCopasEspeciales += `🏆 ¡Campeón del Community Shield!\n`;
+    }
+    if (esSerieA && histAño && histAño.supercoppaItalia === jugador.club) {
+      textosCopasEspeciales += `🏆 ¡Campeón de la SuperCoppa Italia!\n`;
     }
   }
 

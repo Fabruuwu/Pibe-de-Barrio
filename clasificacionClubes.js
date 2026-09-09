@@ -89,6 +89,24 @@ const CLASIFICACION_CLUBES = {
   "coritiba": "chico", "cruzeiro": "grande", "flamengo": "grande", "fluminense": "grande",
   "gremio": "grande", "internacional": "grande", "mirassol": "diminuto", "palmeiras": "grande",
   "remo": "diminuto", "santos": "grande", "sao-paulo": "grande", "vasco-da-gama": "grande", "vitoria": "chico",
+
+  // ---- Premier League (Inglaterra) ---- (mismas categorías que en data.js)
+  "arsenal": "grande", "aston-villa": "mediano", "bournemouth": "chico",
+  "brentford": "chico", "brighton": "mediano", "chelsea": "grande",
+  "coventry-city": "chico", "crystal-palace": "mediano", "everton": "mediano",
+  "fulham": "mediano", "hull-city": "chico", "ipswich-town": "chico",
+  "leeds-united": "mediano", "liverpool": "grande", "manchester-city": "grande",
+  "manchester-united": "grande", "newcastle": "mediano", "nottingham-forest": "chico",
+  "sunderland": "chico", "tottenham": "grande",
+
+  // ---- Serie A (Italia) ---- (mismas categorías que en data.js)
+  "atalanta": "mediano", "bologna": "mediano", "cagliari": "mediano",
+  "como": "chico", "fiorentina": "mediano", "frosinone": "chico",
+  "genoa": "mediano", "inter": "grande", "juventus": "grande",
+  "lazio": "grande", "lecce": "chico", "milan": "grande",
+  "monza": "chico", "napoli": "grande", "parma": "chico",
+  "roma": "grande", "sassuolo": "chico", "torino": "mediano",
+  "udinese": "mediano", "venezia": "chico",
 };
 
 /**
@@ -145,6 +163,17 @@ const PUNTOS_TITULOS = {
   superCopaEspana: 15, // SuperCopa de España
   ligaBrasil: 120,
   copaBrasil: 80,
+
+  // ---- Premier League (Inglaterra) ----
+  ligaPremier: 100,
+  faCup: 70,
+  carabaoCup: 70,
+  communityShield: 30,
+
+  // ---- Serie A (Italia) ----
+  ligaSerieA: 100,
+  coppaItalia: 80,
+  supercoppaItalia: 20,
 };
 
 /**
@@ -182,4 +211,15 @@ const IMAGENES_TITULOS = {
   ligaEspana: "Trofeos/LaLiga.png",
   copaDelRey: "Trofeos/CopaEspaña.png",
   superCopaEspana: "Trofeos/SuperCopaEspaña.png",
+
+  // ---- Premier League (Inglaterra) ----
+  ligaPremier: "Trofeos/PremierLeague.png",
+  faCup: "Trofeos/FACup.png",
+  carabaoCup: "Trofeos/CarabaoCup.png",
+  communityShield: "Trofeos/CommunityShield.png",
+
+  // ---- Serie A (Italia) ----
+  ligaSerieA: "Trofeos/LigaItalia.png",
+  coppaItalia: "Trofeos/CopaItalia.png",
+  supercoppaItalia: "Trofeos/SuperCopaItalia.png",
 };
