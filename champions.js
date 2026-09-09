@@ -493,7 +493,7 @@ function mostrarSuperCopaUEFA(copa, callback) {
     () => {
       jugarSuperCopaUEFA((exito) => {
         if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
-        jugador.resultadosInternacionales.push({ año: copa.año, copa: "SuperCopa UEFA", resultado: exito ? "campeon" : "subcampeon" });
+        jugador.resultadosInternacionales.push({ año: copa.año, copa: "SuperCopa UEFA", resultado: exito ? "campeon" : "subcampeon" , club: jugador.club });
         if (exito) jugador.stats.titulos++;
         Estado.guardar();
         mostrarCartelInternacional(exito, exito ? undefined : "Final", "Trofeos/SuperCopaUEFA.png");
@@ -535,7 +535,7 @@ function mostrarChampions(copa, callback) {
 
   jugarChampions((resultado, fase) => {
     if (resultado) {
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: "campeon" });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: "campeon" , club: jugador.club });
       jugador.stats.titulos++;
       asegurarPlazaCampeonContinental(jugador, "champions", copa.año);
 
@@ -557,7 +557,7 @@ function mostrarChampions(copa, callback) {
     } else {
       const faseNormalizada = fase || "Fase de Grupos";
       let resumen = faseNormalizada === "Gran Final" ? "subcampeon" : `eliminado_${faseNormalizada}`;
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: resumen });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: resumen , club: jugador.club });
       Estado.guardar();
       mostrarCartelInternacional(false, faseNormalizada === "Gran Final" ? "Final" : faseNormalizada, "");
       const contenedor = document.getElementById("competition-container");

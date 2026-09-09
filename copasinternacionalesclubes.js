@@ -861,7 +861,7 @@ function mostrarSudamericana(copa, callback) {
 
   jugarSudamericana((resultado, motivo) => {
     if (resultado) {
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: "campeon" });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: "campeon" , club: jugador.club });
       jugador.stats.titulos++;
       asegurarPlazaCampeonContinental(jugador, "sudamericana", copa.año);
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaSudamericana.png");
@@ -873,9 +873,9 @@ function mostrarSudamericana(copa, callback) {
         jugarRecopa((exitoRecopa) => {
           if (exitoRecopa) {
             jugador.stats.titulos++;
-            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" , club: jugador.club });
           } else {
-            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" , club: jugador.club });
           }
           Estado.guardar();
           mostrarCartelInternacional(exitoRecopa, exitoRecopa ? undefined : "Final", "Trofeos/RecopaSudamericana.png");
@@ -889,7 +889,7 @@ function mostrarSudamericana(copa, callback) {
       });
     } else {
       const resumen = motivo === "noFinal" ? "eliminado" : "subcampeon";
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: resumen });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Sudamericana", resultado: resumen , club: jugador.club });
 
       if (motivo === "noFinal") {
         // No interrumpimos el flujo: el resumen anual ya informa la eliminación.
@@ -971,7 +971,7 @@ function mostrarLibertadores(copa, callback) {
   const tipo = Math.random() < 0.75 ? "copa_completa" : "final";
   jugarLibertadores((resultado, fase) => {
     if (resultado) {
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: "campeon" });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: "campeon" , club: jugador.club });
       jugador.stats.titulos++;
       asegurarPlazaCampeonContinental(jugador, "libertadores", copa.año);
       mostrarCartelInternacional(true, undefined, "Trofeos/CopaLibertadores.png");
@@ -983,9 +983,9 @@ function mostrarLibertadores(copa, callback) {
         jugarRecopa((exitoRecopa) => {
           if (exitoRecopa) {
             jugador.stats.titulos++;
-            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "campeon" , club: jugador.club });
           } else {
-            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" });
+            jugador.resultadosInternacionales.push({ año: copa.año, copa: "Recopa", resultado: "subcampeon" , club: jugador.club });
           }
           Estado.guardar();
           mostrarCartelInternacional(exitoRecopa, exitoRecopa ? undefined : "Final", "Trofeos/RecopaSudamericana.png");
@@ -1002,7 +1002,7 @@ function mostrarLibertadores(copa, callback) {
       let resumen = "";
       if (faseNormalizada === "Final") resumen = "subcampeon";
       else resumen = `eliminado_${faseNormalizada}`;
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: resumen });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Libertadores", resultado: resumen , club: jugador.club });
       mostrarCartelInternacional(false, faseNormalizada, "");
       const contenedor = document.getElementById("competition-container");
       contenedor.querySelector(".boton-continuar").addEventListener("click", () => {
@@ -1094,8 +1094,12 @@ function probabilidadMundialPorClub(club, media) {
 }
 
 function obtenerTituloClasificatorio(jugador, edicion) {
+  // Importante: el cupo al Mundial de Clubes lo gana EL CLUB, no el jugador.
+  // Si ganaste la Libertadores con Boca y te fuiste al Roma antes de la
+  // edición siguiente, ese cupo se queda en Boca, no viaja con vos.
   return (jugador.resultadosInternacionales || []).find((copa) =>
     copa.año < edicion && copa.año >= edicion - 4 &&
+    copa.club === jugador.club &&
     (copa.copa === "Libertadores" || copa.copa === "Recopa" || copa.copa === "Champions") && copa.resultado === "campeon"
   ) || null;
 }
@@ -1315,7 +1319,7 @@ function minijuegoAsedioTotal(callback, jugador, rival, nivel) {
 function mostrarResultadoMundial(ganador, etapa, anio, callback) {
   const jugador = Estado.obtener(), contenedor = document.getElementById("competition-container");
   if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
-  jugador.resultadosInternacionales.push({ año: anio, copa: "Mundial de Clubes", resultado: ganador ? "campeon" : `eliminado_${etapa}` });
+  jugador.resultadosInternacionales.push({ año: anio, copa: "Mundial de Clubes", resultado: ganador ? "campeon" : `eliminado_${etapa}`, club: jugador.club });
   if (ganador) jugador.stats.titulos++;
   Estado.guardar();
   if (ganador && typeof lanzarConfeti === "function") lanzarConfeti();
@@ -1926,7 +1930,7 @@ function mostrarFinalUEFA(copa, callback, config) {
   mostrarInstructivoInternacional(jugador, rival, config.nombre, config.titulo, config.descripcion, ["Final directa a partido único.", "Ganala para levantar el trofeo.", "El desafío depende de tu posición."], () => {
     minijuegoFinalUEFA(config.tipo, exito => {
       if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales=[];
-      jugador.resultadosInternacionales.push({ año:copa.año, copa:config.nombre, resultado:exito?"campeon":"subcampeon" });
+      jugador.resultadosInternacionales.push({ año:copa.año, copa:config.nombre, resultado:exito?"campeon":"subcampeon" , club: jugador.club });
       if(exito){jugador.stats.titulos++; config.recompensa?.(jugador,copa.año);}
       Estado.guardar(); mostrarCartelInternacional(exito, exito?undefined:"Final", config.imagen);
       document.getElementById("competition-container").querySelector(".boton-continuar").onclick=()=>{const c=document.getElementById("competition-container");c.innerHTML="";c.hidden=true;callback();};
@@ -1950,7 +1954,7 @@ function mostrarSuperCopaUEFA(copa, callback) {
     () => {
       jugarSuperCopaUEFA((exito) => {
         if (!Array.isArray(jugador.resultadosInternacionales)) jugador.resultadosInternacionales = [];
-        jugador.resultadosInternacionales.push({ año: copa.año, copa: "SuperCopa UEFA", resultado: exito ? "campeon" : "subcampeon" });
+        jugador.resultadosInternacionales.push({ año: copa.año, copa: "SuperCopa UEFA", resultado: exito ? "campeon" : "subcampeon" , club: jugador.club });
         if (exito) {
           jugador.stats.titulos++;
           asegurarPlazaMundialClubesProximo(jugador, copa.año, "campeon-supercopa-uefa");
@@ -1995,7 +1999,7 @@ function mostrarChampions(copa, callback) {
 
   jugarChampions((resultado, fase) => {
     if (resultado) {
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: "campeon" });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: "campeon" , club: jugador.club });
       jugador.stats.titulos++;
       asegurarPlazaCampeonContinental(jugador, "champions", copa.año);
       asegurarPlazaMundialClubesProximo(jugador, copa.año, "campeon-champions");
@@ -2018,7 +2022,7 @@ function mostrarChampions(copa, callback) {
     } else {
       const faseNormalizada = fase || "Fase de Grupos";
       let resumen = faseNormalizada === "Gran Final" ? "subcampeon" : `eliminado_${faseNormalizada}`;
-      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: resumen });
+      jugador.resultadosInternacionales.push({ año: copa.año, copa: "Champions", resultado: resumen , club: jugador.club });
       Estado.guardar();
       mostrarCartelInternacional(false, faseNormalizada === "Gran Final" ? "Final" : faseNormalizada, "");
       const contenedor = document.getElementById("competition-container");

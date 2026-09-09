@@ -507,7 +507,12 @@ function mostrarResumenAnual() {
   const esPremier = jugador.liga === "premier-league-inglaterra";
   const esSerieA = jugador.liga === "serie-a-italia";
   const nombreLigaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreLiga : "LaLiga") : esBrasil ? "Brasileirão" : esPremier ? "Premier League" : esSerieA ? "Serie A" : "Liga Argentina";
-  const nombreCopaTexto = esEspana ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey") : esBrasil ? "Copa do Brasil" : "Copa Argentina";
+  const nombreCopaTexto = esEspana
+    ? (typeof CONFIG_LIGA_ESPANA !== "undefined" ? CONFIG_LIGA_ESPANA.nombreCopa : "Copa del Rey")
+    : esBrasil ? "Copa do Brasil"
+    : esSerieA ? "Coppa Italia"
+    : esPremier ? "Copas domésticas" // Carabao Cup + FA Cup, van juntas en el mismo bloque
+    : "Copa Argentina";
 
   // Premier y Serie A tienen más de una copa doméstica (Carabao+FA / Coppa),
   // así que su resultado se arma aparte más abajo, junto a las internacionales.
