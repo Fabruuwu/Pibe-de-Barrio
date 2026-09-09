@@ -230,8 +230,20 @@ function firmarOferta(oferta) {
     historial.push({ club: oferta.clubId, desde: jugador.año, hasta: null, cariñoFinal: 0, partidos: 0, titulos: [] });
   }
 
+  // Si el club nuevo pertenece a otra división/liga/país, hay que
+  // actualizar esos 3 campos también. Si no, jugador.liga se queda
+  // con el valor viejo y hud.js sigue corriendo el motor de
+  // competencias del país anterior (bug: fichás por España y seguís
+  // jugando Libertadores/Copa Argentina).
+  const idDivisionNueva = MAPA_CLUB_A_DIVISION[oferta.clubId] || jugador.division;
+  const idLigaNueva = obtenerLigaDeClub(oferta.clubId) || jugador.liga;
+  const idPaisLigaNuevo = obtenerPaisDeClub(oferta.clubId) || jugador.ligaPais;
+
   Estado.actualizar({
     club: oferta.clubId,
+    division: idDivisionNueva,
+    liga: idLigaNueva,
+    ligaPais: idPaisLigaNuevo,
     contrato: { salario: oferta.salario, duracionAnios: oferta.duracionAnios, añoInicio: jugador.año },
     cariño: esNuevoClub ? 5 : jugador.cariño,
     historialClubes: historial,
