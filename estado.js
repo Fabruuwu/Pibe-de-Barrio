@@ -208,6 +208,12 @@ const Estado = (() => {
   function avanzarTemporada() {
     if (typeof avanzarRival === "function") avanzarRival(jugador);
 
+    if (!Array.isArray(jugador.historialNotas)) jugador.historialNotas = [];
+    if (jugador.statsAnuales.nota !== undefined && jugador.statsAnuales.partidos > 0) {
+      jugador.historialNotas.push(Number(jugador.statsAnuales.nota));
+      if (jugador.historialNotas.length > 3) jugador.historialNotas.shift();
+    }
+
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;

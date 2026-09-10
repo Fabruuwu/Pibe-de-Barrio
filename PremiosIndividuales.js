@@ -218,6 +218,69 @@ function mostrarGalaBotaDeOro(alTerminar) {
   return true;
 }
 
+// ============================================
+// HISTORIAL DEL BALÓN DE ORO (todas las ediciones, participe o no el
+// jugador). Se llama una vez por año, al arrancar la temporada, DESPUÉS
+// de que la gala de ese año ya se resolvió (o se determinó que no hay
+// gala). Si el jugador no participó, se sortea un ganador silencioso
+// entre FIGURAS_BALON_DE_ORO solo para completar el historial.
+// ============================================
+function registrarBalonDeOroSiHaceFalta(jugador, año) {
+  const temporada = año - 1;
+  if (temporada < 1) return;
+  if (!Array.isArray(jugador.historialBalonDeOro)) jugador.historialBalonDeOro = [];
+  if (jugador.historialBalonDeOro.some((h) => h.temporada === temporada)) return;
+
+  const propio = (jugador.balonesDeOro || []).find((b) => b.temporada === temporada);
+  if (propio) {
+    jugador.historialBalonDeOro.push({ temporada, ganador: jugador.nombre, esJugador: true });
+    Estado.guardar();
+    return;
+  }
+
+  const premio = (jugador.premiosPendientes || []).find((p) => p.temporada === temporada && p.resuelto);
+  if (premio && premio.resultado && premio.resultado.ganador) {
+    jugador.historialBalonDeOro.push({ temporada, ganador: premio.resultado.ganador, esJugador: false });
+    Estado.guardar();
+    return;
+  }
+
+  const figuras = typeof FIGURAS_BALON_DE_ORO !== "undefined" ? FIGURAS_BALON_DE_ORO : [];
+  const ganador = figuras.length ? figuras[Math.floor(Math.random() * figuras.length)] : "—";
+  jugador.historialBalonDeOro.push({ temporada, ganador, esJugador: false });
+  Estado.guardar();
+}
+
+function abrirModalBalonDeOro() {
+  const jugador = Estado.obtener();
+  const modal = document.getElementById("modal-balon-oro");
+  const lista = document.getElementById("balon-oro-lista");
+  if (!modal || !lista) return;
+
+  const historial = [...(jugador.historialBalonDeOro || [])].sort((a, b) => b.temporada - a.temporada);
+  lista.innerHTML = historial.length
+    ? historial.map((h) => `
+        <div class="balon-oro__fila ${h.esJugador ? "balon-oro__fila--propio" : ""}">
+          <span class="balon-oro__temporada">${h.temporada}</span>
+          <span class="balon-oro__ganador">${h.ganador}</span>
+          ${h.esJugador ? '<span class="balon-oro__badge">🏆 VOS</span>' : ""}
+        </div>`).join("")
+    : `<p class="balon-oro__vacio">Todavía no se disputó ningún Balón de Oro en tu carrera.</p>`;
+
+  modal.hidden = false;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const boton = document.getElementById("hud-boton-balon");
+  const modal = document.getElementById("modal-balon-oro");
+  if (boton) boton.addEventListener("click", abrirModalBalonDeOro);
+  if (modal) {
+    const cerrar = document.getElementById("balon-oro-cerrar");
+    if (cerrar) cerrar.addEventListener("click", () => (modal.hidden = true));
+    modal.addEventListener("click", (evento) => { if (evento.target === modal) modal.hidden = true; });
+  }
+});
+
 function mostrarResultadoBalonDeOro(premio, resultados, alTerminar) {
   const jugador = Estado.obtener();
   const resultadoJugador = resultados.find(r => r.nombre === jugador.nombre);

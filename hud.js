@@ -89,7 +89,8 @@ function pintarEquipoYLiga(jugador) {
   document.getElementById("hud-año").textContent = jugador.año;
   document.getElementById("hud-edad").textContent = `${jugador.edad} años`;
   document.getElementById("hud-liga").textContent = NOMBRES_LIGAS[jugador.liga] || "—";
-  document.getElementById("hud-forma").textContent = "Normal";
+  const forma = typeof calcularFormaJugador === "function" ? calcularFormaJugador(jugador) : { texto: "Normal", emoji: "" };
+  document.getElementById("hud-forma").textContent = `${forma.texto}${forma.emoji ? " " + forma.emoji : ""}`;
 
   const escudo = document.getElementById("hud-escudo-club");
   if (club && club.escudo) {
@@ -131,12 +132,12 @@ function pintarBurbujasGlobales(jugador) {
   const contenedor = document.getElementById("hud-globales");
   contenedor.innerHTML = "";
 
-  const items = [
-    { valor: formatearDinero(jugador.valor), etiqueta: "Valor" },
-    { valor: formatearDinero(jugador.dinero), etiqueta: "Dinero" },
-  ];
+  contenedor.appendChild(crearBurbuja(formatearDinero(jugador.valor), "Valor", "burbuja--global"));
 
-  items.forEach((item) => contenedor.appendChild(crearBurbuja(item.valor, item.etiqueta, "burbuja--global")));
+  const burbujaDinero = crearBurbuja(formatearDinero(jugador.dinero), "Dinero", "burbuja--global burbuja--dinero");
+  burbujaDinero.style.cursor = "pointer";
+  burbujaDinero.addEventListener("click", () => { if (typeof abrirModalDinero === "function") abrirModalDinero(); });
+  contenedor.appendChild(burbujaDinero);
 
   if (typeof pintarBurbujaRival === "function") pintarBurbujaRival(jugador, contenedor);
   else contenedor.appendChild(crearBurbuja("—", "Rival", "burbuja--global"));
@@ -468,22 +469,25 @@ function mostrarResumenAnual() {
 
   if (jugador.statsAnuales.partidos === 0) {
     const produccion = generarStatsAnualesPorPosicion(jugador);
+    const forma = typeof calcularFormaJugador === "function" ? calcularFormaJugador(jugador) : { bonus: 0 };
+    const factorForma = 1 + (forma.bonus || 0);
 
     const bonus = obtenerBonusResistencia(jugador.stats.resistencia || 0);
     jugador.statsAnuales.partidos = Math.max(0, produccion.partidos + bonus.partidos);
-    jugador.statsAnuales.goles = Math.max(0, produccion.goles + bonus.goles);
-    jugador.statsAnuales.asistencias = Math.max(0, produccion.asistencias + bonus.asistencias);
+    jugador.statsAnuales.goles = Math.max(0, Math.round((produccion.goles + bonus.goles) * factorForma));
+    jugador.statsAnuales.asistencias = Math.max(0, Math.round((produccion.asistencias + bonus.asistencias) * factorForma));
     if (jugador.posicion === "enganche" && jugador.statsAnuales.asistencias <= jugador.statsAnuales.goles) {
       jugador.statsAnuales.asistencias = jugador.statsAnuales.goles + numeroAleatorio(2, 7);
     }
-    jugador.statsAnuales.vallasInvictas = produccion.vallasInvictas;
-    jugador.statsAnuales.recuperaciones = produccion.recuperaciones;
-    jugador.statsAnuales.atajadas = produccion.atajadas;
+    jugador.statsAnuales.vallasInvictas = Math.max(0, Math.round(produccion.vallasInvictas * factorForma));
+    jugador.statsAnuales.recuperaciones = Math.max(0, Math.round(produccion.recuperaciones * factorForma));
+    jugador.statsAnuales.atajadas = Math.max(0, Math.round(produccion.atajadas * factorForma));
 
     jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
-    // Dinero de la temporada = salario mensual del contrato actual x 12.
+    // Dinero de la temporada = salario mensual del contrato actual x 12 + patrocinios.
     const salarioMensual = (jugador.contrato && jugador.contrato.salario) || 0;
-    jugador.statsAnuales.dinero = (salarioMensual * 12) / 1000000; // formatearDinero espera millones
+    const ingresoPatrocinios = typeof obtenerIngresoAnualPatrocinios === "function" ? obtenerIngresoAnualPatrocinios(jugador) : 0;
+    jugador.statsAnuales.dinero = (salarioMensual * 12 + ingresoPatrocinios) / 1000000; // formatearDinero espera millones
   }
 
   if (typeof generarStatsTemporadaRivalSiHaceFalta === "function") generarStatsTemporadaRivalSiHaceFalta(jugador);
@@ -824,14 +828,26 @@ function mostrarResumenAnual() {
     continuarInicioDeAñoPreOferta();
 
     function continuarInicioDeAñoPreOferta() {
-      if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(continuarInicioDeAño)) return;
+      if (typeof mostrarGalaBalonDeOro === "function" && mostrarGalaBalonDeOro(continuarInicioDeAñoConRegistro)) return;
+      continuarInicioDeAñoConRegistro();
+    }
+
+    function continuarInicioDeAñoConRegistro() {
+      const jugadorActual = Estado.obtener();
+      if (typeof registrarBalonDeOroSiHaceFalta === "function") registrarBalonDeOroSiHaceFalta(jugadorActual, jugadorActual.año);
       continuarInicioDeAño();
     }
 
     function continuarInicioDeAño() {
-      if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAño2)) return;
+      if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAñoPatrocinio)) return;
+      continuarInicioDeAñoPatrocinio();
+    }
+
+    function continuarInicioDeAñoPatrocinio() {
+      if (typeof mostrarOfertaPatrocinioSiCorresponde === "function" && mostrarOfertaPatrocinioSiCorresponde(continuarInicioDeAño2)) return;
       continuarInicioDeAño2();
     }
+
     function continuarInicioDeAño2() {
       // Las plazas de clubes se obtienen al cierre del año anterior. Se
       // juegan ahora, al empezar la temporada para la que se clasificó.
@@ -854,6 +870,28 @@ function mostrarResumenAnual() {
       abrirModalCartas();
     }
   });
+}
+
+// ============================================
+// FORMA (racha) — se basa en el promedio de las últimas 3 notas de
+// temporada (jugador.historialNotas, alimentado en estado.js).
+// Afecta la producción de stats de la temporada siguiente (ver
+// mostrarResumenAnual) con un bonus/penalización chico.
+// ============================================
+const FORMA_ESCALONES = [
+  { min: 8.3, texto: "En racha", emoji: "🔥", bonus: 0.08 },
+  { min: 7.0, texto: "Buen momento", emoji: "📈", bonus: 0.04 },
+  { min: 5.5, texto: "Normal", emoji: "", bonus: 0 },
+  { min: 4.5, texto: "Fase baja", emoji: "📉", bonus: -0.04 },
+  { min: -Infinity, texto: "En crisis", emoji: "🧊", bonus: -0.08 },
+];
+
+function calcularFormaJugador(jugador) {
+  const historial = jugador.historialNotas || [];
+  if (historial.length === 0) return { texto: "Normal", emoji: "", bonus: 0, promedio: null };
+  const promedio = historial.reduce((acc, nota) => acc + Number(nota), 0) / historial.length;
+  const escalon = FORMA_ESCALONES.find((e) => promedio >= e.min);
+  return { ...escalon, promedio };
 }
 
 function calcularNotaTemporada(statsAnuales) {

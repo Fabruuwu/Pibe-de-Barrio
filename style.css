@@ -2763,3 +2763,53 @@ body::before {
 }
 .resumen-final__rival-combo { font-size: 12px; color: var(--gris-tenue); }
 .resumen-final__rival-veredicto { font-size: 14px; color: var(--blanco); }
+
+/* ============================================
+   BALÓN DE ORO (historial) / DINERO / PATROCINIOS
+   ============================================ */
+.modal__tarjeta--balon-oro,
+.modal__tarjeta--dinero { max-width: 440px; position: relative; }
+
+.balon-oro__titulo, .dinero__titulo { font-family: var(--fuente-display); font-size: 20px; margin-bottom: 14px; color: var(--blanco); }
+.balon-oro__lista { max-height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.balon-oro__fila {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radio); background: rgba(255,255,255,0.03);
+  font-size: 14px;
+}
+.balon-oro__fila--propio { background: rgba(247, 201, 72, 0.14); border: 1px solid var(--dorado, #f7c948); }
+.balon-oro__temporada { color: var(--gris-tenue); min-width: 46px; }
+.balon-oro__ganador { flex: 1; text-align: left; color: var(--blanco); }
+.balon-oro__badge { font-size: 11px; font-weight: 800; color: var(--dorado, #f7c948); }
+.balon-oro__vacio { color: var(--gris-tenue); font-size: 13px; text-align: center; padding: 20px 0; }
+
+.dinero__lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.dinero__fila {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radio); background: rgba(255,255,255,0.03);
+  font-size: 13px;
+}
+.dinero__nombre { color: var(--blanco); }
+.dinero__monto { color: #4ade80; font-weight: 700; text-align: right; }
+.dinero__anual { color: var(--gris-tenue); font-weight: 400; font-size: 11px; }
+.dinero__total {
+  border-top: 1px solid var(--input-borde); margin-top: 8px; padding-top: 10px;
+  font-weight: 800; color: var(--blanco); text-align: right; font-size: 14px;
+}
+
+.burbuja--dinero:hover { filter: brightness(1.15); }
+
+/* Oferta de patrocinio */
+.patrocinio-card { text-align: center; }
+.patrocinio__opciones { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.patrocinio__opcion {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px; border-radius: var(--radio); border: 1px solid var(--input-borde);
+  background: rgba(255,255,255,0.03); color: var(--blanco); cursor: pointer; font-size: 14px;
+  text-align: left;
+}
+.patrocinio__opcion:hover { border-color: var(--dorado, #f7c948); }
+.patrocinio__opcion--elite { border-color: var(--dorado, #f7c948); }
+.patrocinio__marca { font-weight: 700; flex: 1; }
+.patrocinio__tier { font-size: 11px; color: var(--gris-tenue); }
+.patrocinio__pago { color: #4ade80; font-weight: 700; }
