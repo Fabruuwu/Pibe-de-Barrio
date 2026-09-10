@@ -200,6 +200,45 @@
 
 </main>
 
+<!-- MODAL RIVAL -->
+<div class="modal" id="modal-rival" hidden>
+  <div class="modal__tarjeta modal__tarjeta--rival">
+    <button type="button" class="modal__cerrar" id="rival-cerrar" aria-label="Cerrar">✕</button>
+    <span class="rival-modal__eyebrow">Tu rival</span>
+
+    <div class="rival-modal__cabecera">
+      <img id="rival-escudo" class="rival-modal__escudo" alt="" hidden>
+      <div>
+        <div class="rival-modal__nombre" id="rival-nombre">—</div>
+        <div class="rival-modal__club" id="rival-club-rival">—</div>
+      </div>
+    </div>
+
+    <div class="rival-modal__medias">
+      <div class="rival-modal__media-item">
+        <span class="rival-marcador__jugador" id="rival-media-jugador">0</span>
+        <span class="rival-modal__media-etiqueta">Vos</span>
+      </div>
+      <span class="rival-modal__media-vs">VS</span>
+      <div class="rival-modal__media-item">
+        <span class="rival-marcador__rival" id="rival-media">0</span>
+        <span class="rival-modal__media-etiqueta">Rival</span>
+      </div>
+    </div>
+
+    <div class="rival-modal__marcador">
+      <span class="rival-marcador__jugador" id="rival-marcador-jugador">0</span>
+      <span class="rival-marcador__separador">-</span>
+      <span class="rival-marcador__rival" id="rival-marcador-rival">0</span>
+      <span class="rival-modal__combo" id="rival-combo-etiqueta">—</span>
+    </div>
+
+    <div class="rival-modal__detalle" id="rival-detalle"></div>
+
+    <p class="rival-modal__nota">Vos jugás para <strong id="rival-club-jugador">—</strong>.</p>
+  </div>
+</div>
+
 <!-- MODAL DE RETIRO -->
 <div class="modal" id="modal-retiro" hidden>
   <div class="modal__tarjeta">
@@ -288,6 +327,7 @@
 
 <script src="data.js"></script>
 <script src="JovenPromesa.js"></script>
+<script src="rival.js"></script>
 <script src="clasificacionClubes.js"></script>
 <script src="delantero.js"></script>
 <script src="enganche.js"></script>

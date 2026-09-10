@@ -380,6 +380,8 @@ function renderTotalesResumen(jugador, resumen) {
     <span class="resumen-final__valor-max-numero">${formatearDinero(jugador.valorMaximo || jugador.valor || 0)}</span>
     <span class="resumen-final__valor-max-etiqueta">Valor más alto</span>
   `;
+
+  if (typeof pintarResumenFinalRival === "function") pintarResumenFinalRival(jugador);
 }
 
 function renderPuntosResumen(resumen) {

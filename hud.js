@@ -134,10 +134,12 @@ function pintarBurbujasGlobales(jugador) {
   const items = [
     { valor: formatearDinero(jugador.valor), etiqueta: "Valor" },
     { valor: formatearDinero(jugador.dinero), etiqueta: "Dinero" },
-    { valor: "—", etiqueta: "Rival" },
   ];
 
   items.forEach((item) => contenedor.appendChild(crearBurbuja(item.valor, item.etiqueta, "burbuja--global")));
+
+  if (typeof pintarBurbujaRival === "function") pintarBurbujaRival(jugador, contenedor);
+  else contenedor.appendChild(crearBurbuja("—", "Rival", "burbuja--global"));
 }
 
 function crearBurbuja(valor, etiqueta, claseExtra) {
@@ -484,6 +486,8 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.dinero = (salarioMensual * 12) / 1000000; // formatearDinero espera millones
   }
 
+  if (typeof generarStatsTemporadaRivalSiHaceFalta === "function") generarStatsTemporadaRivalSiHaceFalta(jugador);
+
   if (jugador.statsAnuales.bonusCopas === undefined) {
     const nacionales = (jugador.resultadoCopa?.esCampeon ? 1 : 0) + (jugador.resultadoCopasEspeciales || [])
       .filter(copa => copa.año === año && copa.resultado === "campeon").length;
@@ -748,11 +752,14 @@ function mostrarResumenAnual() {
         ? [{ valor: jugador.statsAnuales.asistencias, etiqueta: "Asistencias" }, { valor: jugador.statsAnuales.goles, etiqueta: "Goles" }]
         : [{ valor: jugador.statsAnuales.goles, etiqueta: "Goles" }, { valor: jugador.statsAnuales.asistencias, etiqueta: "Asistencias" }];
 
+  const mensajeRival = typeof generarMensajeRival === "function" ? generarMensajeRival(jugador) : "";
+
   contenedor.innerHTML = `
     <div class="resumen-header">
       <span class="resumen-titulo">Resumen Anual</span>
       <span class="resumen-año">Año ${año} - Temporada ${temporada}</span>
     </div>
+    ${mensajeRival ? `<div class="resumen-rival-banner">⚔️ ${mensajeRival}</div>` : ""}
     <div>
       <h4 class="resumen-texto-titulo">${tituloResumen}</h4>
       <p class="resumen-texto">${textoResumen}</p>

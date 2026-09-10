@@ -145,6 +145,7 @@ const Estado = (() => {
       campeonesHistorial: [], // Guarda { año, liga, copa, trofeo, superCopaInt }
       copasPendientes: [],    // Guarda { año, tipo, rivalId } para jugar en el futuro
       resultadoCopasEspeciales: [], // Guarda { año, tipo, resultado } para las copas especiales
+      rival: typeof crearRival === "function" ? crearRival({ posicion: base.posicion, esPromesa, año: base.año, nombre: base.nombre, club: base.club }) : null,
       stats: {
         ...statsBase,
         goles: 0,
@@ -173,6 +174,7 @@ const Estado = (() => {
     if (!Array.isArray(jugadorNormalizado.convocatoriasSelecciones)) jugadorNormalizado.convocatoriasSelecciones = [];
     if (!Array.isArray(jugadorNormalizado.resultadosSelecciones)) jugadorNormalizado.resultadosSelecciones = [];
     if (!Array.isArray(jugadorNormalizado.copasSeleccionPendientes)) jugadorNormalizado.copasSeleccionPendientes = [];
+    if (!jugadorNormalizado.rival && typeof crearRival === "function") jugadorNormalizado.rival = crearRival(jugadorNormalizado);
     const config = window.CONFIGS_POSICIONES && window.CONFIGS_POSICIONES[jugadorNormalizado.posicion];
     (config?.atributos || []).forEach(({ clave }) => {
       if (jugadorNormalizado.stats[clave] === undefined) jugadorNormalizado.stats[clave] = numeroAleatorio(53, 67);
@@ -204,6 +206,8 @@ const Estado = (() => {
   }
 
   function avanzarTemporada() {
+    if (typeof avanzarRival === "function") avanzarRival(jugador);
+
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;
