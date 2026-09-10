@@ -45,15 +45,14 @@ const RIVAL_PROB_SUBIDA_MEDIA = [
 
 const RIVAL_ABREVIATURAS = { goles: "G", asistencias: "A", vallasInvictas: "V", recuperaciones: "R", atajadas: "AT" };
 
-const RIVAL_NOMBRES = [
-  "Mateo", "Lucas", "Thiago", "Bruno", "Diego", "Ezequiel", "Franco", "Iván", "Rodrigo", "Nicolás",
-  "Simone", "Luca", "Matteo", "Alessandro", "Marco", "Kevin", "Jamie", "Harry", "Jack", "Owen",
-  "León", "Finn", "Noah", "Elías", "Pierre", "Hugo", "Louis", "Adrien", "Karim", "Yassine",
-];
-const RIVAL_APELLIDOS = [
-  "Fernández", "Gómez", "Rossi", "Bianchi", "Ferrari", "Müller", "Schmidt", "Weber", "Dupont", "Lefevre",
-  "Martín", "Silva", "Costa", "Herrera", "Vidal", "Duarte", "Navarro", "Ibáñez", "Castillo", "Ortiz",
-  "Brown", "Walker", "Wright", "Turner", "Bennett",
+// Lista cerrada de posibles nombres del rival. Se elige uno al azar por
+// carrera. Algunos son solo nombre de pila a propósito (Giovanni,
+// Benjamín), tal cual se pidió.
+const RIVAL_NOMBRES_COMPLETOS = [
+  "Fabricio Rivero", "Agustín Herrera", "Luciano Hilbe", "Nicolás Ojeda",
+  "Nicolás Díaz", "Máximo Dethier", "Ignacio Bahamonde", "Dylan Rivero",
+  "Alex Rivero", "Giovanni", "Máximo Mendietta", "Benjamín",
+  "Facundo Prats", "Diego Colucci", "Axel Colucci", "Nicolás Acevedo",
 ];
 
 function azarRival(min, max) {
@@ -63,11 +62,12 @@ function azarRival(min, max) {
 function generarNombreRival(nombreAEvitar) {
   let nombre = "";
   for (let intento = 0; intento < 6; intento++) {
-    nombre = `${RIVAL_NOMBRES[azarRival(0, RIVAL_NOMBRES.length - 1)]} ${RIVAL_APELLIDOS[azarRival(0, RIVAL_APELLIDOS.length - 1)]}`;
+    nombre = RIVAL_NOMBRES_COMPLETOS[azarRival(0, RIVAL_NOMBRES_COMPLETOS.length - 1)];
     if (nombre !== nombreAEvitar) break;
   }
   return nombre;
 }
+
 
 // Las 2 stats "principales" de la posición ya están definidas en cada
 // archivo de posición (delantero.js, enganche.js, central.js, arquero.js).
