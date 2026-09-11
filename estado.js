@@ -214,6 +214,22 @@ const Estado = (() => {
       if (jugador.historialNotas.length > 3) jugador.historialNotas.shift();
     }
 
+    // Snapshot completo de la temporada que está terminando (goles, asistencias,
+    // atajadas, etc.). Lo usan los contratos de patrocinio para chequear si se
+    // cumplieron los objetivos de la cláusula de rendimiento.
+    if (!Array.isArray(jugador.historialTemporadas)) jugador.historialTemporadas = [];
+    jugador.historialTemporadas.push({
+      año: jugador.año,
+      partidos: jugador.statsAnuales.partidos || 0,
+      goles: jugador.statsAnuales.goles || 0,
+      asistencias: jugador.statsAnuales.asistencias || 0,
+      vallasInvictas: jugador.statsAnuales.vallasInvictas || 0,
+      recuperaciones: jugador.statsAnuales.recuperaciones || 0,
+      atajadas: jugador.statsAnuales.atajadas || 0,
+      nota: jugador.statsAnuales.nota || 0,
+    });
+    if (jugador.historialTemporadas.length > 10) jugador.historialTemporadas.shift();
+
     jugador.stats.partidos += jugador.statsAnuales.partidos;
     jugador.stats.goles += jugador.statsAnuales.goles;
     jugador.stats.asistencias += jugador.statsAnuales.asistencias;

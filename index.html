@@ -178,6 +178,7 @@
         <span class="hud-cariño__titulo">Cariño</span>
         <button type="button" class="hud-boton-maletin" id="hud-boton-maletin" title="Enviar a tu representante a buscar ofertas" aria-label="Buscar ofertas">💼</button>
         <button type="button" class="hud-boton-maletin" id="hud-boton-balon" title="Historial del Balón de Oro" aria-label="Ver historial del Balón de Oro">🥇</button>
+        <button type="button" class="hud-boton-maletin" id="hud-boton-contratos" title="Tus contratos de patrocinio" aria-label="Ver contratos de patrocinio">📄</button>
         <span><span id="hud-cariño-numero">0</span>/100 — <span id="hud-cariño-etiqueta">—</span></span>
       </div>
       <div class="hud-cariño__pista">
@@ -209,6 +210,17 @@
     <h2 class="dinero__titulo">💰 Tus ingresos</h2>
     <div class="dinero__lista" id="dinero-lista"></div>
     <div class="dinero__total" id="dinero-total"></div>
+  </div>
+</div>
+
+<!-- MODAL CONTRATOS DE PATROCINIO -->
+<div class="modal" id="modal-contratos" hidden>
+  <div class="modal__tarjeta modal__tarjeta--contratos">
+    <button type="button" class="modal__cerrar" id="contratos-cerrar" aria-label="Cerrar">✕</button>
+    <span class="rival-modal__eyebrow">Patrocinios</span>
+    <h2 class="dinero__titulo">📄 Tus contratos</h2>
+    <p class="contratos__vacio" id="contratos-vacio" hidden>Todavía no firmaste ningún contrato de patrocinio.</p>
+    <div class="contratos__lista" id="contratos-lista"></div>
   </div>
 </div>
 

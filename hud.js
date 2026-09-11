@@ -839,7 +839,12 @@ function mostrarResumenAnual() {
     }
 
     function continuarInicioDeAño() {
-      if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAñoPatrocinio)) return;
+      if (typeof mostrarGalaBotaDeOro === "function" && mostrarGalaBotaDeOro(continuarInicioDeAñoClausulas)) return;
+      continuarInicioDeAñoClausulas();
+    }
+
+    function continuarInicioDeAñoClausulas() {
+      if (typeof procesarClausulasPatrocinioSiCorresponde === "function" && procesarClausulasPatrocinioSiCorresponde(continuarInicioDeAñoPatrocinio)) return;
       continuarInicioDeAñoPatrocinio();
     }
 
