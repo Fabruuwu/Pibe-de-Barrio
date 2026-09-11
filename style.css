@@ -2389,6 +2389,25 @@ body::before {
   transform: translateY(0) scale(0.96);
 }
 
+.hud-boton-contratos { position: relative; overflow: visible; }
+.hud-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e03131;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
 .modal--ofertas .modal__tarjeta--ofertas,
 .modal__tarjeta--maletin {
   max-width: 560px;

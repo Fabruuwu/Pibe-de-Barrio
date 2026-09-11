@@ -341,8 +341,6 @@ function firmarContratoPatrocinio(jugador, oferta) {
   const { marca, pagoMensual, duracionAnios, clausula, contratoRivalActivo } = oferta;
 
   if (contratoRivalActivo) {
-    contratoRivalActivo.estado = "cancelado";
-    contratoRivalActivo.razonCancelacion = `ruptura por firmar con ${marca.nombre}, marca rival`;
     if (!jugador.patrociniosBloqueados.includes(contratoRivalActivo.marca)) {
       jugador.patrociniosBloqueados.push(contratoRivalActivo.marca);
     }
@@ -350,7 +348,9 @@ function firmarContratoPatrocinio(jugador, oferta) {
     const [min, max] = MULTAS_POR_TIER[contratoRivalActivo.tier] || [0, 0];
     const multa = azarEntero(min, max);
     jugador.dinero = Math.max(0, (jugador.dinero || 0) - multa);
-    contratoRivalActivo.multaPagada = multa;
+    // El contrato roto por rivalidad se saca directamente de la lista.
+    const indiceRoto = jugador.patrocinios.indexOf(contratoRivalActivo);
+    if (indiceRoto !== -1) jugador.patrocinios.splice(indiceRoto, 1);
   }
 
   jugador.patrocinios.push({
@@ -404,10 +404,12 @@ function procesarClausulasPatrocinioSiCorresponde(callback) {
 function mostrarAvisosCancelacion(pendientes, jugador, callback) {
   if (!pendientes.length) { callback(); return; }
   const contrato = pendientes.shift();
-  contrato.estado = "cancelado";
-  contrato.razonCancelacion = `no se cumplió la cláusula: ${contrato.clausula.etiqueta.toLowerCase()}`;
+  const razon = `no se cumplió la cláusula: ${contrato.clausula.etiqueta.toLowerCase()}`;
   if (!Array.isArray(jugador.patrociniosCancelacionesHistorial)) jugador.patrociniosCancelacionesHistorial = [];
   jugador.patrociniosCancelacionesHistorial.push(contrato.marca);
+  // El contrato cancelado se saca directamente de la lista de patrocinios.
+  const indice = jugador.patrocinios.indexOf(contrato);
+  if (indice !== -1) jugador.patrocinios.splice(indice, 1);
   Estado.guardar();
 
   const marca = PATROCINADORES_POR_NOMBRE[contrato.marca] || { nombre: contrato.marca, logo: "" };
@@ -415,7 +417,7 @@ function mostrarAvisosCancelacion(pendientes, jugador, callback) {
     tipo: "cancelado",
     titulo: "Contrato cancelado",
     marca,
-    mensaje: `Hemos decidido cancelar el contrato por ${contrato.razonCancelacion}.`,
+    mensaje: `Hemos decidido cancelar el contrato por ${razon}.`,
     onCerrar: () => mostrarAvisosCancelacion(pendientes, jugador, callback),
   });
 }
@@ -474,7 +476,7 @@ function intentarRenovarContrato(indice, onResultado) {
     contrato.pagoMensual = azarPatrocinio(marca.pagoMin || contrato.pagoMensual, marca.pagoMax || contrato.pagoMensual);
     contrato.estado = "activo";
   } else {
-    contrato.estado = "vencido-perdido";
+    jugador.patrocinios.splice(indice, 1);
   }
   Estado.guardar();
 
@@ -594,6 +596,20 @@ function abrirModalContratos() {
   });
 
   modal.hidden = false;
+  actualizarBadgeContratos(jugador);
+}
+
+function actualizarBadgeContratos(jugador) {
+  const badge = document.getElementById("badge-contratos");
+  if (!badge) return;
+  actualizarVencimientosPatrocinios(jugador);
+  const pendientes = (jugador.patrocinios || []).filter((p) => p.estado === "vencido").length;
+  if (pendientes > 0) {
+    badge.textContent = pendientes > 9 ? "9+" : String(pendientes);
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

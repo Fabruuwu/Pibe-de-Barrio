@@ -52,6 +52,7 @@ function pintarHUD(jugador) {
   pintarBurbujasGlobales(jugador);
   pintarCariño(jugador);
   pintarSeleccion(jugador);
+  if (typeof actualizarBadgeContratos === "function") actualizarBadgeContratos(jugador);
 }
 
 function obtenerConfigPosicion(posicion) {

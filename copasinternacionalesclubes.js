@@ -1454,8 +1454,12 @@ function jugarChampionsDelantero(jugador, rival, etapa, callback) {
   const hayGuia = etapa.fase === "grupos";
 
   const objetivoInicio = 40 + Math.random() * 200;
-  // El central se solapa con un borde del arco, como pide la consigna.
-  const centralInicio = objetivoInicio + anchoObjetivo - anchoCentral * 0.45;
+  // El central se solapa con un borde del arco (como pide la consigna), pero
+  // SIEMPRE dejando al menos la mitad del arco libre: antes, en dificultades
+  // altas (semis/final) el central llegaba a tapar el arco entero y era
+  // matemáticamente imposible acertar, sin importar dónde frenaras la flecha.
+  const solapeCentral = Math.min(anchoCentral * 0.45, anchoObjetivo * 0.5);
+  const centralInicio = objetivoInicio + anchoObjetivo - solapeCentral;
 
   contenedor.innerHTML = `
     ${cabecera}
@@ -1523,9 +1527,13 @@ function jugarChampionsEnganche(jugador, rival, etapa, callback) {
   const d = etapa.dificultad;
 
   const columnas = 5;
-  const filas = Math.round(lerp(3, 6, d));
-  const velocidadDefensor = lerp(1000, 320, d); // ms entre movimientos
-  const tiempoTotal = Math.round(lerp(11000, 3000, d)); // ms
+  // Antes: hasta 6 filas con solo 3s totales en la dificultad más alta (un
+  // promedio de 500ms por click, con el defensor saltando cada 320ms) lo
+  // hacía prácticamente imposible de reaccionar. Se recorta el máximo de
+  // filas y se deja más tiempo total y más lento al defensor en el peor caso.
+  const filas = Math.round(lerp(3, 5, d));
+  const velocidadDefensor = lerp(1000, 480, d); // ms entre movimientos
+  const tiempoTotal = Math.round(lerp(11000, 5500, d)); // ms
 
   contenedor.innerHTML = `
     ${cabecera}
