@@ -477,7 +477,7 @@ function mostrarResumenAnual() {
 
     const bonus = obtenerBonusResistencia(jugador.stats.resistencia || 0);
     jugador.statsAnuales.partidos = Math.max(0, Math.round((produccion.partidos + bonus.partidos) * multTienda("partidos")));
-    jugador.statsAnuales.goles = Math.max(0, Math.round((produccion.goles + bonus.goles) * factorForma * multTienda("goles")));
+    jugador.statsAnuales.goles = Math.max(0, Math.round((produccion.goles + bonus.goles) * factorForma * multTienda("goles")) + (typeof obtenerBonusFijoTienda === "function" ? obtenerBonusFijoTienda(jugador, "goles") : 0));
     jugador.statsAnuales.asistencias = Math.max(0, Math.round((produccion.asistencias + bonus.asistencias) * factorForma * multTienda("asistencias")));
     if (jugador.posicion === "enganche" && jugador.statsAnuales.asistencias <= jugador.statsAnuales.goles) {
       jugador.statsAnuales.asistencias = jugador.statsAnuales.goles + numeroAleatorio(2, 7);
@@ -487,10 +487,12 @@ function mostrarResumenAnual() {
     jugador.statsAnuales.atajadas = Math.max(0, Math.round(produccion.atajadas * factorForma * multTienda("atajadas")));
 
     jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
-    // Dinero de la temporada = salario mensual del contrato actual x 12 + patrocinios.
+    // Dinero de la temporada = salario mensual del contrato actual x 12 + patrocinios (+ Inversor Financiero).
     const salarioMensual = (jugador.contrato && jugador.contrato.salario) || 0;
     const ingresoPatrocinios = typeof obtenerIngresoAnualPatrocinios === "function" ? obtenerIngresoAnualPatrocinios(jugador) : 0;
-    jugador.statsAnuales.dinero = (salarioMensual * 12 + ingresoPatrocinios) / 1000000; // formatearDinero espera millones
+    const tieneInversor = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "inversor");
+    const dineroBase = salarioMensual * 12 + ingresoPatrocinios;
+    jugador.statsAnuales.dinero = (tieneInversor ? dineroBase * 1.20 : dineroBase) / 1000000; // formatearDinero espera millones
   }
 
   if (typeof generarStatsTemporadaRivalSiHaceFalta === "function") generarStatsTemporadaRivalSiHaceFalta(jugador);

@@ -676,6 +676,7 @@ function abrirModalDinero() {
   const modal = document.getElementById("modal-dinero");
   const lista = document.getElementById("dinero-lista");
   const totalEl = document.getElementById("dinero-total");
+  const bonusInversorEl = document.getElementById("dinero-bonus-inversor");
   if (!modal || !lista) return;
 
   const salarioMensual = (jugador.contrato && jugador.contrato.salario) || 0;
@@ -691,7 +692,15 @@ function abrirModalDinero() {
       <span class="dinero__monto">${fmt(f.pagoMensual / 1000000)}/mes <span class="dinero__anual">(= ${fmt((f.pagoMensual * 12) / 1000000)}/año)</span></span>
     </div>`).join("");
 
-  const totalMensual = filas.reduce((acc, f) => acc + f.pagoMensual, 0);
+  // Inversor Financiero (tienda.js): +20% permanente sobre TODO el ingreso
+  // (salario + patrocinios), igual que se aplica al cobrar en el resumen
+  // anual (hud.js). Acá solo se muestra el total ya bonificado + el
+  // texto verde exclusivo de este ítem.
+  const tieneInversor = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "inversor");
+  const totalMensualBase = filas.reduce((acc, f) => acc + f.pagoMensual, 0);
+  const totalMensual = tieneInversor ? totalMensualBase * 1.20 : totalMensualBase;
+
+  if (bonusInversorEl) bonusInversorEl.hidden = !tieneInversor;
   if (totalEl) totalEl.textContent = `Total: ${fmt(totalMensual / 1000000)}/mes (${fmt((totalMensual * 12) / 1000000)}/año)`;
 
   modal.hidden = false;

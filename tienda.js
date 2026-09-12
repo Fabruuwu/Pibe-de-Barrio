@@ -36,6 +36,34 @@ const TIENDA_ITEMS = {
       precio: 11800000,
       descripcion: "Las chances de retiro anticipado empiezan un año más tarde y son un 15% más bajas. El retiro forzado a los 45 no cambia.",
     },
+    {
+      id: "inversor",
+      nombre: "Inversor Financiero",
+      emoji: "📈",
+      precio: 15500000,
+      descripcion: "Aumenta un 20% de forma permanente el dinero que obtenés cada temporada (salario + patrocinios).",
+    },
+    {
+      id: "camara",
+      nombre: "Cámara Hiperbárica Personal",
+      emoji: "🛌",
+      precio: 16000000,
+      descripcion: "Cualquier carta de mejora que suba Resistencia te da un 50% extra en esa ganancia.",
+    },
+    {
+      id: "mentor",
+      nombre: "Mentor de Leyenda",
+      emoji: "🧙‍♂️",
+      precio: 23200000,
+      descripcion: "Todas las cartas de mejora dan un 50% extra de stats. Se suma al bonus de Joven Promesa si lo sos.",
+    },
+    {
+      id: "scout",
+      nombre: "Scout de Agente Personal",
+      emoji: "🕵️‍♂️",
+      precio: 10800000,
+      descripcion: "En cada mercado de pases te garantiza al menos una oferta sorpresa de un club de categoría superior a la que tu media atraería normalmente.",
+    },
   ],
   temporales: [
     { id: "botines", nombre: "Botines nuevos", emoji: "👟", precio: 1800000, statClave: "goles", bonus: 0.20, posiciones: ["delantero", "enganche"], descripcion: "+20% de goles esta temporada." },
@@ -44,6 +72,7 @@ const TIENDA_ITEMS = {
     { id: "pivote", nombre: "Pivote de práctica", emoji: "🥅", precio: 1500000, statClave: "recuperaciones", bonus: 0.20, posiciones: ["central"], descripcion: "+20% de recuperaciones esta temporada." },
     { id: "defensaExtrema", nombre: "Sesión de defensa extrema", emoji: "🛡️", precio: 1800000, statClave: "vallasInvictas", bonus: 0.20, posiciones: ["central", "arquero"], descripcion: "+20% de vallas invictas esta temporada." },
     { id: "suplemento", nombre: "Suplemento energético", emoji: "⚡", precio: 2000000, statClave: "partidos", bonus: 0.30, posiciones: null, descripcion: "+30% de partidos jugados esta temporada." },
+    { id: "pelotaParada", nombre: "Especialista en Pelota Parada", emoji: "🎯", precio: 1900000, posiciones: ["delantero", "enganche"], bonusFijo: { statClave: "goles", min: 4, max: 7 }, descripcion: "Entre 4 y 7 goles extra garantizados al final del resumen anual." },
   ],
   fama: [],
 };
@@ -68,6 +97,24 @@ function obtenerMultiplicadorTienda(jugador, statClave) {
     }
   });
   return multiplicador;
+}
+
+function azarTienda(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Bonus fijo (no porcentual) de una temporal, ej: Pelota Parada da entre
+// 4 y 7 goles extra planos, no un %. Se tira una sola vez por temporada
+// (se llama desde el bloque que ya se protege con statsAnuales.partidos===0).
+function obtenerBonusFijoTienda(jugador, statClave) {
+  if (!jugador.tienda || !Array.isArray(jugador.tienda.temporales)) return 0;
+  let total = 0;
+  TIENDA_ITEMS.temporales.forEach((item) => {
+    if (item.bonusFijo && item.bonusFijo.statClave === statClave && jugador.tienda.temporales.includes(item.id)) {
+      total += azarTienda(item.bonusFijo.min, item.bonusFijo.max);
+    }
+  });
+  return total;
 }
 
 function itemAplicaAPosicion(item, posicion) {

@@ -86,10 +86,15 @@ function generarCarta() {
 
 function aplicarCarta(jugador, carta) {
   const cap = obtenerCapStat(jugador);
-  const multiplicador = jugador.esPromesa ? JOVEN_PROMESA.MULTIPLICADOR_CARTAS : 1;
+  const multiplicadorBase = jugador.esPromesa ? JOVEN_PROMESA.MULTIPLICADOR_CARTAS : 1;
+  const tieneMentor = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "mentor");
+  const tieneCamara = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "camara");
 
   const statsActuales = { ...jugador.stats };
   carta.stats.forEach(stat => {
+    let multiplicador = multiplicadorBase;
+    if (tieneMentor) multiplicador += 0.5; // Mentor de Leyenda: +50% extra en cualquier carta.
+    if (tieneCamara && stat === "resistencia") multiplicador += 0.5; // Cámara Hiperbárica: +50% extra solo en resistencia.
     const ganancia = Math.round(carta.puntos * multiplicador);
     statsActuales[stat] = Math.min(cap, (statsActuales[stat] || 0) + ganancia);
   });

@@ -2491,6 +2491,15 @@ body::before {
 .oferta-card__badge--traspaso   { background: #d4a017; color: #1a1a1a; }
 .oferta-card__badge--noticion   { background: #e03131; }
 .oferta-card__badge--volver-casa{ background: #7c3aed; }
+.oferta-card__badge--sorpresa   { background: linear-gradient(90deg, #ff9d00, #ff2fd0); color: #1a1a1a; }
+
+/* Scout de Agente Personal: la oferta "sorpresa" tiene su propio marco
+   exclusivo, para que se note al toque que es distinta al resto. */
+.oferta-card--sorpresa {
+  border: 2px solid #ff2fd0;
+  box-shadow: 0 0 18px rgba(255, 47, 208, .45);
+  background: linear-gradient(160deg, rgba(255, 157, 0, .08), rgba(255, 47, 208, .08));
+}
 
 .oferta-card__cabecera {
   display: flex;
@@ -2814,6 +2823,13 @@ body::before {
 .dinero__total {
   border-top: 1px solid var(--input-borde); margin-top: 8px; padding-top: 10px;
   font-weight: 800; color: var(--blanco); text-align: right; font-size: 14px;
+}
+.dinero__bonus-inversor {
+  color: #35df7a;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: right;
+  margin-top: 4px;
 }
 
 .burbuja--dinero:hover { filter: brightness(1.15); }

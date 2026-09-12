@@ -53,6 +53,27 @@ function obtenerRangoPorMedia(tabla, media) {
   return tabla.find((t) => media <= t.max) || tabla[tabla.length - 1];
 }
 
+const ORDEN_CATEGORIAS_CLUB = ["diminuto", "chico", "mediano", "grande"];
+
+// Para el Scout de Agente Personal: la categoría "esperable" a esa media
+// es la de mayor probabilidad en la tabla (no una tirada al azar), y la
+// "sorpresa" es un escalón arriba de esa.
+function obtenerCategoriaDominantePorMedia(media) {
+  const tabla = obtenerRangoPorMedia(PROB_CATEGORIA_POR_MEDIA, media);
+  let mejor = "chico";
+  let mejorProb = -1;
+  ORDEN_CATEGORIAS_CLUB.forEach((categoria) => {
+    const prob = tabla[categoria] || 0;
+    if (prob > mejorProb) { mejorProb = prob; mejor = categoria; }
+  });
+  return mejor;
+}
+
+function obtenerCategoriaEscalonSuperior(categoria) {
+  const indice = ORDEN_CATEGORIAS_CLUB.indexOf(categoria);
+  return ORDEN_CATEGORIAS_CLUB[Math.min(ORDEN_CATEGORIAS_CLUB.length - 1, indice + 1)];
+}
+
 function elegirCategoriaAleatoria(media) {
   const tabla = obtenerRangoPorMedia(PROB_CATEGORIA_POR_MEDIA, media);
   const opciones = [
@@ -70,10 +91,24 @@ function elegirCategoriaAleatoria(media) {
   return opciones[opciones.length - 1][0];
 }
 
-function generarSalarioPorMedia(media) {
+// Techo de salario mensual que un club de cada tamaño puede ofrecer,
+// sin importar lo alta que sea tu media. Evita cosas como que Aldosivi
+// te ofrezca lo mismo que el Real Madrid.
+const SALARIO_TECHO_POR_CATEGORIA = {
+  diminuto: 101000,
+  chico: 350000,
+  mediano: 900000,
+  grande: Infinity, // los grandes usan directo el rango por media, sin techo extra.
+};
+
+function generarSalarioPorMedia(media, categoriaClub) {
   const rango = obtenerRangoPorMedia(RANGO_SALARIO_POR_MEDIA, media);
   const salario = rango.min + Math.random() * (rango.tope - rango.min);
-  return Math.round(salario / 100) * 100;
+  const techo = SALARIO_TECHO_POR_CATEGORIA[categoriaClub] ?? Infinity;
+  // El piso de la categoría también se respeta: un club diminuto no baja
+  // de ofrecer lo mínimo que le corresponde por media, solo se limita el máximo.
+  const salarioConTecho = Math.min(salario, Math.max(techo, rango.min));
+  return Math.round(salarioConTecho / 100) * 100;
 }
 
 // ---------------------------------------
@@ -143,6 +178,10 @@ function etiquetaOferta(club, jugador) {
   return { texto: "Traspaso", clase: "traspaso" };
 }
 
+// Scout de Agente Personal: etiqueta exclusiva para la oferta garantizada
+// de un club de categoría superior a la esperable por tu media.
+const ETIQUETA_SORPRESA_SCOUT = { texto: "Sorpresa Inesperada", clase: "sorpresa" };
+
 function textoProyeccionCariño(club, jugador) {
   if (club.id !== jugador.club) {
     return "Arrancás de cero, sos Uno más (5 de cariño).";
@@ -166,7 +205,7 @@ function crearOferta(club, jugador) {
     club,
     pais: idPais,
     ligaNombre: (typeof NOMBRES_LIGAS !== "undefined" && NOMBRES_LIGAS[idLiga]) || "",
-    salario: generarSalarioPorMedia(jugador.media || 0),
+    salario: generarSalarioPorMedia(jugador.media || 0, club.categoria),
     duracionAnios: numeroAleatorioTraspaso(1, 4),
     etiqueta: etiquetaOferta(club, jugador),
     proyeccionCariño: textoProyeccionCariño(club, jugador),
@@ -200,6 +239,20 @@ function generarOfertasTraspaso(jugador, cantidad, forzarRenovacion) {
       ofertas.push(crearOferta(clubOrigen, jugador));
       excluidos.push(clubOrigen.id);
       jugador.volverACasaUsado = true; // no vuelve a aparecer en el resto de la carrera
+    }
+  }
+
+  if (typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "scout") && ofertas.length < cantidad) {
+    const categoriaBase = obtenerCategoriaDominantePorMedia(jugador.media || 0);
+    const categoriaSorpresa = obtenerCategoriaEscalonSuperior(categoriaBase);
+    const candidatos = obtenerClubesPorCategoria(categoriaSorpresa, excluidos);
+    if (candidatos.length > 0) {
+      const clubSorpresa = candidatos[Math.floor(Math.random() * candidatos.length)];
+      excluidos.push(clubSorpresa.id);
+      const ofertaSorpresa = crearOferta(clubSorpresa, jugador);
+      ofertaSorpresa.etiqueta = ETIQUETA_SORPRESA_SCOUT;
+      ofertaSorpresa.esSorpresa = true;
+      ofertas.push(ofertaSorpresa);
     }
   }
 
@@ -239,19 +292,6 @@ function firmarOferta(oferta) {
   const idLigaNueva = obtenerLigaDeClub(oferta.clubId) || jugador.liga;
   const idPaisLigaNuevo = obtenerPaisDeClub(oferta.clubId) || jugador.ligaPais;
 
-  // BUG REAL (el de "sigo jugando Libertadores con la Juventus"): las
-  // clasificaciones a copas (Libertadores, Champions, SuperCopa de España,
-  // etc.) se guardan colgadas del JUGADOR, no del club. Si te vas a otro
-  // club antes de jugarlas, ese cupo lo ganó el club viejo, no vos, así
-  // que hay que descartar todo lo agendado que todavía no se jugó.
-  const cambioDeClub = {};
-  if (esNuevoClub) {
-    cambioDeClub.copasPendientes = [];
-    cambioDeClub.copasPendientesEspana = [];
-    cambioDeClub.copasPendientesSerieA = [];
-    cambioDeClub.copasPendientesPremier = [];
-  }
-
   Estado.actualizar({
     club: oferta.clubId,
     division: idDivisionNueva,
@@ -260,7 +300,6 @@ function firmarOferta(oferta) {
     contrato: { salario: oferta.salario, duracionAnios: oferta.duracionAnios, añoInicio: jugador.año },
     cariño: esNuevoClub ? 5 : jugador.cariño,
     historialClubes: historial,
-    ...cambioDeClub,
   });
 }
 
@@ -277,7 +316,7 @@ function crearOverlayTraspaso(html, claseExtra) {
 
 function crearTarjetaOferta(oferta, alFirmar) {
   const div = document.createElement("div");
-  div.className = "oferta-card";
+  div.className = oferta.esSorpresa ? "oferta-card oferta-card--sorpresa" : "oferta-card";
   const paisDatos = (typeof PAISES_POR_ID !== "undefined" && PAISES_POR_ID[oferta.pais]) || {};
   const escudo = oferta.club.escudo || "";
   div.innerHTML = `
