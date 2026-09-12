@@ -2926,6 +2926,29 @@ body::before {
 .modal__tarjeta--contratos { max-width: 480px; max-height: 84vh; overflow-y: auto; position: relative; }
 .contratos__vacio { color: var(--gris-tenue); font-size: 13px; text-align: center; padding: 20px 0; }
 .contratos__lista { display: flex; flex-direction: column; gap: 10px; }
+
+/* Correo */
+.correo__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--panel-fondo, #1c1f26);
+  border: 1px solid var(--input-borde);
+  cursor: pointer;
+  transition: transform .1s ease, border-color .1s ease;
+}
+.correo__item:hover { transform: translateY(-1px); border-color: #35df7a; }
+.correo__item--no-leido { border-color: #35df7a; background: rgba(53, 223, 122, .06); }
+.correo__punto { width: 8px; height: 8px; border-radius: 50%; background: #35df7a; flex-shrink: 0; box-shadow: 0 0 6px #35df7a; }
+.correo__icono { font-size: 20px; flex-shrink: 0; }
+.correo__info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.correo__asunto { font-size: 13px; font-weight: 700; color: var(--blanco); }
+.correo__item--no-leido .correo__asunto { color: #35df7a; }
+.correo__fecha { font-size: 11px; color: var(--gris-tenue); }
+.correo__flecha { font-size: 18px; color: var(--gris-tenue); flex-shrink: 0; }
+.correo__volver { margin-bottom: 8px; }
 .contrato-item { border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-borde); overflow: hidden; }
 .contrato-item--vencido { border-color: var(--dorado, #f7c948); }
 .contrato-item--cancelado { opacity: 0.6; }

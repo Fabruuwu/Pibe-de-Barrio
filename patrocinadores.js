@@ -100,6 +100,50 @@ const PATROCINADORES = [
   { nombre: "Marolio", tier: "baja", pagoMin: 1500, pagoMax: 5800, logo: "Patrocinadores1/Marolio.png", pais: "Argentina" },
   { nombre: "Guaymallén", tier: "baja", pagoMin: 1400, pagoMax: 5500, logo: "Patrocinadores1/Guaymallen.png", pais: "Argentina" },
   { nombre: "Naranja X", tier: "baja", pagoMin: 2400, pagoMax: 8200, logo: "Patrocinadores1/Naranjax.png", pais: "Argentina" },
+
+  // ---- 35 nuevos (tandas ELITE/ALTA/MEDIA/BAJA) ----
+  // Tier ELITE (7)
+  { nombre: "Aramco", tier: "elite", pagoMin: 95000, pagoMax: 170000, logo: "Patrocinadores1/Aramco.png", pais: "Arabia Saudita" },
+  { nombre: "Porsche", tier: "elite", pagoMin: 89000, pagoMax: 160000, logo: "Patrocinadores1/Porsche.png", pais: "Alemania" },
+  { nombre: "Microsoft", tier: "elite", pagoMin: 88000, pagoMax: 158000, logo: "Patrocinadores1/Microsoft.png", pais: "Estados Unidos" },
+  { nombre: "Mercedes-Benz", tier: "elite", pagoMin: 86000, pagoMax: 154000, logo: "Patrocinadores1/Mercedesbenz.png", pais: "Alemania" },
+  { nombre: "Sony", tier: "elite", pagoMin: 85000, pagoMax: 155000, logo: "Patrocinadores1/Sony.png", pais: "Japón" },
+  { nombre: "Hublot", tier: "elite", pagoMin: 84000, pagoMax: 150000, logo: "Patrocinadores1/Hublot.png", pais: "Suiza" },
+  { nombre: "Binance", tier: "elite", pagoMin: 80000, pagoMax: 145000, logo: "Patrocinadores1/Binance.png", pais: "Emiratos Árabes Unidos" },
+
+  // Tier ALTA (10)
+  { nombre: "Turkish Airlines", tier: "alta", pagoMin: 38000, pagoMax: 75000, logo: "Patrocinadores1/Turkishairlines.png", pais: "Turquía" },
+  { nombre: "Netflix", tier: "alta", pagoMin: 37000, pagoMax: 72000, logo: "Patrocinadores1/Netflix.png", pais: "Estados Unidos" },
+  { nombre: "TikTok", tier: "alta", pagoMin: 36000, pagoMax: 70000, logo: "Patrocinadores1/Tiktok.png", pais: "China" },
+  { nombre: "Jeep", tier: "alta", pagoMin: 35000, pagoMax: 68000, logo: "Patrocinadores1/Jeep.png", pais: "Estados Unidos" },
+  { nombre: "Asics", tier: "alta", pagoMin: 34000, pagoMax: 67000, logo: "Patrocinadores1/Asics.png", pais: "Japón" },
+  { nombre: "DHL", tier: "alta", pagoMin: 34000, pagoMax: 66000, logo: "Patrocinadores1/Dhl.png", pais: "Alemania" },
+  { nombre: "Michelin", tier: "alta", pagoMin: 33000, pagoMax: 65000, logo: "Patrocinadores1/Michelin.png", pais: "Francia" },
+  { nombre: "Castrol", tier: "alta", pagoMin: 32000, pagoMax: 64000, logo: "Patrocinadores1/Castrol.png", pais: "Reino Unido" },
+  { nombre: "Lenovo", tier: "alta", pagoMin: 31000, pagoMax: 62000, logo: "Patrocinadores1/Lenovo.png", pais: "China" },
+  { nombre: "Pirelli", tier: "alta", pagoMin: 30000, pagoMax: 61000, logo: "Patrocinadores1/Pirelli.png", pais: "Italia" },
+
+  // Tier MEDIA (10)
+  { nombre: "Betsson", tier: "media", pagoMin: 15000, pagoMax: 32000, logo: "Patrocinadores1/Betsson.png", pais: "Suecia" },
+  { nombre: "Burger King", tier: "media", pagoMin: 14000, pagoMax: 27000, logo: "Patrocinadores1/Burgerking.png", pais: "Estados Unidos" },
+  { nombre: "DirecTV", tier: "media", pagoMin: 14000, pagoMax: 29000, logo: "Patrocinadores1/Directtv.png", pais: "Estados Unidos" },
+  { nombre: "Aerolíneas Argentinas", tier: "media", pagoMin: 13000, pagoMax: 28000, logo: "Patrocinadores1/Aerolineasargentinas.png", pais: "Argentina" },
+  { nombre: "Brahma", tier: "media", pagoMin: 13000, pagoMax: 27000, logo: "Patrocinadores1/Brahma.png", pais: "Brasil" },
+  { nombre: "Rexona", tier: "media", pagoMin: 12000, pagoMax: 26000, logo: "Patrocinadores1/Rexona.png", pais: "Reino Unido" },
+  { nombre: "Puma Energy", tier: "media", pagoMin: 12000, pagoMax: 26000, logo: "Patrocinadores1/Pumaenergy.png", pais: "Singapur" },
+  { nombre: "Banco Macro", tier: "media", pagoMin: 11000, pagoMax: 25000, logo: "Patrocinadores1/Bancomacro.png", pais: "Argentina" },
+  { nombre: "Topper", tier: "media", pagoMin: 11000, pagoMax: 25000, logo: "Patrocinadores1/Topper.png", pais: "Brasil" },
+  { nombre: "Philco", tier: "media", pagoMin: 10000, pagoMax: 23000, logo: "Patrocinadores1/Philco.png", pais: "Argentina" },
+
+  // Tier BAJA (8)
+  { nombre: "Cencosud", tier: "baja", pagoMin: 2500, pagoMax: 8000, logo: "Patrocinadores1/Cencosud.png", pais: "Chile" },
+  { nombre: "Noblex", tier: "baja", pagoMin: 2200, pagoMax: 7500, logo: "Patrocinadores1/Noblex.png", pais: "Argentina" },
+  { nombre: "Zanella", tier: "baja", pagoMin: 2000, pagoMax: 7200, logo: "Patrocinadores1/Zanella.png", pais: "Argentina" },
+  { nombre: "Paladini", tier: "baja", pagoMin: 2000, pagoMax: 7000, logo: "Patrocinadores1/Paladini.png", pais: "Argentina" },
+  { nombre: "Cachafaz", tier: "baja", pagoMin: 1800, pagoMax: 6500, logo: "Patrocinadores1/Cachafaz.png", pais: "Argentina" },
+  { nombre: "Vía Bariloche", tier: "baja", pagoMin: 1800, pagoMax: 6800, logo: "Patrocinadores1/Viabariloche.png", pais: "Argentina" },
+  { nombre: "Flecha Bus", tier: "baja", pagoMin: 1700, pagoMax: 6000, logo: "Patrocinadores1/Flechabus.png", pais: "Argentina" },
+  { nombre: "Baggio", tier: "baja", pagoMin: 1500, pagoMax: 5500, logo: "Patrocinadores1/Baggio.png", pais: "Argentina" },
 ];
 
 // Mapeo país -> bandera, reutilizando las banderas de selecciones que ya
@@ -214,20 +258,18 @@ function probabilidadOfertaEsteAño(jugador) {
 // ============================================
 // QUÉ TIER TE OFRECEN, SEGÚN TU MEDIA
 // A menor media, más pesa "baja"; a mayor media, más pesan "alta"/"elite".
-// No son tiers fijos por rango: es una distribución de probabilidad que se
-// va corriendo hacia arriba a medida que la media sube.
+// PERO todos los tiers tienen un piso mínimo de peso: así, aunque tengas
+// media baja, de vez en cuando cae una sorpresa de una marca top (y
+// viceversa, un crack también puede recibir ofertas de marcas chicas).
 // ============================================
 function distribuirPesosPorMedia(media) {
   const m = Math.max(0, Math.min(99, media || 0));
   const pesos = {
-    elite: Math.max(0, m - 55) * 1.9,
-    alta: Math.max(4, m - 30) * 1.3,
-    media: 100 - Math.abs(m - 55) * 1.1,
-    baja: Math.max(4, 68 - m) * 1.6,
+    elite: Math.max(9, (m - 50) * 1.5),
+    alta: Math.max(14, (m - 20) * 1.05),
+    media: Math.max(20, 42 - Math.abs(m - 55) * 0.35),
+    baja: Math.max(10, (70 - m) * 1.1),
   };
-  Object.keys(pesos).forEach((k) => {
-    if (!(pesos[k] > 0)) pesos[k] = 4;
-  });
   return pesos;
 }
 
@@ -286,23 +328,24 @@ function clausulaSeCumplio(clausula, snapshotTemporada) {
 // ============================================
 // ARMAR LA OFERTA
 // ============================================
-function elegirMarcaOferta(jugador) {
+function elegirMarcaOferta(jugador, excluidasExtra) {
   const bloqueadas = jugador.patrociniosBloqueados || [];
   const activas = (jugador.patrocinios || []).filter((p) => p.estado !== "cancelado" && p.estado !== "vencido-perdido").map((p) => p.marca);
+  const excluidas = excluidasExtra || [];
   const media = jugador.media || 0;
 
   for (let intento = 0; intento < 6; intento++) {
     const tier = elegirTierPorMedia(media);
-    const pool = PATROCINADORES.filter((p) => p.tier === tier && !bloqueadas.includes(p.nombre) && !activas.includes(p.nombre));
+    const pool = PATROCINADORES.filter((p) => p.tier === tier && !bloqueadas.includes(p.nombre) && !activas.includes(p.nombre) && !excluidas.includes(p.nombre));
     if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
   }
   // Fallback: cualquier marca disponible, de cualquier tier.
-  const cualquiera = PATROCINADORES.filter((p) => !bloqueadas.includes(p.nombre) && !activas.includes(p.nombre));
+  const cualquiera = PATROCINADORES.filter((p) => !bloqueadas.includes(p.nombre) && !activas.includes(p.nombre) && !excluidas.includes(p.nombre));
   return cualquiera.length ? cualquiera[Math.floor(Math.random() * cualquiera.length)] : null;
 }
 
-function generarOfertaPatrocinio(jugador) {
-  const marca = elegirMarcaOferta(jugador);
+function generarOfertaPatrocinio(jugador, excluidasExtra) {
+  const marca = elegirMarcaOferta(jugador, excluidasExtra);
   if (!marca) return null;
 
   const pagoMensual = azarPatrocinio(marca.pagoMin, marca.pagoMax);
@@ -316,34 +359,52 @@ function generarOfertaPatrocinio(jugador) {
 
   return { marca, pagoMensual, duracionAnios, clausula, contratoRivalActivo };
 }
-
 // ============================================
-// PANTALLA DE OFERTA (con forma de contrato)
+// CORREO: generar ofertas como mensajes (no bloquea el flujo de la
+// temporada). Podés recibir entre 1 y 4 ofertas de golpe, cada una un
+// mensaje aparte en el buzón. El sistema queda armado en general para
+// poder sumar más tipos de mensaje a futuro (no solo patrocinios).
 // ============================================
-function mostrarOfertaPatrocinioSiCorresponde(callback) {
+function generarOfertasPatrocinioSiCorresponde() {
   const jugador = Estado.obtener();
   const temporada = jugador.año - 1;
-  if (temporada < 1) return false;
+  if (temporada < 1) return;
   if (!Array.isArray(jugador.patrocinios)) jugador.patrocinios = [];
   if (!Array.isArray(jugador.patrociniosBloqueados)) jugador.patrociniosBloqueados = [];
   if (!Array.isArray(jugador.patrociniosEvaluados)) jugador.patrociniosEvaluados = [];
-  if (jugador.patrociniosEvaluados.includes(temporada)) return false;
+  if (!Array.isArray(jugador.correo)) jugador.correo = [];
+  if (jugador.patrociniosEvaluados.includes(temporada)) return;
   jugador.patrociniosEvaluados.push(temporada);
 
-  if (Math.random() >= probabilidadOfertaEsteAño(jugador)) { Estado.guardar(); return false; }
+  if (Math.random() >= probabilidadOfertaEsteAño(jugador)) { Estado.guardar(); return; }
 
-  const oferta = generarOfertaPatrocinio(jugador);
-  if (!oferta) { Estado.guardar(); return false; }
+  const cantidadOfertas = azarEntero(1, 4);
+  const marcasUsadas = [];
+  for (let i = 0; i < cantidadOfertas; i++) {
+    const oferta = generarOfertaPatrocinio(jugador, marcasUsadas);
+    if (!oferta) break; // ya no queda ninguna marca disponible
+    marcasUsadas.push(oferta.marca.nombre);
+    jugador.correo.unshift({
+      id: `patrocinio-${jugador.año}-${i}-${Date.now()}`,
+      tipo: "patrocinio",
+      leido: false,
+      año: jugador.año,
+      oferta,
+    });
+  }
   Estado.guardar();
+  if (typeof actualizarBadgeCorreo === "function") actualizarBadgeCorreo(jugador);
+}
 
-  const contenedor = document.getElementById("competition-container");
-  if (!contenedor) return false;
-  contenedor.hidden = false;
-
+// ============================================
+// TARJETA DE CONTRATO (se usa dentro del detalle de un mensaje de correo)
+// ============================================
+function renderizarTarjetaContrato(oferta, alFirmar, alRechazar) {
   const { marca, pagoMensual, duracionAnios, clausula, contratoRivalActivo } = oferta;
   const rivales = rivalesDe(marca.nombre);
 
-  contenedor.innerHTML = `
+  const div = document.createElement("div");
+  div.innerHTML = `
     <div class="contrato-patrocinio">
       <span class="contrato-patrocinio__sello">📜 CONTRATO DE PATROCINIO</span>
       <div class="contrato-patrocinio__cabecera">
@@ -394,20 +455,11 @@ function mostrarOfertaPatrocinioSiCorresponde(callback) {
       </div>
     </div>`;
 
-  contenedor.querySelector("#patrocinio-firmar").addEventListener("click", () => {
-    firmarContratoPatrocinio(jugador, oferta);
-    contenedor.innerHTML = "";
-    contenedor.hidden = true;
-    callback();
-  });
-  contenedor.querySelector("#patrocinio-rechazar").addEventListener("click", () => {
-    contenedor.innerHTML = "";
-    contenedor.hidden = true;
-    callback();
-  });
-
-  return true;
+  div.querySelector("#patrocinio-firmar").addEventListener("click", alFirmar);
+  div.querySelector("#patrocinio-rechazar").addEventListener("click", alRechazar);
+  return div;
 }
+
 
 function firmarContratoPatrocinio(jugador, oferta) {
   const { marca, pagoMensual, duracionAnios, clausula, contratoRivalActivo } = oferta;
@@ -790,6 +842,99 @@ function actualizarBadgeContratos(jugador) {
   }
 }
 
+// ============================================
+// BUZÓN DE CORREO (mensajes: por ahora solo ofertas de patrocinio, armado
+// para poder sumar otros tipos de mensaje a futuro sin tocar el resto).
+// ============================================
+const ETIQUETA_ASUNTO_CORREO = {
+  patrocinio: (msg) => `Recibiste una oferta de patrocinio de ${msg.oferta.marca.nombre}`,
+};
+
+function actualizarBadgeCorreo(jugador) {
+  const badge = document.getElementById("badge-correo");
+  if (!badge) return;
+  const noLeidos = (jugador.correo || []).filter((m) => !m.leido).length;
+  if (noLeidos > 0) {
+    badge.textContent = noLeidos > 9 ? "9+" : String(noLeidos);
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+}
+
+function renderizarListaCorreo() {
+  const jugador = Estado.obtener();
+  const lista = document.getElementById("correo-lista");
+  const vacio = document.getElementById("correo-vacio");
+  if (!lista) return;
+  lista.innerHTML = "";
+  const mensajes = jugador.correo || [];
+
+  if (vacio) vacio.hidden = mensajes.length > 0;
+
+  mensajes.forEach((msg) => {
+    const asunto = (ETIQUETA_ASUNTO_CORREO[msg.tipo] || (() => "Nuevo mensaje"))(msg);
+    const div = document.createElement("div");
+    div.className = `correo__item ${msg.leido ? "" : "correo__item--no-leido"}`;
+    div.innerHTML = `
+      ${msg.leido ? "" : `<span class="correo__punto"></span>`}
+      <span class="correo__icono">${msg.tipo === "patrocinio" ? "📩" : "✉️"}</span>
+      <div class="correo__info">
+        <span class="correo__asunto">${asunto}</span>
+        <span class="correo__fecha">Año ${msg.año}</span>
+      </div>
+      <span class="correo__flecha">›</span>
+    `;
+    div.addEventListener("click", () => abrirDetalleCorreo(msg.id));
+    lista.appendChild(div);
+  });
+
+  actualizarBadgeCorreo(jugador);
+}
+
+function abrirDetalleCorreo(idMensaje) {
+  const jugador = Estado.obtener();
+  const msg = (jugador.correo || []).find((m) => m.id === idMensaje);
+  if (!msg) return;
+  msg.leido = true;
+  Estado.guardar();
+  actualizarBadgeCorreo(jugador);
+
+  const lista = document.getElementById("correo-lista");
+  const vacio = document.getElementById("correo-vacio");
+  if (vacio) vacio.hidden = true;
+  if (!lista) return;
+  lista.innerHTML = "";
+
+  const volver = document.createElement("button");
+  volver.type = "button";
+  volver.className = "modal__boton modal__boton--secundario correo__volver";
+  volver.textContent = "← Volver al buzón";
+  volver.addEventListener("click", renderizarListaCorreo);
+  lista.appendChild(volver);
+
+  if (msg.tipo === "patrocinio") {
+    const cerrarMensaje = () => {
+      jugador.correo = (jugador.correo || []).filter((m) => m.id !== idMensaje);
+      Estado.guardar();
+      renderizarListaCorreo();
+    };
+    const tarjeta = renderizarTarjetaContrato(
+      msg.oferta,
+      () => { firmarContratoPatrocinio(jugador, msg.oferta); cerrarMensaje(); },
+      cerrarMensaje
+    );
+    lista.appendChild(tarjeta);
+  }
+}
+
+function abrirModalCorreo() {
+  const modal = document.getElementById("modal-correo");
+  if (!modal) return;
+  renderizarListaCorreo();
+  modal.hidden = false;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const modalDinero = document.getElementById("modal-dinero");
   if (modalDinero) {
@@ -807,4 +952,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const botonContratos = document.getElementById("hud-boton-contratos");
   if (botonContratos) botonContratos.addEventListener("click", abrirModalContratos);
+
+  const modalCorreo = document.getElementById("modal-correo");
+  if (modalCorreo) {
+    const cerrar = document.getElementById("correo-cerrar");
+    if (cerrar) cerrar.addEventListener("click", () => (modalCorreo.hidden = true));
+    modalCorreo.addEventListener("click", (evento) => { if (evento.target === modalCorreo) modalCorreo.hidden = true; });
+  }
+
+  const botonCorreo = document.getElementById("hud-boton-correo");
+  if (botonCorreo) botonCorreo.addEventListener("click", abrirModalCorreo);
 });

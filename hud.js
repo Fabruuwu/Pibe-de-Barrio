@@ -53,6 +53,7 @@ function pintarHUD(jugador) {
   pintarCariño(jugador);
   pintarSeleccion(jugador);
   if (typeof actualizarBadgeContratos === "function") actualizarBadgeContratos(jugador);
+  if (typeof actualizarBadgeCorreo === "function") actualizarBadgeCorreo(jugador);
   if (typeof pintarMejorasHud === "function") pintarMejorasHud(jugador);
 }
 
@@ -854,7 +855,10 @@ function mostrarResumenAnual() {
     }
 
     function continuarInicioDeAñoPatrocinio() {
-      if (typeof mostrarOfertaPatrocinioSiCorresponde === "function" && mostrarOfertaPatrocinioSiCorresponde(continuarInicioDeAño2)) return;
+      // Las ofertas de patrocinio ya no interrumpen el flujo: se generan
+      // como mensajes en el correo (botón ✉️ del HUD) y el jugador las ve
+      // cuando quiere.
+      if (typeof generarOfertasPatrocinioSiCorresponde === "function") generarOfertasPatrocinioSiCorresponde();
       continuarInicioDeAño2();
     }
 
