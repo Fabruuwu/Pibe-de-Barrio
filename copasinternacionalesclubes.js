@@ -188,7 +188,37 @@ function minijuegoPenalReflejos(callback, jugador, rival) {
 function procesarCopasPendientes(callback) {
   const jugador = Estado.obtener();
   const año = jugador.año;
-  const copas = (jugador.copasPendientes || []).filter(c => c.año === año);
+
+  // Dos filtros de seguridad antes de jugar nada:
+  //
+  // 1) CUPO ATADO AL CLUB: si la copa se agendó con un clubId (se ganó/
+  //    clasificó jugando para ese club) y ya no jugás ahí (te
+  //    transferiste), el cupo se descarta. Es del club, no viaja con vos.
+  //
+  // 2) EXCLUSIÓN MUTUA: por un cruce de agendas (ej: entrás a la
+  //    Libertadores como campeón defensor Y clasificás a la Sudamericana
+  //    por posición de tabla el mismo año) podían quedar agendadas dos
+  //    copas del mismo "nivel" para el mismo año. Te quedás con la de
+  //    mayor jerarquía, la otra se descarta.
+  const GRUPOS_EXCLUYENTES = [
+    ["libertadores", "sudamericana"],
+    ["champions", "europa-league", "conference-league"],
+  ];
+
+  let copas = (jugador.copasPendientes || []).filter(c => c.año === año && (!c.clubId || c.clubId === jugador.club));
+
+  GRUPOS_EXCLUYENTES.forEach(orden => {
+    const presentes = copas.filter(c => orden.includes(c.tipo));
+    if (presentes.length > 1) {
+      const mejor = orden.map(tipo => presentes.find(c => c.tipo === tipo)).find(Boolean);
+      copas = copas.filter(c => !presentes.includes(c) || c === mejor);
+    }
+  });
+
+  // Sacamos ya todas las entradas de este año (las que se van a jugar y
+  // las que se descartaron arriba), así no quedan colgadas para siempre.
+  jugador.copasPendientes = (jugador.copasPendientes || []).filter(c => c.año !== año);
+  Estado.guardar();
 
   if (copas.length === 0) {
     callback();
@@ -198,7 +228,6 @@ function procesarCopasPendientes(callback) {
   let indice = 0;
   function siguiente() {
     if (indice >= copas.length) {
-      jugador.copasPendientes = (jugador.copasPendientes || []).filter(c => c.año !== año);
       Estado.guardar();
       callback();
       return;
@@ -295,7 +324,10 @@ function asegurarPlazaCampeonContinental(jugador, tipo, anioCopa) {
   if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
   const anioSiguiente = anioCopa + 1;
   if (!jugador.copasPendientes.some(copa => copa.año === anioSiguiente && copa.tipo === tipo)) {
-    jugador.copasPendientes.push({ año: anioSiguiente, tipo, rivalId: null, clasificacion: "campeon-defensor" });
+    // clubId: el cupo de campeón defensor es DEL CLUB que ganó, no del
+    // jugador. Si para el año siguiente ya no jugás ahí, se descarta en
+    // procesarCopasPendientes.
+    jugador.copasPendientes.push({ año: anioSiguiente, tipo, rivalId: null, clasificacion: "campeon-defensor", clubId: jugador.club });
   }
 }
 
@@ -1134,7 +1166,9 @@ function agendarMundialClubes(jugador, anioActual) {
   registro.clasifico = porTitulo || registro.clasificoPorPuntos;
   registro.tipo = porTitulo ? "titulo" : "tabla";
   if (registro.clasifico && !jugador.copasPendientes.some(c => c.año === edicion && c.tipo === "mundial-clubes")) {
-    jugador.copasPendientes.push({ año: edicion, tipo: "mundial-clubes", rivalId: null });
+    // clubId: el cupo (por título o por tabla) es del club con el que se
+    // clasificó; si te transferís antes de la edición, se pierde.
+    jugador.copasPendientes.push({ año: edicion, tipo: "mundial-clubes", rivalId: null, clubId: jugador.club });
   }
 }
 
@@ -1412,7 +1446,7 @@ function agendarPlazaUEFA(jugador, año, tipo, clasificacion) {
     return prioridad[copa.tipo] > nuevaPrioridad;
   });
   if (!jugador.copasPendientes.some(copa => copa.año === año && copa.tipo === tipo)) {
-    jugador.copasPendientes.push({ año, tipo, rivalId: null, clasificacion });
+    jugador.copasPendientes.push({ año, tipo, rivalId: null, clasificacion, clubId: jugador.club });
   }
 }
 
@@ -1420,7 +1454,7 @@ function asegurarPlazaMundialClubesProximo(jugador, añoActual, clasificacion) {
   if (!Array.isArray(jugador.copasPendientes)) jugador.copasPendientes = [];
   const añoProximo = añoActual + 1;
   if (!jugador.copasPendientes.some(copa => copa.año === añoProximo && copa.tipo === "mundial-clubes")) {
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "mundial-clubes", rivalId: null, clasificacion });
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "mundial-clubes", rivalId: null, clasificacion, clubId: jugador.club });
   }
 }
 
@@ -1946,7 +1980,7 @@ function mostrarFinalUEFA(copa, callback, config) {
   });
 }
 
-function mostrarEuropaLeague(copa, callback) { mostrarFinalUEFA(copa, callback, { tipo:"europa", nombre:"Europa League", titulo:"UEFA Europa League", descripcion:"Un torneo físico, de canchas difíciles y finales que se juegan al límite.", imagen:"Trofeos/EuropaLeague.png", pesos:{grande:40,mediano:40,chico:15,diminuto:5}, recompensa:(j,a)=>{agendarPlazaUEFA(j,a+1,"champions","campeon-europa");if(!j.copasPendientes.some(c=>c.año===a+1&&c.tipo==="supercopa-uefa"))j.copasPendientes.push({año:a+1,tipo:"supercopa-uefa",rivalId:null});} }); }
+function mostrarEuropaLeague(copa, callback) { mostrarFinalUEFA(copa, callback, { tipo:"europa", nombre:"Europa League", titulo:"UEFA Europa League", descripcion:"Un torneo físico, de canchas difíciles y finales que se juegan al límite.", imagen:"Trofeos/EuropaLeague.png", pesos:{grande:40,mediano:40,chico:15,diminuto:5}, recompensa:(j,a)=>{agendarPlazaUEFA(j,a+1,"champions","campeon-europa");if(!j.copasPendientes.some(c=>c.año===a+1&&c.tipo==="supercopa-uefa"))j.copasPendientes.push({año:a+1,tipo:"supercopa-uefa",rivalId:null,clubId:j.club});} }); }
 function mostrarConferenceLeague(copa, callback) { mostrarFinalUEFA(copa, callback, { tipo:"conference", nombre:"Conference League", titulo:"UEFA Conference League", descripcion:"El torneo del factor sorpresa: estadios raros y situaciones atípicas.", imagen:"Trofeos/ConferenceLeague.png", pesos:{mediano:45,chico:40,grande:10,diminuto:5}, recompensa:(j,a)=>agendarPlazaUEFA(j,a+1,"europa-league","campeon-conference") }); }
 
 function jugarSuperCopaUEFA(callback, jugador, rival) { minijuegoFinalUEFA("supercopa", callback, jugador, rival); }
@@ -2016,7 +2050,7 @@ function mostrarChampions(copa, callback) {
       if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, copa.año);
       const añoProximo = copa.año + 1;
       if (!jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "supercopa-uefa")) {
-        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa-uefa", rivalId: null });
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa-uefa", rivalId: null, clubId: jugador.club });
       }
 
       Estado.guardar();

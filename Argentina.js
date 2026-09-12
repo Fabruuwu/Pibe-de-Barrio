@@ -419,7 +419,7 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 
     rivalId = asegurarRivalDiferente(jugador, rivalId);
     if (rivalId) {
-      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId });
+      jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa", rivalId: rivalId, clubId: jugador.club });
     }
   }
 
@@ -436,7 +436,7 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 
       rivalId = asegurarRivalDiferente(jugador, rivalId);
       if (rivalId && !jugador.copasPendientes.some(c => c.año === añoActual && c.tipo === "trofeo")) {
-        jugador.copasPendientes.push({ año: añoActual, tipo: "trofeo", rivalId: rivalId });
+        jugador.copasPendientes.push({ año: añoActual, tipo: "trofeo", rivalId: rivalId, clubId: jugador.club });
       }
     }
   }
@@ -453,11 +453,11 @@ function agendarProximasCopas(jugador, añoActual, resLiga, resCopa) {
 
     if (clasificaLiberta) {
       if (!jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "libertadores")) {
-        jugador.copasPendientes.push({ año: añoProximo, tipo: "libertadores", rivalId: null });
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "libertadores", rivalId: null, clubId: jugador.club });
       }
     } else if (clasificaSud) {
       if (!jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "sudamericana")) {
-        jugador.copasPendientes.push({ año: añoProximo, tipo: "sudamericana", rivalId: null });
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "sudamericana", rivalId: null, clubId: jugador.club });
       }
     }
   }

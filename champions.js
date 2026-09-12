@@ -56,7 +56,7 @@ function agendarChampionsLeague(jugador, añoActual, resLiga) {
   const posicion = Number(resLiga.posicion);
   const clasifica = resLiga.esCampeon || (Number.isFinite(posicion) && posicion >= 1 && posicion <= 4);
   if (clasifica && !jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "champions")) {
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "champions", rivalId: null });
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "champions", rivalId: null, clubId: jugador.club });
   }
 }
 
@@ -551,7 +551,7 @@ function mostrarChampions(copa, callback) {
       if (typeof agendarMundialClubes === "function") agendarMundialClubes(jugador, copa.año);
       const añoProximo = copa.año + 1;
       if (!jugador.copasPendientes.some((c) => c.año === añoProximo && c.tipo === "supercopa-uefa")) {
-        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa-uefa", rivalId: null });
+        jugador.copasPendientes.push({ año: añoProximo, tipo: "supercopa-uefa", rivalId: null, clubId: jugador.club });
       }
 
       Estado.guardar();

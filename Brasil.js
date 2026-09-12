@@ -101,9 +101,9 @@ function agendarCompeticionesBrasil(jugador, añoActual, resLiga, resCopa) {
   const libertadores = resLiga.esCampeon || resLiga.subcampeon || (pos >= 1 && pos <= 5) || resCopa.esCampeon;
   const sudamericana = !libertadores && pos >= 6 && pos <= 11;
   if (libertadores && !jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "libertadores")) {
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "libertadores", rivalId: null, clasificacion: "brasileirao" });
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "libertadores", rivalId: null, clasificacion: "brasileirao", clubId: jugador.club });
   } else if (sudamericana && !jugador.copasPendientes.some(c => c.año === añoProximo && c.tipo === "sudamericana")) {
-    jugador.copasPendientes.push({ año: añoProximo, tipo: "sudamericana", rivalId: null, clasificacion: "brasileirao" });
+    jugador.copasPendientes.push({ año: añoProximo, tipo: "sudamericana", rivalId: null, clasificacion: "brasileirao", clubId: jugador.club });
   }
 }
 
