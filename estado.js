@@ -244,15 +244,17 @@ const Estado = (() => {
 
     // Aplicar decrementos por edad (NUEVO ESQUEMA)
     const edad = jugador.edad;
+    const tieneTerapeuta = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "terapeuta");
+    const corrimiento = tieneTerapeuta ? 4 : 0; // Terapeuta: el declive arranca 4 años más tarde.
     let resPen = 0;
     let statPen = 0;
-    if (edad >= 30 && edad <= 33) resPen = 1;
-    else if (edad >= 34 && edad <= 42) resPen = 2;
-    else if (edad >= 43 && edad <= 45) resPen = 3;
+    if (edad >= 30 + corrimiento && edad <= 33 + corrimiento) resPen = 1;
+    else if (edad >= 34 + corrimiento && edad <= 42 + corrimiento) resPen = 2;
+    else if (edad >= 43 + corrimiento && edad <= 45 + corrimiento) resPen = 3;
 
-    if (edad >= 32 && edad <= 37) statPen = 1;
-    else if (edad >= 38 && edad <= 42) statPen = 2;
-    else if (edad >= 43 && edad <= 45) statPen = 3;
+    if (edad >= 32 + corrimiento && edad <= 37 + corrimiento) statPen = 1;
+    else if (edad >= 38 + corrimiento && edad <= 42 + corrimiento) statPen = 2;
+    else if (edad >= 43 + corrimiento && edad <= 45 + corrimiento) statPen = 3;
 
     // Aplicar a resistencia
     jugador.stats.resistencia = Math.max(0, (jugador.stats.resistencia || 0) - resPen);
@@ -303,6 +305,7 @@ const Estado = (() => {
       dinero: 0
     };
     jugador.historialEventos = [];
+    if (jugador.tienda && Array.isArray(jugador.tienda.temporales)) jugador.tienda.temporales = [];
     // Limpiamos el resultado de copas especiales al avanzar (se guardan por año)
     // No lo limpiamos aquí porque queremos mostrarlo en el resumen del año en que se jugó
     // En su lugar, lo gestionamos en mostrarResumenAnual (lo consumimos)
@@ -315,12 +318,16 @@ const Estado = (() => {
 
   function verificarRetiroAutomatico() {
     const edad = jugador.edad;
+    const tienePsicologo = typeof tieneMejoraPermanente === "function" && tieneMejoraPermanente(jugador, "psicologo");
+    const corrimiento = tienePsicologo ? 1 : 0; // Psicólogo: las chances empiezan 1 año más tarde.
     let prob = 0;
-    if (edad === 35 || edad === 36 || edad === 37) prob = 0.10;
-    else if (edad === 38 || edad === 39) prob = 0.25;
-    else if (edad === 40 || edad === 41) prob = 0.50;
-    else if (edad === 42 || edad === 43 || edad === 44) prob = 0.75;
-    else if (edad >= 45) prob = 1.0;
+    if (edad === 35 + corrimiento || edad === 36 + corrimiento || edad === 37 + corrimiento) prob = 0.10;
+    else if (edad === 38 + corrimiento || edad === 39 + corrimiento) prob = 0.25;
+    else if (edad === 40 + corrimiento || edad === 41 + corrimiento) prob = 0.50;
+    else if (edad === 42 + corrimiento || edad === 43 + corrimiento || edad === 44 + corrimiento) prob = 0.75;
+    else if (edad >= 45) prob = 1.0; // el retiro forzado a los 45 no se corre ni se reduce
+
+    if (tienePsicologo && prob < 1) prob *= 0.85; // -15% relativo sobre las chances no forzadas
 
     return Math.random() < prob;
   }

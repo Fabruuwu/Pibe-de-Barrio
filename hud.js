@@ -53,6 +53,7 @@ function pintarHUD(jugador) {
   pintarCariño(jugador);
   pintarSeleccion(jugador);
   if (typeof actualizarBadgeContratos === "function") actualizarBadgeContratos(jugador);
+  if (typeof pintarMejorasHud === "function") pintarMejorasHud(jugador);
 }
 
 function obtenerConfigPosicion(posicion) {
@@ -472,17 +473,18 @@ function mostrarResumenAnual() {
     const produccion = generarStatsAnualesPorPosicion(jugador);
     const forma = typeof calcularFormaJugador === "function" ? calcularFormaJugador(jugador) : { bonus: 0 };
     const factorForma = 1 + (forma.bonus || 0);
+    const multTienda = (clave) => (typeof obtenerMultiplicadorTienda === "function" ? obtenerMultiplicadorTienda(jugador, clave) : 1);
 
     const bonus = obtenerBonusResistencia(jugador.stats.resistencia || 0);
-    jugador.statsAnuales.partidos = Math.max(0, produccion.partidos + bonus.partidos);
-    jugador.statsAnuales.goles = Math.max(0, Math.round((produccion.goles + bonus.goles) * factorForma));
-    jugador.statsAnuales.asistencias = Math.max(0, Math.round((produccion.asistencias + bonus.asistencias) * factorForma));
+    jugador.statsAnuales.partidos = Math.max(0, Math.round((produccion.partidos + bonus.partidos) * multTienda("partidos")));
+    jugador.statsAnuales.goles = Math.max(0, Math.round((produccion.goles + bonus.goles) * factorForma * multTienda("goles")));
+    jugador.statsAnuales.asistencias = Math.max(0, Math.round((produccion.asistencias + bonus.asistencias) * factorForma * multTienda("asistencias")));
     if (jugador.posicion === "enganche" && jugador.statsAnuales.asistencias <= jugador.statsAnuales.goles) {
       jugador.statsAnuales.asistencias = jugador.statsAnuales.goles + numeroAleatorio(2, 7);
     }
-    jugador.statsAnuales.vallasInvictas = Math.max(0, Math.round(produccion.vallasInvictas * factorForma));
-    jugador.statsAnuales.recuperaciones = Math.max(0, Math.round(produccion.recuperaciones * factorForma));
-    jugador.statsAnuales.atajadas = Math.max(0, Math.round(produccion.atajadas * factorForma));
+    jugador.statsAnuales.vallasInvictas = Math.max(0, Math.round(produccion.vallasInvictas * factorForma * multTienda("vallasInvictas")));
+    jugador.statsAnuales.recuperaciones = Math.max(0, Math.round(produccion.recuperaciones * factorForma * multTienda("recuperaciones")));
+    jugador.statsAnuales.atajadas = Math.max(0, Math.round(produccion.atajadas * factorForma * multTienda("atajadas")));
 
     jugador.statsAnuales.nota = calcularNotaTemporada(jugador.statsAnuales);
     // Dinero de la temporada = salario mensual del contrato actual x 12 + patrocinios.

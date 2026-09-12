@@ -24,46 +24,115 @@
  */
 
 // El campo "logo" es la ruta a la imagen del patrocinador (mismo patrón
-// que "escudo" en los clubes de data.js): por ahora queda vacío/placeholder
-// y cuando tengamos los assets, se completa con la ruta, ej:
-// "Patrocinadores/nike.png". Si la imagen no existe o no carga, el <img>
-// se oculta solo (onerror) y no rompe nada.
+// que "escudo" en los clubes de data.js). El campo "pais" se usa para
+// mostrar la bandera correspondiente (ver PAISES_A_BANDERA más abajo). Si
+// el logo o la bandera no existen todavía o no cargan, el <img> se oculta
+// solo (onerror) y no rompe nada.
 const PATROCINADORES = [
-  { nombre: "Nike", tier: "elite", pagoMin: 90000, pagoMax: 160000, logo: "" },
-  { nombre: "Adidas", tier: "elite", pagoMin: 90000, pagoMax: 160000, logo: "" },
-  { nombre: "Rolex", tier: "elite", pagoMin: 85000, pagoMax: 150000, logo: "" },
-  { nombre: "Emirates", tier: "elite", pagoMin: 80000, pagoMax: 150000, logo: "" },
-  { nombre: "Visa", tier: "elite", pagoMin: 82000, pagoMax: 150000, logo: "" },
-  { nombre: "Mastercard", tier: "elite", pagoMin: 80000, pagoMax: 148000, logo: "" },
-  { nombre: "Qatar Airways", tier: "elite", pagoMin: 78000, pagoMax: 145000, logo: "" },
-  { nombre: "Coca-Cola", tier: "elite", pagoMin: 85000, pagoMax: 155000, logo: "" },
-  { nombre: "Samsung", tier: "elite", pagoMin: 84000, pagoMax: 158000, logo: "" },
-  { nombre: "Apple", tier: "elite", pagoMin: 88000, pagoMax: 160000, logo: "" },
-  { nombre: "Santander", tier: "alta", pagoMin: 35000, pagoMax: 70000, logo: "" },
-  { nombre: "Pepsi", tier: "alta", pagoMin: 30000, pagoMax: 65000, logo: "" },
-  { nombre: "Puma", tier: "alta", pagoMin: 32000, pagoMax: 68000, logo: "" },
-  { nombre: "Gatorade", tier: "alta", pagoMin: 30000, pagoMax: 62000, logo: "" },
-  { nombre: "Under Armour", tier: "alta", pagoMin: 33000, pagoMax: 66000, logo: "" },
-  { nombre: "New Balance", tier: "alta", pagoMin: 30000, pagoMax: 60000, logo: "" },
-  { nombre: "Heineken", tier: "alta", pagoMin: 34000, pagoMax: 69000, logo: "" },
-  { nombre: "Red Bull", tier: "alta", pagoMin: 36000, pagoMax: 70000, logo: "" },
-  { nombre: "Movistar", tier: "media", pagoMin: 12000, pagoMax: 28000, logo: "" },
-  { nombre: "Claro", tier: "media", pagoMin: 10000, pagoMax: 25000, logo: "" },
-  { nombre: "Personal", tier: "media", pagoMin: 10000, pagoMax: 24000, logo: "" },
-  { nombre: "PlayStation", tier: "media", pagoMin: 11000, pagoMax: 26000, logo: "" },
-  { nombre: "Xbox", tier: "media", pagoMin: 11000, pagoMax: 26000, logo: "" },
-  { nombre: "Banco Galicia", tier: "media", pagoMin: 12000, pagoMax: 27000, logo: "" },
-  { nombre: "YPF", tier: "media", pagoMin: 13000, pagoMax: 29000, logo: "" },
-  { nombre: "Mercado Libre", tier: "media", pagoMin: 14000, pagoMax: 30000, logo: "" },
-  { nombre: "Quilmes", tier: "baja", pagoMin: 3000, pagoMax: 9000, logo: "" },
-  { nombre: "Havanna", tier: "baja", pagoMin: 2500, pagoMax: 8000, logo: "" },
-  { nombre: "Farmacity", tier: "baja", pagoMin: 2000, pagoMax: 7000, logo: "" },
-  { nombre: "Gillette", tier: "baja", pagoMin: 1500, pagoMax: 6000, logo: "" },
-  { nombre: "Rappi", tier: "baja", pagoMin: 2000, pagoMax: 7500, logo: "" },
-  { nombre: "PedidosYa", tier: "baja", pagoMin: 1800, pagoMax: 7000, logo: "" },
-  { nombre: "Arcor", tier: "baja", pagoMin: 1600, pagoMax: 6500, logo: "" },
-  { nombre: "Freddo", tier: "baja", pagoMin: 1500, pagoMax: 6000, logo: "" },
+  // ---- Tier ELITE ----
+  { nombre: "Nike", tier: "elite", pagoMin: 90000, pagoMax: 160000, logo: "Patrocinadores1/Nike.png", pais: "Estados Unidos" },
+  { nombre: "Adidas", tier: "elite", pagoMin: 90000, pagoMax: 160000, logo: "Patrocinadores1/Adidas.png", pais: "Alemania" },
+  { nombre: "Rolex", tier: "elite", pagoMin: 85000, pagoMax: 150000, logo: "Patrocinadores1/Rolex.png", pais: "Suiza" },
+  { nombre: "Emirates", tier: "elite", pagoMin: 80000, pagoMax: 150000, logo: "Patrocinadores1/Emirates.png", pais: "Emiratos Árabes Unidos" },
+  { nombre: "Visa", tier: "elite", pagoMin: 82000, pagoMax: 150000, logo: "Patrocinadores1/Visa.png", pais: "Estados Unidos" },
+  { nombre: "Mastercard", tier: "elite", pagoMin: 80000, pagoMax: 148000, logo: "Patrocinadores1/Mastercard.png", pais: "Estados Unidos" },
+  { nombre: "Qatar Airways", tier: "elite", pagoMin: 78000, pagoMax: 145000, logo: "Patrocinadores1/Qatar.png", pais: "Catar" },
+  { nombre: "Coca-Cola", tier: "elite", pagoMin: 85000, pagoMax: 155000, logo: "Patrocinadores1/CocaCola.png", pais: "Estados Unidos" },
+  { nombre: "Samsung", tier: "elite", pagoMin: 84000, pagoMax: 158000, logo: "Patrocinadores1/Samsung.png", pais: "Corea del Sur" },
+  { nombre: "Apple", tier: "elite", pagoMin: 88000, pagoMax: 160000, logo: "Patrocinadores1/Apple.png", pais: "Estados Unidos" },
+  { nombre: "BMW", tier: "elite", pagoMin: 86000, pagoMax: 155000, logo: "Patrocinadores1/BMW.png", pais: "Alemania" },
+  { nombre: "Toyota", tier: "elite", pagoMin: 83000, pagoMax: 150000, logo: "Patrocinadores1/Toyota.png", pais: "Japón" },
+  { nombre: "EA Sports", tier: "elite", pagoMin: 80000, pagoMax: 148000, logo: "Patrocinadores1/Easports.png", pais: "Estados Unidos" },
+  { nombre: "Louis Vuitton", tier: "elite", pagoMin: 92000, pagoMax: 165000, logo: "Patrocinadores1/LouisVuitton.png", pais: "Francia" },
+  { nombre: "Amazon", tier: "elite", pagoMin: 85000, pagoMax: 152000, logo: "Patrocinadores1/Amazon.png", pais: "Estados Unidos" },
+
+  // ---- Tier ALTA ----
+  { nombre: "Santander", tier: "alta", pagoMin: 35000, pagoMax: 70000, logo: "Patrocinadores1/Santander.png", pais: "España" },
+  { nombre: "Pepsi", tier: "alta", pagoMin: 30000, pagoMax: 65000, logo: "Patrocinadores1/Pepsi.png", pais: "Estados Unidos" },
+  { nombre: "Puma", tier: "alta", pagoMin: 32000, pagoMax: 68000, logo: "Patrocinadores1/Puma.png", pais: "Alemania" },
+  { nombre: "Gatorade", tier: "alta", pagoMin: 30000, pagoMax: 62000, logo: "Patrocinadores1/Gatorade.png", pais: "Estados Unidos" },
+  { nombre: "Under Armour", tier: "alta", pagoMin: 33000, pagoMax: 66000, logo: "Patrocinadores1/UnderArmour.png", pais: "Estados Unidos" },
+  { nombre: "New Balance", tier: "alta", pagoMin: 30000, pagoMax: 60000, logo: "Patrocinadores1/NewBalance.png", pais: "Estados Unidos" },
+  { nombre: "Heineken", tier: "alta", pagoMin: 34000, pagoMax: 69000, logo: "Patrocinadores1/Heineken.png", pais: "Países Bajos" },
+  { nombre: "Red Bull", tier: "alta", pagoMin: 36000, pagoMax: 70000, logo: "Patrocinadores1/Redbull.png", pais: "Austria" },
+  { nombre: "Nintendo", tier: "alta", pagoMin: 35000, pagoMax: 70000, logo: "Patrocinadores1/Nintendo.png", pais: "Japón" },
+  { nombre: "Spotify", tier: "alta", pagoMin: 34000, pagoMax: 68000, logo: "Patrocinadores1/Spotify.png", pais: "Suecia" },
+  { nombre: "Audi", tier: "alta", pagoMin: 36000, pagoMax: 72000, logo: "Patrocinadores1/Audi.png", pais: "Alemania" },
+  { nombre: "Umbro", tier: "alta", pagoMin: 30000, pagoMax: 61000, logo: "Patrocinadores1/Umbro.png", pais: "Reino Unido" },
+  { nombre: "Monster Energy", tier: "alta", pagoMin: 32000, pagoMax: 65000, logo: "Patrocinadores1/Monsterenergy.png", pais: "Estados Unidos" },
+  { nombre: "TAG Heuer", tier: "alta", pagoMin: 37000, pagoMax: 71000, logo: "Patrocinadores1/Tagheuer.png", pais: "Suiza" },
+  { nombre: "Oakley", tier: "alta", pagoMin: 31000, pagoMax: 63000, logo: "Patrocinadores1/Oakley.png", pais: "Estados Unidos" },
+  { nombre: "Mizuno", tier: "alta", pagoMin: 30000, pagoMax: 60000, logo: "Patrocinadores1/Mizuno.png", pais: "Japón" },
+  { nombre: "Hyundai", tier: "alta", pagoMin: 33000, pagoMax: 66000, logo: "Patrocinadores1/Hyundai.png", pais: "Corea del Sur" },
+
+  // ---- Tier MEDIA ----
+  { nombre: "Movistar", tier: "media", pagoMin: 12000, pagoMax: 28000, logo: "Patrocinadores1/Movistar.png", pais: "España" },
+  { nombre: "Claro", tier: "media", pagoMin: 10000, pagoMax: 25000, logo: "Patrocinadores1/Claro.png", pais: "México" },
+  { nombre: "Personal", tier: "media", pagoMin: 10000, pagoMax: 24000, logo: "Patrocinadores1/Personal.png", pais: "Argentina" },
+  { nombre: "PlayStation", tier: "media", pagoMin: 11000, pagoMax: 26000, logo: "Patrocinadores1/Playstation.png", pais: "Japón" },
+  { nombre: "Xbox", tier: "media", pagoMin: 11000, pagoMax: 26000, logo: "Patrocinadores1/Xbox.png", pais: "Estados Unidos" },
+  { nombre: "Banco Galicia", tier: "media", pagoMin: 12000, pagoMax: 27000, logo: "Patrocinadores1/BancoGalicia.png", pais: "Argentina" },
+  { nombre: "YPF", tier: "media", pagoMin: 13000, pagoMax: 29000, logo: "Patrocinadores1/YPF.png", pais: "Argentina" },
+  { nombre: "Mercado Libre", tier: "media", pagoMin: 14000, pagoMax: 30000, logo: "Patrocinadores1/MercadoLibre.png", pais: "Argentina" },
+  { nombre: "Kappa", tier: "media", pagoMin: 12000, pagoMax: 27000, logo: "Patrocinadores1/Kappa.png", pais: "Italia" },
+  { nombre: "Lotto", tier: "media", pagoMin: 11000, pagoMax: 25000, logo: "Patrocinadores1/Lotto.png", pais: "Italia" },
+  { nombre: "Ualá", tier: "media", pagoMin: 13000, pagoMax: 28000, logo: "Patrocinadores1/Uala.png", pais: "Argentina" },
+  { nombre: "Nubank", tier: "media", pagoMin: 14000, pagoMax: 29000, logo: "Patrocinadores1/Nubank.png", pais: "Brasil" },
+  { nombre: "Konami", tier: "media", pagoMin: 12000, pagoMax: 26000, logo: "Patrocinadores1/Konami.png", pais: "Japón" },
+  { nombre: "TCL", tier: "media", pagoMin: 10000, pagoMax: 24000, logo: "Patrocinadores1/Tcl.png", pais: "China" },
+  { nombre: "Cabify", tier: "media", pagoMin: 11000, pagoMax: 25000, logo: "Patrocinadores1/Cabify.png", pais: "España" },
+  { nombre: "Logitech", tier: "media", pagoMin: 13000, pagoMax: 27000, logo: "Patrocinadores1/Logitech.png", pais: "Suiza" },
+
+  // ---- Tier BAJA ----
+  { nombre: "Quilmes", tier: "baja", pagoMin: 3000, pagoMax: 9000, logo: "Patrocinadores1/Quilmes.png", pais: "Argentina" },
+  { nombre: "Havanna", tier: "baja", pagoMin: 2500, pagoMax: 8000, logo: "Patrocinadores1/Havanna.png", pais: "Argentina" },
+  { nombre: "Farmacity", tier: "baja", pagoMin: 2000, pagoMax: 7000, logo: "Patrocinadores1/Farmacity.png", pais: "Argentina" },
+  { nombre: "Gillette", tier: "baja", pagoMin: 1500, pagoMax: 6000, logo: "Patrocinadores1/Gillette.png", pais: "Estados Unidos" },
+  { nombre: "Rappi", tier: "baja", pagoMin: 2000, pagoMax: 7500, logo: "Patrocinadores1/Rappi.png", pais: "Colombia" },
+  { nombre: "PedidosYa", tier: "baja", pagoMin: 1800, pagoMax: 7000, logo: "Patrocinadores1/Pedidosya.png", pais: "Uruguay" },
+  { nombre: "Arcor", tier: "baja", pagoMin: 1600, pagoMax: 6500, logo: "Patrocinadores1/Arcor.png", pais: "Argentina" },
+  { nombre: "Freddo", tier: "baja", pagoMin: 1500, pagoMax: 6000, logo: "Patrocinadores1/Freddo.png", pais: "Argentina" },
+  { nombre: "Mostaza", tier: "baja", pagoMin: 2200, pagoMax: 7500, logo: "Patrocinadores1/Mostaza.png", pais: "Argentina" },
+  { nombre: "Coto", tier: "baja", pagoMin: 2000, pagoMax: 7000, logo: "Patrocinadores1/Coto.png", pais: "Argentina" },
+  { nombre: "Manaos", tier: "baja", pagoMin: 1800, pagoMax: 6800, logo: "Patrocinadores1/Manaos.png", pais: "Argentina" },
+  { nombre: "Grido", tier: "baja", pagoMin: 1700, pagoMax: 6500, logo: "Patrocinadores1/Grido.png", pais: "Argentina" },
+  { nombre: "Flybondi", tier: "baja", pagoMin: 2500, pagoMax: 8000, logo: "Patrocinadores1/Flybondi.png", pais: "Argentina" },
+  { nombre: "Marolio", tier: "baja", pagoMin: 1500, pagoMax: 5800, logo: "Patrocinadores1/Marolio.png", pais: "Argentina" },
+  { nombre: "Guaymallén", tier: "baja", pagoMin: 1400, pagoMax: 5500, logo: "Patrocinadores1/Guaymallen.png", pais: "Argentina" },
+  { nombre: "Naranja X", tier: "baja", pagoMin: 2400, pagoMax: 8200, logo: "Patrocinadores1/Naranjax.png", pais: "Argentina" },
 ];
+
+// Mapeo país -> bandera, reutilizando las banderas de selecciones que ya
+// existen en /Selecciones. Los que tienen "// FALTA" al lado son países sin
+// asset todavía (Emiratos Árabes Unidos, China, Reino Unido no tienen
+// selección propia cargada); cuando se agregue la imagen, solo hay que
+// sumarla al mapa.
+const PAISES_A_BANDERA = {
+  "Argentina": "Selecciones/Argentina.png",
+  "Alemania": "Selecciones/Alemania.png",
+  "Austria": "Selecciones/Austria.png",
+  "Brasil": "Selecciones/Brasil.png",
+  "China": "Selecciones/China.png", // FALTA el asset
+  "Colombia": "Selecciones/Colombia.png",
+  "Corea del Sur": "Selecciones/Corea.png",
+  "Emiratos Árabes Unidos": "Selecciones/EmiratosArabesUnidos.png", // FALTA el asset
+  "España": "Selecciones/España.png",
+  "Estados Unidos": "Selecciones/EstadosUnidos.png",
+  "Francia": "Selecciones/Francia.png",
+  "Italia": "Selecciones/Italia.png",
+  "Japón": "Selecciones/Japon.png",
+  "México": "Selecciones/Mexico.png",
+  "Países Bajos": "Selecciones/PaisesBajos.png",
+  "Catar": "Selecciones/Catar.png",
+  "Reino Unido": "Selecciones/Inglaterra.png", // no hay bandera propia de Reino Unido en los assets, se usa Inglaterra como más cercana
+  "Suecia": "Selecciones/Suecia.png",
+  "Suiza": "Selecciones/Suiza.png",
+  "Uruguay": "Selecciones/Uruguay.png",
+};
+
+function banderaDePais(pais) {
+  return PAISES_A_BANDERA[pais] || "";
+}
 
 const PATROCINADORES_POR_NOMBRE = Object.fromEntries(PATROCINADORES.map((p) => [p.nombre, p]));
 
@@ -280,7 +349,10 @@ function mostrarOfertaPatrocinioSiCorresponde(callback) {
       <div class="contrato-patrocinio__cabecera">
         ${marca.logo ? `<img class="contrato-patrocinio__logo" src="${marca.logo}" alt="${marca.nombre}" onerror="this.hidden=true">` : `<div class="contrato-patrocinio__logo contrato-patrocinio__logo--vacio">${marca.nombre.charAt(0)}</div>`}
         <div>
-          <h2 class="contrato-patrocinio__marca">${marca.nombre}</h2>
+          <h2 class="contrato-patrocinio__marca">
+            ${marca.nombre}
+            ${banderaDePais(marca.pais) ? `<img class="bandera-mini" src="${banderaDePais(marca.pais)}" alt="${marca.pais}" title="${marca.pais}" onerror="this.hidden=true">` : ""}
+          </h2>
           <span class="contrato-patrocinio__tier contrato-patrocinio__tier--${marca.tier}">${etiquetaTier(marca.tier)}</span>
         </div>
       </div>
@@ -458,12 +530,12 @@ function calcularChanceRenovacion(jugador, contrato) {
   return Math.max(5, Math.min(95, Math.round(chance)));
 }
 
-function intentarRenovarContrato(indice, onResultado) {
+function intentarRenovarContrato(indice, onResultado, bonoEntrevista) {
   const jugador = Estado.obtener();
   const contrato = jugador.patrocinios[indice];
   if (!contrato) return;
 
-  const chance = calcularChanceRenovacion(jugador, contrato);
+  const chance = Math.max(5, Math.min(97, Math.round(calcularChanceRenovacion(jugador, contrato) + (bonoEntrevista || 0))));
   const exito = Math.random() * 100 < chance;
   const marca = PATROCINADORES_POR_NOMBRE[contrato.marca] || { nombre: contrato.marca, logo: "" };
 
@@ -489,6 +561,102 @@ function intentarRenovarContrato(indice, onResultado) {
       : `${marca.nombre} decidió no continuar el vínculo. El contrato se perdió.`,
     onCerrar: () => { if (typeof onResultado === "function") onResultado(); },
   });
+}
+
+// ============================================
+// ENTREVISTA DE RENOVACIÓN
+// Mini-diálogo de 3 preguntas antes de tirar el dado de renovación. Cada
+// respuesta suma/resta puntos de chance según cómo encares la charla
+// (seguro y prolijo vs. jugado y arriesgado). No es un simple botón: primero
+// tenés que "vender" tu renovación.
+// ============================================
+const PREGUNTAS_ENTREVISTA = [
+  {
+    pregunta: "El representante de la marca abre la charla: \"¿Cómo definirías tu temporada?\"",
+    opciones: [
+      { texto: "Mostrale los números fríos, sin vueltas", bono: (jugador) => Math.round(Math.max(-5, Math.min(15, ((jugador.media || 0) - 70) * 0.6))), detalle: "Jugada segura si tu media viene alta; floja si venís justo." },
+      { texto: "Hablale con confianza de tu compromiso con la marca", bono: () => 6, detalle: "Una respuesta prolija, suma parejo siempre." },
+      { texto: "Tirale un chiste para relajar el ambiente", bono: () => azarEntero(-4, 10), detalle: "Puede caer bien... o no. Es un tiro de dados." },
+    ],
+  },
+  {
+    pregunta: "\"¿Qué le podés ofrecer a la marca en este nuevo contrato?\"",
+    opciones: [
+      { texto: "Más presencia en redes y entrevistas", bono: () => 5, detalle: "Les gusta la exposición extra." },
+      { texto: "Pedile directamente un contrato más grande", bono: () => -5, detalle: "Sincero, pero los pone incómodos." },
+      { texto: "No prometas nada, dejá que decidan solos", bono: () => 0, detalle: "Neutral, ni suma ni resta." },
+    ],
+  },
+  {
+    pregunta: "Para cerrar la charla, ¿cómo te despedís?",
+    opciones: [
+      { texto: "Agradeciendo la confianza de todos estos años", bono: () => 4, detalle: "Simple y efectivo." },
+      { texto: "Mencionando que tenés otras marcas interesadas", bono: () => azarEntero(-8, 12), detalle: "Jugada de póker: puede asustarlos o urgirlos a cerrar." },
+      { texto: "Pidiendo unos días más para pensarlo", bono: () => -3, detalle: "La indecisión no suma puntos." },
+    ],
+  },
+];
+
+function iniciarEntrevistaRenovacion(indice) {
+  const jugador = Estado.obtener();
+  const contrato = jugador.patrocinios[indice];
+  if (!contrato) return;
+  const marca = PATROCINADORES_POR_NOMBRE[contrato.marca] || { nombre: contrato.marca, logo: "" };
+  const chanceBase = calcularChanceRenovacion(jugador, contrato);
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal modal--entrevista";
+  document.body.appendChild(overlay);
+
+  let bono = 0;
+  let paso = 0;
+
+  function pintarPregunta() {
+    const p = PREGUNTAS_ENTREVISTA[paso];
+    overlay.innerHTML = `
+      <div class="modal__tarjeta entrevista">
+        ${marca.logo ? `<img class="entrevista__logo" src="${marca.logo}" alt="${marca.nombre}" onerror="this.hidden=true">` : `<div class="entrevista__logo entrevista__logo--vacio">${marca.nombre.charAt(0)}</div>`}
+        <span class="entrevista__eyebrow">Negociación de renovación · ${marca.nombre}</span>
+        <div class="entrevista__progreso">
+          ${PREGUNTAS_ENTREVISTA.map((_, i) => `<span class="entrevista__punto ${i < paso ? "entrevista__punto--hecho" : ""} ${i === paso ? "entrevista__punto--activo" : ""}"></span>`).join("")}
+        </div>
+        <p class="entrevista__pregunta">${p.pregunta}</p>
+        <div class="entrevista__opciones">
+          ${p.opciones.map((op, i) => `
+            <button type="button" class="entrevista__opcion" data-i="${i}">
+              <span class="entrevista__opcion-texto">${op.texto}</span>
+            </button>`).join("")}
+        </div>
+      </div>`;
+
+    overlay.querySelectorAll(".entrevista__opcion").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        const opcion = p.opciones[Number(boton.dataset.i)];
+        bono += opcion.bono(jugador);
+        paso++;
+        if (paso < PREGUNTAS_ENTREVISTA.length) pintarPregunta();
+        else pintarResumen();
+      });
+    });
+  }
+
+  function pintarResumen() {
+    const chanceFinal = Math.max(5, Math.min(97, Math.round(chanceBase + bono)));
+    overlay.innerHTML = `
+      <div class="modal__tarjeta entrevista">
+        ${marca.logo ? `<img class="entrevista__logo" src="${marca.logo}" alt="${marca.nombre}" onerror="this.hidden=true">` : `<div class="entrevista__logo entrevista__logo--vacio">${marca.nombre.charAt(0)}</div>`}
+        <span class="entrevista__eyebrow">Negociación de renovación · ${marca.nombre}</span>
+        <p class="entrevista__pregunta">Charla terminada. Así quedó tu chance de renovación:</p>
+        <div class="entrevista__resultado">${chanceFinal}%</div>
+        <button type="button" class="modal__boton modal__boton--secundario" id="entrevista-confirmar">Confirmar renovación</button>
+      </div>`;
+    overlay.querySelector("#entrevista-confirmar").addEventListener("click", () => {
+      overlay.remove();
+      intentarRenovarContrato(indice, () => abrirModalContratos(), bono);
+    });
+  }
+
+  pintarPregunta();
 }
 
 // ============================================
@@ -566,6 +734,7 @@ function abrirModalContratos() {
       <button type="button" class="contrato-item__cabecera">
         ${marca.logo ? `<img class="contrato-item__logo" src="${marca.logo}" alt="${marca.nombre}" onerror="this.hidden=true">` : `<div class="contrato-item__logo contrato-item__logo--vacio">${marca.nombre.charAt(0)}</div>`}
         <span class="contrato-item__nombre">${marca.nombre}</span>
+        ${banderaDePais(marca.pais) ? `<img class="bandera-mini" src="${banderaDePais(marca.pais)}" alt="${marca.pais}" title="${marca.pais}" onerror="this.hidden=true">` : ""}
         <span class="contrato-item__estado contrato-item__estado--${estado.clase}">${estado.texto}</span>
       </button>
       <div class="contrato-item__detalle" hidden>
@@ -574,8 +743,8 @@ function abrirModalContratos() {
         <p>📅 ${contrato.estado === "activo" ? `Quedan ${restantes} año${restantes === 1 ? "" : "s"} de contrato (vence en ${contrato.añoVencimiento})` : `Firmado en ${contrato.añoFirmado}, duraba ${contrato.duracionAnios} año${contrato.duracionAnios > 1 ? "s" : ""}`}</p>
         ${contrato.razonCancelacion ? `<p class="contrato-item__razon">⚠️ Motivo: ${contrato.razonCancelacion}</p>` : ""}
         ${contrato.estado === "vencido" ? `
-          <button type="button" class="contrato-item__renovar" data-indice="${indice}">Renovar</button>
-          <p class="contrato-item__chance">Chances de éxito: ${calcularChanceRenovacion(jugador, contrato)}% (según tu rendimiento y media reciente)</p>
+          <button type="button" class="contrato-item__renovar" data-indice="${indice}">Negociar renovación</button>
+          <p class="contrato-item__chance">Chance base: ${calcularChanceRenovacion(jugador, contrato)}% antes de la charla (varía según cómo la encares)</p>
         ` : ""}
       </div>
     `;
@@ -588,7 +757,7 @@ function abrirModalContratos() {
     if (botonRenovar) {
       botonRenovar.addEventListener("click", (evento) => {
         evento.stopPropagation();
-        intentarRenovarContrato(indice, () => abrirModalContratos());
+        iniciarEntrevistaRenovacion(indice);
       });
     }
 
