@@ -365,6 +365,16 @@ function generarOfertaPatrocinio(jugador, excluidasExtra) {
 // mensaje aparte en el buzón. El sistema queda armado en general para
 // poder sumar más tipos de mensaje a futuro (no solo patrocinios).
 // ============================================
+// 1 y 2 ofertas son lo común, 3 es raro y 4 es muy raro (antes salía
+// parejo 25% cada una, y terminabas lloviendo de 3-4 ofertas seguido).
+function elegirCantidadOfertasPatrocinio() {
+  const random = Math.random() * 100;
+  if (random < 45) return 1;
+  if (random < 80) return 2; // + 35%
+  if (random < 95) return 3; // + 15%
+  return 4;                  // + 5%
+}
+
 function generarOfertasPatrocinioSiCorresponde() {
   const jugador = Estado.obtener();
   const temporada = jugador.año - 1;
@@ -378,7 +388,7 @@ function generarOfertasPatrocinioSiCorresponde() {
 
   if (Math.random() >= probabilidadOfertaEsteAño(jugador)) { Estado.guardar(); return; }
 
-  const cantidadOfertas = azarEntero(1, 4);
+  const cantidadOfertas = elegirCantidadOfertasPatrocinio();
   const marcasUsadas = [];
   for (let i = 0; i < cantidadOfertas; i++) {
     const oferta = generarOfertaPatrocinio(jugador, marcasUsadas);

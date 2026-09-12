@@ -2601,13 +2601,17 @@ body::before {
   background:
     conic-gradient(
       from 0deg,
+      transparent 0deg,
+      transparent var(--cent-ini),
       #ff4d4d var(--cent-ini) calc(var(--cent-ini) + var(--cent-ancho)),
-      transparent 0
+      transparent calc(var(--cent-ini) + var(--cent-ancho))
     ),
     conic-gradient(
       from 0deg,
+      transparent 0deg,
+      transparent var(--obj-ini),
       #3acb83 var(--obj-ini) calc(var(--obj-ini) + var(--obj-ancho)),
-      transparent 0
+      transparent calc(var(--obj-ini) + var(--obj-ancho))
     ),
     radial-gradient(circle at 50% 50%, #1a1c2b 0%, #0d0e16 70%);
   border: 3px solid rgba(247, 201, 72, .35);
